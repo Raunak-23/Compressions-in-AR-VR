@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XR Lab — live viewer</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    color-scheme: light dark;
+    --surface-1: #fcfcfb; --surface-2: #f2f1ee; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --baseline: #c3c2b7; --accent: #2a78d6;
+    --good: #008300; --warning: #eda100; --critical: #e34948;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --surface-1: #1a1a19; --surface-2: #232322; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+            --grid: #2c2c2a; --baseline: #383835; --accent: #3987e5;
+            --good: #008300; --warning: #c98500; --critical: #e66767; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface-1); color: var(--ink); }
+  header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 14px 20px 4px; max-width: 1180px; margin: 0 auto; }
+  h1 { font-size: 18px; margin: 0; }
+  header .sub { color: var(--ink-2); font-size: 13px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 10px 20px 28px; display: grid; gap: 14px; grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr); }
+  @media (max-width: 860px) { .wrap { grid-template-columns: 1fr; } }
+  .stage { position: relative; border-radius: 12px; overflow: hidden; background: #000; aspect-ratio: 16/9; }
+  .stage video { width: 100%; height: 100%; display: block; }
+  .stage .waiting { position: absolute; inset: 0; display: grid; place-content: center; gap: 6px; text-align: center;
+                    background: #101012; color: #f0efec; }
+  .stage .waiting small { color: #c3c2b7; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+  .badge .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .panel { display: grid; gap: 12px; align-content: start; }
+  .tile { border: 1px solid var(--grid); border-radius: 12px; background: var(--surface-1); padding: 10px 12px 8px; }
+  .tile .label { color: var(--ink-2); font-size: 12.5px; }
+  .tile .value { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+  .tile canvas { width: 100%; height: 40px; display: block; margin-top: 4px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  table.metrics { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.metrics td { padding: 4px 6px 4px 0; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  table.metrics td:first-child { color: var(--ink-2); }
+  table.metrics td:last-child { font-variant-numeric: tabular-nums; text-align: right; }
+  .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border: 1px solid var(--grid); border-radius: 12px; padding: 10px 12px; }
+  .controls label { font-size: 13px; color: var(--ink-2); }
+  select, input[type="range"] { font: inherit; }
+  select { padding: 6px 8px; border-radius: 8px; border: 1px solid var(--grid); background: var(--surface-2); color: var(--ink); }
+  .capval { font-variant-numeric: tabular-nums; min-width: 9ch; text-align: right; font-size: 13px; }
+  button { font: inherit; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--grid); background: var(--surface-2); color: var(--ink); }
+  .conn { color: var(--ink-2); font-size: 13px; }
+  .conn .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-right: 6px; }
+  .conn.ok .dot { background: var(--good); }
+  .minimap { display: grid; gap: 4px; }
+  .minimap .box { position: relative; aspect-ratio: 100/62; border: 1px solid var(--grid); border-radius: 8px; background: var(--surface-2); }
+  .minimap .roi { position: absolute; border: 2px solid var(--accent); border-radius: 4px; }
+  .minimap .roi.dim { border-color: var(--baseline); border-style: dashed; }
+  .minimap small { color: var(--muted); }
+  .goto-phone { display: none; }
+  @media (pointer: coarse) {
+    .goto-phone { display: flex; gap: 12px; align-items: center; justify-content: space-between;
+                  max-width: 1180px; margin: 10px auto 0; padding: 12px 14px; border-radius: 12px;
+                  border: 1px solid var(--grid); background: var(--surface-2); font-size: 14px; }
+    .goto-phone a { font-weight: 600; padding: 9px 14px; border-radius: 10px;
+                    background: var(--accent); color: #fff; text-decoration: none; white-space: nowrap; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>XR Compression Lab — live viewer</h1>
+  <span class="sub">phone → WebRTC → adaptive bridge → this page</span>
+  <span class="badge"><span class="dot" id="profDot"></span><span id="profName">—</span></span>
+  <span class="conn" id="conn"><span class="dot"></span>connecting</span>
+</header>
+<div class="goto-phone">
+  <span>This is the laptop <b>viewer</b> — it only receives. To stream from this device, open the phone source.</span>
+  <a href="/phone">Open phone source →</a>
+</div>
+<div class="wrap">
+  <div>
+    <div class="stage">
+      <video id="video" autoplay playsinline muted></video>
+      <div class="waiting" id="waiting">
+        <strong>Waiting for the phone source…</strong>
+        <small>Open /phone on the phone (via the tunnel) and tap Start streaming.</small>
+      </div>
+    </div>
+    <div class="controls" style="margin-top:12px">
+      <label for="forceSel">Profile</label>
+      <select id="forceSel">
+        <option value="auto" selected>auto (EWMA ladder)</option>
+        <option value="ultra">ultra</option>
+        <option value="high">high</option>
+        <option value="medium">medium</option>
+        <option value="low">low</option>
+      </select>
+      <label for="capRange">Simulated link cap</label>
+      <input type="range" id="capRange" min="0" max="6000" step="50" value="0">
+      <span class="capval" id="capVal">off</span>
+      <button id="muteBtn">Enable sound</button>
+    </div>
+    <div class="grid2" style="margin-top:12px">
+      <div class="tile">
+        <div class="label">Measured downlink (viewer stats → EWMA)</div>
+        <div class="value" id="bwVal">—</div>
+        <canvas id="bwSpark"></canvas>
+      </div>
+      <div class="tile">
+        <div class="label">JPEG shadow, bytes per effective frame</div>
+        <div class="value" id="jpVal">—</div>
+        <canvas id="jpSpark"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="minimap tile">
+      <div class="label">Gaze RoI on the 100°×62° frustum</div>
+      <div class="box"><div class="roi dim" id="roiBox"></div></div>
+      <small id="gazeTxt">gaze 0.50, 0.50 · foveation off</small>
+    </div>
+    <table class="metrics">
+      <tr><td>Profile source</td><td id="mSource">—</td></tr>
+      <tr><td>EWMA estimate</td><td id="mEwma">—</td></tr>
+      <tr><td>JPEG quality</td><td id="mQ">—</td></tr>
+      <tr><td>Effective resolution</td><td id="mRes">—</td></tr>
+      <tr><td>Target fps</td><td id="mFps">—</td></tr>
+      <tr><td>Shadow JPEG ratio</td><td id="mRatio">—</td></tr>
+      <tr><td>Stage PSNR (effective frame)</td><td id="mPsnr">—</td></tr>
+      <tr><td>Frames adapted</td><td id="mFrames">—</td></tr>
+      <tr><td>Audio mode</td><td id="mAudio">—</td></tr>
+      <tr><td>Phone → server link</td><td id="mPhone">—</td></tr>
+      <tr><td>Video packets lost (phone hop)</td><td id="mLost">—</td></tr>
+    </table>
+  </div>
+</div>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const HISTORY = 120;
+  const hist = { bw: [], jp: [] };
+  const fmtK = (v) => v == null ? "—" : v >= 1000 ? (v / 1000).toFixed(2) + " Mbps" : Math.round(v) + " kbps";
+  const fmtB = (v) => v == null ? "—" : v >= 1e6 ? (v / 1e6).toFixed(2) + " MB" : v >= 1e3 ? (v / 1e3).toFixed(1) + " KB" : v + " B";
+  const PROFILE_COLOR = { ultra: "var(--good)", high: "var(--good)", medium: "var(--warning)", low: "var(--critical)" };
+
+  function drawSpark(canvas, data, fmt) {
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(dpr, dpr);
+    const css = getComputedStyle(document.documentElement);
+    const muted = css.getPropertyValue("--muted").trim() || "#898781";
+    const accent = css.getPropertyValue("--accent").trim() || "#2a78d6";
+    const grid = css.getPropertyValue("--baseline").trim() || "#c3c2b7";
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = grid; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, h - 0.5); ctx.lineTo(w, h - 0.5); ctx.stroke();  // recessive baseline
+    if (data.length < 2) return;
+    const max = Math.max(...data) * 1.1 || 1, min = 0;
+    const px = (i) => (i / (HISTORY - 1)) * w;
+    const py = (v) => h - 3 - ((v - min) / (max - min)) * (h - 8);
+    const off = HISTORY - data.length;
+    ctx.strokeStyle = muted; ctx.lineWidth = 2; ctx.lineJoin = "round";
+    ctx.beginPath();
+    data.forEach((v, i) => { const x = px(off + i), y = py(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.stroke();
+    const cx = px(off + data.length - 1), cy = py(data[data.length - 1]);
+    ctx.fillStyle = accent;
+    ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, Math.PI * 2); ctx.fill();  // current period in the accent
+  }
+
+  function applyMetrics(m) {
+    $("profName").textContent = m.profile;
+    $("profDot").style.background = PROFILE_COLOR[m.profile] || "var(--muted)";
+    $("mSource").textContent = m.profile_source;
+    $("mEwma").textContent = fmtK(m.measured_kbps);
+    $("mQ").textContent = m.jpeg_quality;
+    $("mRes").textContent = m.shadow.effective ? m.shadow.effective[0] + "×" + m.shadow.effective[1] + " → 1280×720" : "—";
+    $("mFps").textContent = m.fps_target;
+    $("mPsnr").textContent = m.shadow.psnr_db == null ? "∞ (lossless stage)" : m.shadow.psnr_db.toFixed(1) + " dB";
+    $("mFrames").textContent = m.frames_sent.toLocaleString();
+    $("mAudio").textContent = m.audio_mode === "foa" ? "FOA B-format folded to " + m.audio_channels + "ch" : "mic relay (" + m.audio_channels + "ch)";
+    $("mPhone").textContent = m.phone && m.phone.inbound_kbps != null ? fmtK(m.phone.inbound_kbps) : (m.phone_connected ? "measuring…" : "phone offline");
+    $("mLost").textContent = m.phone && m.phone.packets_lost != null ? m.phone.packets_lost : "—";
+    $("gazeTxt").textContent = "gaze " + m.gaze[0].toFixed(2) + ", " + m.gaze[1].toFixed(2) + " · foveation " + (m.foveated ? "on" : "off");
+    const roi = $("roiBox");
+    if (m.shadow.roi && m.shadow.effective) {
+      const [effW, effH] = m.shadow.effective, [x0, y0, x1, y1] = m.shadow.roi;
+      roi.className = "roi";
+      roi.style.left = (x0 / effW) * 100 + "%"; roi.style.top = (y0 / effH) * 100 + "%";
+      roi.style.width = ((x1 - x0) / effW) * 100 + "%"; roi.style.height = ((y1 - y0) / effH) * 100 + "%";
+    } else roi.className = "roi dim";
+    if (m.shadow.jpeg_bytes != null) {
+      $("jpVal").textContent = fmtB(m.shadow.jpeg_bytes);
+      $("mRatio").textContent = (m.shadow.raw_bytes / m.shadow.jpeg_bytes).toFixed(1) + " : 1";
+      hist.jp.push(m.shadow.jpeg_bytes); if (hist.jp.length > HISTORY) hist.jp.shift();
+      drawSpark($("jpSpark"), hist.jp);
+    }
+    if (m.measured_kbps != null) {
+      $("bwVal").textContent = fmtK(m.measured_kbps);
+      hist.bw.push(m.measured_kbps); if (hist.bw.length > HISTORY) hist.bw.shift();
+      drawSpark($("bwSpark"), hist.bw, fmtK);
+    }
+  }
+
+  const pc = new RTCPeerConnection();
+  pc.addTransceiver("video", { direction: "recvonly" });
+  pc.addTransceiver("audio", { direction: "recvonly" });
+  pc.ontrack = (e) => { if (e.track.kind === "video") $("video").srcObject = e.streams[0]; };
+  pc.onconnectionstatechange = () => {
+    const el = $("conn");
+    el.className = "conn" + (pc.connectionState === "connected" ? " ok" : "");
+    el.innerHTML = '<span class="dot"></span>' + pc.connectionState;
+  };
+
+  const ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws/viewer");
+  ws.onopen = async () => {
+    const ice = await fetch("/api/ice").then((r) => r.json()).catch(() => ({ iceServers: [] }));
+    pc.setConfiguration({ iceServers: ice.iceServers });
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    ws.send(JSON.stringify({ type: "offer", sdp: pc.localDescription.sdp }));
+  };
+  ws.onmessage = async (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === "answer") await pc.setRemoteDescription({ type: "answer", sdp: msg.sdp });
+    else if (msg.type === "metrics") applyMetrics(msg);
+  };
+  pc.onicecandidate = (e) => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "ice", candidate: e.candidate ? e.candidate.toJSON() : null }));
+    }
+  };
+  $("video").addEventListener("loadeddata", () => { $("waiting").hidden = true; });
+
+  $("forceSel").addEventListener("change", (e) => {
+    ws.send(JSON.stringify({ type: "set_profile", profile: e.target.value }));
+  });
+  const capRange = $("capRange");
+  capRange.addEventListener("input", () => {
+    const kbps = Number(capRange.value);
+    $("capVal").textContent = kbps === 0 ? "off" : fmtK(kbps);
+    ws.send(JSON.stringify({ type: "set_cap", kbps: kbps === 0 ? null : kbps }));
+  });
+  $("muteBtn").addEventListener("click", () => {
+    const v = $("video");
+    v.muted = !v.muted;
+    $("muteBtn").textContent = v.muted ? "Enable sound" : "Mute";
+    if (!v.muted) v.play().catch(() => {});
+  });
+  window.addEventListener("resize", () => {
+    if (hist.bw.length) drawSpark($("bwSpark"), hist.bw);
+    if (hist.jp.length) drawSpark($("jpSpark"), hist.jp);
+  });
+})();
+</script>
+</body>
+</html>

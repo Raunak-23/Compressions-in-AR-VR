@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>XR Lab — phone source</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    color-scheme: light dark;
+    --surface: #fcfcfb; --surface-2: #f2f1ee; --ink: #0b0b0b; --ink-2: #52514e;
+    --line: #e1e0d9; --accent: #2a78d6; --good: #008300; --serious: #e34948;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --surface: #1a1a19; --surface-2: #232322; --ink: #f0efec; --ink-2: #c3c2b7; --line: #2c2c2a; --accent: #3987e5; --good: #008300; --serious: #e66767; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
+  header { padding: 14px 16px 6px; }
+  h1 { font-size: 17px; margin: 0 0 2px; }
+  header p { margin: 0; color: var(--ink-2); font-size: 13px; }
+  main { padding: 12px 16px calc(20px + env(safe-area-inset-bottom)); display: grid; gap: 12px; max-width: 640px; margin: 0 auto; }
+  .stage { position: relative; border-radius: 12px; overflow: hidden; background: #000; aspect-ratio: 16 / 9; }
+  .stage video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .stage .touchpad { position: absolute; inset: 0; touch-action: none; }
+  .gaze-dot { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%;
+              border: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 25%, transparent);
+              pointer-events: none; left: 50%; top: 50%; }
+  .overlay { position: absolute; inset: 0; display: grid; place-content: center; gap: 8px; text-align: center;
+             background: #101012; color: #f0efec; padding: 16px; }
+  .overlay small { color: #c3c2b7; max-width: 30ch; }
+  .controls { display: grid; gap: 10px; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  button.primary { font: inherit; font-weight: 600; padding: 12px 18px; border-radius: 10px; border: 0;
+                   background: var(--accent); color: #fff; }
+  button.ghost { font: inherit; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line);
+                 background: var(--surface-2); color: var(--ink); }
+  .chip { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 999px;
+          font-size: 13px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-2); }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ink-2); }
+  .chip.live .dot { background: var(--good); }
+  .chip.err .dot { background: var(--serious); }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .seg button { font: inherit; font-size: 13px; padding: 8px 12px; border: 0; background: var(--surface); color: var(--ink-2); }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .hint { color: var(--ink-2); font-size: 13px; }
+  .stats { color: var(--ink-2); font-size: 13px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .stats b { color: var(--ink); font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<header>
+  <h1>XR Compression Lab — phone source</h1>
+  <p>This phone is the XR rig. Its camera is compressed live on the laptop.</p>
+</header>
+<main>
+  <div class="stage" id="stage">
+    <video id="preview" autoplay muted playsinline></video>
+    <div class="touchpad" id="touchpad"><div class="gaze-dot" id="gazeDot"></div></div>
+    <div class="overlay" id="overlay">
+      <button class="primary" id="startBtn">Start streaming</button>
+      <small>Camera + microphone go live over WebRTC. Drag anywhere on the video to steer the gaze RoI.</small>
+    </div>
+  </div>
+  <div class="row">
+    <span class="chip" id="state"><span class="dot"></span><span id="stateText">idle</span></span>
+    <span class="chip"><span class="dot"></span>touch = gaze</span>
+  </div>
+  <div class="controls">
+    <div class="row">
+      <span class="hint">Audio source</span>
+      <div class="seg" id="audioSeg">
+        <button data-mode="mic" aria-pressed="true">Microphone</button>
+        <button data-mode="foa" aria-pressed="false">Spatial FOA (synth)</button>
+      </div>
+    </div>
+    <div class="row">
+      <button class="ghost" id="stopBtn" hidden>Stop</button>
+      <button class="ghost" id="restartBtn" hidden>Reconnect</button>
+    </div>
+  </div>
+  <div class="stats" id="stats" hidden>
+    <span>capture <b id="capRes">—</b></span>
+    <span>fps <b id="capFps">—</b></span>
+    <span>gaze <b id="gazePos">0.50, 0.50</b></span>
+  </div>
+  <p class="hint" id="err" hidden></p>
+  <p class="hint">The laptop (or a second phone acting as viewer) opens <a href="/viewer" style="color:var(--accent)">/viewer</a> — this page is only the streaming source.</p>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const stateChip = $("state"), stateText = $("stateText");
+  let ws = null, pc = null, gazeTimer = 0, gaze = { nx: 0.5, ny: 0.5 };
+  let audioMode = "mic", running = false;
+
+  const setState = (cls, text) => { stateChip.className = "chip " + cls; stateText.textContent = text; };
+  const showErr = (msg) => { const e = $("err"); e.hidden = !msg; if (msg) e.textContent = msg; };
+
+  document.querySelectorAll("#audioSeg button").forEach((b) => {
+    b.addEventListener("click", () => {
+      audioMode = b.dataset.mode;
+      document.querySelectorAll("#audioSeg button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    });
+  });
+
+  function sendGaze(nx, ny) {
+    gaze = { nx: Math.min(Math.max(nx, 0), 1), ny: Math.min(Math.max(ny, 0), 1) };
+    const dot = $("gazeDot");
+    dot.style.left = (gaze.nx * 100) + "%";
+    dot.style.top = (gaze.ny * 100) + "%";
+    $("gazePos").textContent = gaze.nx.toFixed(2) + ", " + gaze.ny.toFixed(2);
+    const now = performance.now();
+    if (ws && ws.readyState === WebSocket.OPEN && now - gazeTimer > 80) {
+      gazeTimer = now;
+      ws.send(JSON.stringify({ type: "gaze", nx: gaze.nx, ny: gaze.ny }));
+    }
+  }
+
+  const pad = $("touchpad");
+  const pointerGaze = (e) => {
+    const r = pad.getBoundingClientRect();
+    sendGaze((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+  };
+  pad.addEventListener("pointerdown", pointerGaze);
+  pad.addEventListener("pointermove", (e) => { if (e.buttons) pointerGaze(e); });
+
+  function iceServers() {
+    return fetch("/api/ice").then((r) => r.json()).catch(() => ({ iceServers: [] }));
+  }
+
+  async function start() {
+    showErr("");
+    setState("", "requesting camera…");
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
+        audio: { echoCancellation: true, noiseSuppression: true },
+      });
+    } catch (e) { showErr("Camera/mic unavailable: " + e.message); setState("err", "blocked"); return; }
+
+    $("preview").srcObject = stream;
+    const track = stream.getVideoTracks()[0];
+    const s = track.getSettings();
+    $("capRes").textContent = s.width + "×" + s.height;
+    $("capFps").textContent = s.frameRate ? Math.round(s.frameRate) : "—";
+    $("stats").hidden = false;
+
+    setState("", "signaling…");
+    ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws/phone");
+    const opened = new Promise((res) => (ws.onopen = res));
+    ws.onclose = () => { if (running) { setState("err", "signaling lost"); $("restartBtn").hidden = false; } };
+
+    pc = new RTCPeerConnection({ iceServers: (await iceServers()).iceServers });
+    stream.getTracks().forEach((t) => pc.addTrack(t, stream));
+    pc.onicecandidate = (e) => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "ice", candidate: e.candidate ? e.candidate.toJSON() : null }));
+      }
+    };
+    pc.onconnectionstatechange = () => {
+      if (pc.connectionState === "connected") setState("live", "live — streaming");
+      else if (["failed", "disconnected", "closed"].includes(pc.connectionState)) setState("err", "link " + pc.connectionState);
+    };
+
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await opened;
+    ws.send(JSON.stringify({ type: "offer", sdp: pc.localDescription.sdp, audio: audioMode }));
+
+    ws.onmessage = async (e) => {
+      const msg = JSON.parse(e.data);
+      if (msg.type === "answer") await pc.setRemoteDescription({ type: "answer", sdp: msg.sdp });
+      else if (msg.type === "ice" && msg.candidate) {
+        try { await pc.addIceCandidate(msg.candidate); } catch (_) {}
+      }
+    };
+  }
+
+  function stop() {
+    running = false;
+    if (pc) { pc.onicecandidate = null; pc.close(); pc = null; }
+    if (ws) { ws.onclose = null; ws.close(); ws = null; }
+    const stream = $("preview").srcObject;
+    if (stream) stream.getTracks().forEach((t) => t.stop());
+    $("preview").srcObject = null;
+    $("overlay").hidden = false; $("startBtn").hidden = false;
+    $("stopBtn").hidden = true; $("restartBtn").hidden = true; $("stats").hidden = true;
+    setState("", "idle");
+  }
+
+  $("startBtn").addEventListener("click", async () => {
+    running = true;
+    $("startBtn").hidden = true; $("overlay").hidden = true; $("stopBtn").hidden = false;
+    await start();
+  });
+  $("restartBtn").addEventListener("click", async () => {
+    $("restartBtn").hidden = true;
+    if (pc) { pc.close(); pc = null; }
+    if (ws) { ws.close(); ws = null; }
+    await start();
+  });
+  $("stopBtn").addEventListener("click", stop);
+})();
+</script>
+</body>
+</html>
