@@ -1,0 +1,16 @@
+step,time_s,simulated_bw_kbps,estimated_bw_kbps,selected_profile,condition,encoded_bytes,psnr_db,viewport_psnr_db,peripheral_psnr_db,overshoot_bytes
+0,0.0,4000,4000.0,ultra,Combined Adaptation,51779,39.64,39.15,39.82,37196
+1,0.5,4000,4000.0,ultra,Combined Adaptation,51586,39.64,39.14,39.82,37003
+2,1.0,4000,4000.0,ultra,Combined Adaptation,50319,39.88,39.48,40.02,35736
+3,1.5,3800,3940.0,ultra,Combined Adaptation,48988,39.99,39.72,40.09,34405
+4,2.0,3500,3808.0,ultra,Combined Adaptation,48334,40.12,39.94,40.18,33751
+5,2.5,400,2785.6,high,Combined Adaptation,42097,37.72,38.06,37.62,34597
+6,3.0,300,2039.9,high,Combined Adaptation,42305,37.63,38.25,37.44,34805
+7,3.5,250,1502.9,medium,Combined Adaptation,39192,37.33,36.27,37.75,34192
+8,4.0,300,1142.1,medium,Combined Adaptation,40115,37.2,35.99,37.69,35115
+9,4.5,400,919.4,medium,Combined Adaptation,40930,36.96,35.68,37.48,35930
+10,5.0,800,883.6,medium,Combined Adaptation,41066,36.96,35.68,37.48,36066
+11,5.5,1500,1068.5,medium,Combined Adaptation,40896,36.96,35.77,37.44,35896
+12,6.0,2500,1498.0,medium,Combined Adaptation,39857,37.28,36.06,37.77,34857
+13,6.5,3500,2098.6,high,Combined Adaptation,42746,37.55,38.08,37.38,35246
+14,7.0,4000,2669.0,high,Combined Adaptation,42459,37.54,38.13,37.36,34959

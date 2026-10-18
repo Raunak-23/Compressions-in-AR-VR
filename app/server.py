@@ -3,10 +3,14 @@ plus the live WebRTC plane (phone -> bridge -> viewers) under /phone and /viewer
 
 In the source platform the client reports WebRTC receiver stats; in the MJPEG
 baseline the client passes its measured bandwidth as a query parameter and the
-server walks the same profile ladder. In the live plane the stats are real."""
+server walks the same profile ladder. In the live plane the stats are real.
+
+When no phone is connected, a built-in synthetic pump feeds XR frames into the
+bridge automatically so the viewer works immediately."""
 
 import asyncio
 import io
+import logging
 import wave
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -17,20 +21,46 @@ from fastapi.responses import FileResponse, Response, StreamingResponse
 
 from app import config
 from app.adaptive import AdaptiveStreamSession
-from app.codecs import lossless, lossy, spatial_audio
+from app.codecs import audio_codec, lossless, lossy, spatial_audio, video_codec
 from app.media_source import SyntheticXRSource
 from app.rtc.bridge import Bridge
 from app.rtc.signaling import phone_endpoint, phone_stats_loop, viewer_endpoint
 from app.viewport import foveated_jpeg, gaze_roi
+from app.viewport_tiles import encode_and_reconstruct_tiles
+
+logger = logging.getLogger(__name__)
 
 WEB_DIR = Path(__file__).parent / "web"
 bridge = Bridge()
 
 
+async def _synthetic_pump(bridge: Bridge) -> None:
+    """Feed synthetic XR frames into the bridge when no phone is connected.
+
+    Starts automatically; pauses while a real phone is publishing and resumes
+    when it disconnects. This ensures the viewer always has video to display."""
+    src = SyntheticXRSource()
+    t = 0.0
+    while True:
+        # Pause while a real phone peer is actively connected
+        if bridge.phone_pc is not None or (bridge.phone_connected and not bridge._synthetic_active):
+            bridge._synthetic_active = False
+            await asyncio.sleep(0.5)
+            continue
+        bridge._synthetic_active = True
+        img = await asyncio.to_thread(src.frame, t)
+        await bridge.video.publish(img)
+        t += 1.0 / 15  # 15 fps synthetic feed
+        await asyncio.sleep(1.0 / 15)
+
+
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
     stats_task = asyncio.create_task(phone_stats_loop(bridge))
+    pump_task = asyncio.create_task(_synthetic_pump(bridge))
+    logger.info("Synthetic video pump started — viewer will show XR frames immediately")
     yield
+    pump_task.cancel()
     stats_task.cancel()
 
 
@@ -54,6 +84,8 @@ def metrics(t: float = 1.0, quality: int = 75):
     jpeg_blob, jpeg_img = lossy.jpeg_roundtrip(img, quality)
     roi = (img.width // 4, img.height // 4, img.width * 3 // 4, img.height * 3 // 4)
     fov = foveated_jpeg(img, roi, quality=quality)
+    h264_blob, h264_rec, h264_m = video_codec.h264_roundtrip(img, bitrate_kbps=1800, fps=30)
+    tiled_res = encode_and_reconstruct_tiles(img, yaw_deg=0.0, pitch_deg=0.0, codec="jpeg")
     return {
         "frame": {"width": img.width, "height": img.height, "raw_bytes": len(raw), "quality": quality},
         "lossless": {
@@ -65,6 +97,15 @@ def metrics(t: float = 1.0, quality: int = 75):
         "lossy": {
             "jpeg": _entry(len(raw), jpeg_blob) | {"psnr_db": round(lossy.psnr(img, jpeg_img), 2)},
             "foveated_jpeg": _entry(len(raw), fov) | {"roi_box": roi},
+            "h264": _entry(len(raw), h264_blob) | {"psnr_db": h264_m["psnr_db"], "ssim": h264_m["ssim"]},
+            "viewport_tiles_4x4": {
+                "bytes": tiled_res.total_bytes,
+                "ratio": round(lossless.compression_ratio(len(raw), tiled_res.total_bytes), 3),
+                "viewport_psnr_db": tiled_res.viewport_psnr_db,
+                "peripheral_psnr_db": tiled_res.peripheral_psnr_db,
+                "full_psnr_db": tiled_res.full_psnr_db,
+                "viewport_ssim": tiled_res.viewport_ssim,
+            },
         },
     }
 
@@ -114,6 +155,7 @@ def healthz():
     return {
         "ok": True,
         "phone_connected": bridge.phone_connected,
+        "synthetic_active": getattr(bridge, "_synthetic_active", False),
         "viewers": len(bridge.viewers),
         "audio_mode": bridge.audio_mode,
     }

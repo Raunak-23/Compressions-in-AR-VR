@@ -129,6 +129,7 @@ class Bridge:
         }
         self.viewers: dict[str, ViewerState] = {}
         self._ids = itertools.count(1)
+        self._synthetic_active = False  # True when synthetic pump is feeding frames
 
     def new_viewer(self) -> ViewerState:
         state = ViewerState(id=f"v{next(self._ids)}")

@@ -26,9 +26,10 @@ from aiortc import MediaStreamTrack
 from aiortc.mediastreams import MediaStreamError
 
 from app import config
-from app.codecs import lossy, spatial_audio
+from app.codecs import lossy, spatial_audio, video_codec
 from app.media_source import SyntheticXRSource
 from app.rtc.bridge import Bridge, ViewerState
+from app import viewport_tiles
 from app.viewport import foveate_image, gaze_roi
 
 logger = logging.getLogger(__name__)
@@ -39,7 +40,11 @@ CANVAS = (config.VIDEO_CANVAS_WIDTH, config.VIDEO_CANVAS_HEIGHT)
 
 
 def process_frame(
-    img: Image.Image, knobs: dict, gaze_norm: tuple[float, float], do_sample: bool
+    img: Image.Image,
+    knobs: dict,
+    gaze_norm: tuple[float, float],
+    do_sample: bool,
+    experimental_codec: str | None = None,
 ) -> tuple[Image.Image, dict]:
     """Adaptive stage for one frame: profile resolution + foveation + shadow
     metrics. Returns the canvas-sized image to transmit and a metrics dict."""
@@ -47,11 +52,22 @@ def process_frame(
     eff_h = max(8, int(CANVAS[1] * knobs["scale"]))
     work = img.resize((eff_w, eff_h), Resampling.BILINEAR)
     roi = None
+    yaw = (gaze_norm[0] - 0.5) * config.HFOV_DEG
+    pitch = (0.5 - gaze_norm[1]) * config.VFOV_DEG
     if knobs["foveated"]:
-        yaw = (gaze_norm[0] - 0.5) * config.HFOV_DEG
-        pitch = (0.5 - gaze_norm[1]) * config.VFOV_DEG
         roi = gaze_roi(eff_w, eff_h, yaw_deg=yaw, pitch_deg=pitch)
         work = foveate_image(work, roi, blur_radius=knobs["blur"])
+
+    h264_shadow_bytes = None
+    if experimental_codec == "h264" and do_sample:
+        try:
+            target_kbps = knobs.get("target_kbps", 1000)
+            h264_blob = video_codec.encode_frame(work, bitrate_kbps=target_kbps, fps=knobs.get("fps", 30))
+            h264_shadow_bytes = len(h264_blob)
+            work = video_codec.decode_frame(h264_blob, target_size=(eff_w, eff_h))
+        except Exception as e:
+            logger.debug("experimental H.264 stage error: %s", e)
+
     out = work.resize(CANVAS, Resampling.BILINEAR)
 
     shadow: dict = {
@@ -60,6 +76,12 @@ def process_frame(
         "raw_bytes": eff_w * eff_h * 3,
         "effective": [eff_w, eff_h],
         "roi": list(roi) if roi else None,
+        "tile_bytes": None,
+        "viewport_psnr_db": None,
+        "peripheral_psnr_db": None,
+        "overshoot_bytes": None,
+        "h264_bytes": h264_shadow_bytes,
+        "note": "Shadow metrics are experimental calculations, not actual VP8 transport payload",
     }
     if do_sample:
         blob = lossy.jpeg_encode(work, quality=knobs["jpeg_quality"])
@@ -67,6 +89,26 @@ def process_frame(
         shadow["jpeg_bytes"] = len(blob)
         psnr = lossy.psnr(ref, work)
         shadow["psnr_db"] = round(psnr, 2) if psnr != float("inf") else None
+
+        if knobs.get("enable_tile_shadow"):
+            target_kbps = knobs.get("target_kbps", 1800)
+            fps = max(knobs.get("fps", 30), 1)
+            budget_bytes = int((target_kbps * 1000 / 8) / fps)
+            try:
+                tile_res = viewport_tiles.encode_and_reconstruct_tiles(
+                    work,
+                    yaw_deg=yaw,
+                    pitch_deg=pitch,
+                    quality_ladder=knobs.get("tile_ladder"),
+                    codec="jpeg",
+                )
+                shadow["tile_bytes"] = tile_res.total_bytes
+                shadow["viewport_psnr_db"] = tile_res.viewport_psnr_db
+                shadow["peripheral_psnr_db"] = tile_res.peripheral_psnr_db
+                shadow["overshoot_bytes"] = max(0, tile_res.total_bytes - budget_bytes)
+            except Exception as e:
+                logger.debug("tile shadow metric error: %s", e)
+
     return out, shadow
 
 
@@ -120,7 +162,9 @@ class ProcessedVideoTrack(MediaStreamTrack):
 
 
 class RelayAudioTrack(MediaStreamTrack):
-    """Passes the phone's decoded audio through, normalized to 48k stereo s16."""
+    """Passes the phone's decoded audio through, normalized to 48k stereo s16.
+    If no phone is sending audio (e.g. synthetic feed or muted), outputs silence
+    at 50 pps (20 ms) to keep WebRTC A/V synchronization alive."""
 
     kind = "audio"
 
@@ -131,14 +175,38 @@ class RelayAudioTrack(MediaStreamTrack):
         self._resampler = AudioResampler(
             format="s16", layout="stereo", rate=config.AUDIO_CLOCK_RATE
         )
+        self._samples = int(config.AUDIO_CLOCK_RATE * config.AUDIO_PTIME_MS / 1000)
+        self._pts = 0
+        self._next_send: float | None = None
 
     async def recv(self) -> AudioFrame:
         if self.readyState != "live":
             raise MediaStreamError
-        frame, seq = await self._bridge.audio.wait_for(self._last_seen)
-        self._last_seen = seq
-        outs = self._resampler.resample(frame)
-        return outs[0] if outs else frame  # matching formats: 1:1 passthrough
+
+        loop = asyncio.get_running_loop()
+        now = loop.time()
+        if self._next_send is None:
+            self._next_send = now
+        if self._next_send > now:
+            await asyncio.sleep(self._next_send - now)
+
+        try:
+            frame, seq = await asyncio.wait_for(
+                self._bridge.audio.wait_for(self._last_seen), timeout=0.03
+            )
+            self._last_seen = seq
+            outs = self._resampler.resample(frame)
+            out_frame = outs[0] if outs else frame
+        except (asyncio.TimeoutError, Exception):
+            silence = np.zeros((1, self._samples * 2), dtype=np.int16)
+            out_frame = AudioFrame.from_ndarray(silence, format="s16", layout="stereo")
+            out_frame.sample_rate = config.AUDIO_CLOCK_RATE
+
+        out_frame.pts = self._pts
+        out_frame.time_base = AUDIO_TIME_BASE
+        self._pts += self._samples
+        self._next_send = max(loop.time(), self._next_send) + self._samples / config.AUDIO_CLOCK_RATE
+        return out_frame
 
 
 class FoaAudioTrack(MediaStreamTrack):

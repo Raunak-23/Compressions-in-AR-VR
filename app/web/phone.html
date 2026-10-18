@@ -58,8 +58,13 @@
     <video id="preview" autoplay muted playsinline></video>
     <div class="touchpad" id="touchpad"><div class="gaze-dot" id="gazeDot"></div></div>
     <div class="overlay" id="overlay">
-      <button class="primary" id="startBtn">Start streaming</button>
-      <small>Camera + microphone go live over WebRTC. Drag anywhere on the video to steer the gaze RoI.</small>
+      <div id="httpNotice" hidden style="background:rgba(230,103,103,0.18);border:1px solid var(--serious);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:12px;text-align:left">
+        <strong>⚠️ Mobile Browser Plain HTTP Detected</strong>
+        <p style="margin:4px 0">Phones block camera access on plain HTTP. To use real camera, open via HTTPS tunnel (<code>npx localtunnel --port 8200</code>). Or tap below to stream a test feed right now!</p>
+      </div>
+      <button class="primary" id="startBtn">Start camera streaming</button>
+      <button class="ghost" id="synthBtn" style="margin-top:6px">Stream simulated phone feed</button>
+      <small style="margin-top:6px">Camera or simulated XR goes live over WebRTC. Drag on screen to steer gaze RoI.</small>
     </div>
   </div>
   <div class="row">
@@ -84,7 +89,7 @@
     <span>fps <b id="capFps">—</b></span>
     <span>gaze <b id="gazePos">0.50, 0.50</b></span>
   </div>
-  <p class="hint" id="err" hidden></p>
+  <p class="hint" id="err" hidden style="color:var(--serious)"></p>
   <p class="hint">The laptop (or a second phone acting as viewer) opens <a href="/viewer" style="color:var(--accent)">/viewer</a> — this page is only the streaming source.</p>
 </main>
 <script>
@@ -92,10 +97,15 @@
   const $ = (id) => document.getElementById(id);
   const stateChip = $("state"), stateText = $("stateText");
   let ws = null, pc = null, gazeTimer = 0, gaze = { nx: 0.5, ny: 0.5 };
-  let audioMode = "mic", running = false;
+  let audioMode = "mic", running = false, synthAnim = null, useSynthetic = false;
 
   const setState = (cls, text) => { stateChip.className = "chip " + cls; stateText.textContent = text; };
   const showErr = (msg) => { const e = $("err"); e.hidden = !msg; if (msg) e.textContent = msg; };
+
+  const isSecure = window.isSecureContext || location.hostname === "localhost" || location.hostname === "127.0.0.1";
+  if (!isSecure && (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)) {
+    $("httpNotice").hidden = false;
+  }
 
   document.querySelectorAll("#audioSeg button").forEach((b) => {
     b.addEventListener("click", () => {
@@ -129,22 +139,73 @@
     return fetch("/api/ice").then((r) => r.json()).catch(() => ({ iceServers: [] }));
   }
 
+  function createSyntheticStream() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 640; canvas.height = 360;
+    const ctx = canvas.getContext("2d");
+    let angle = 0;
+    const draw = () => {
+      angle += 0.05;
+      ctx.fillStyle = "#0d1117"; ctx.fillRect(0, 0, 640, 360);
+      ctx.strokeStyle = "rgba(42, 120, 214, 0.3)"; ctx.lineWidth = 1;
+      for (let x = 0; x < 640; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 360); ctx.stroke(); }
+      for (let y = 0; y < 360; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(640, y); ctx.stroke(); }
+      const cx = 320 + Math.cos(angle) * 160, cy = 180 + Math.sin(angle * 1.4) * 80;
+      ctx.fillStyle = "#3987e5"; ctx.beginPath(); ctx.arc(cx, cy, 24, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#f0efec"; ctx.font = "15px sans-serif";
+      ctx.fillText("📱 Phone WebRTC Stream (Simulated)", 16, 32);
+      ctx.font = "12px monospace";
+      ctx.fillText("Gaze: " + gaze.nx.toFixed(2) + ", " + gaze.ny.toFixed(2), 16, 56);
+      ctx.fillText("Drag screen to steer gaze", 16, 76);
+      synthAnim = requestAnimationFrame(draw);
+    };
+    draw();
+    return canvas.captureStream(30);
+  }
+
   async function start() {
     showErr("");
-    setState("", "requesting camera…");
+    setState("", useSynthetic ? "starting simulated feed…" : "requesting camera…");
     let stream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
-        audio: { echoCancellation: true, noiseSuppression: true },
-      });
-    } catch (e) { showErr("Camera/mic unavailable: " + e.message); setState("err", "blocked"); return; }
+    if (useSynthetic) {
+      stream = createSyntheticStream();
+    } else {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showErr("Camera access blocked by browser over HTTP. Tap 'Stream simulated phone feed' or access via HTTPS.");
+        setState("err", "blocked");
+        $("overlay").hidden = false; $("stopBtn").hidden = true;
+        return;
+      }
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
+          audio: { echoCancellation: true, noiseSuppression: true },
+        });
+      } catch (e1) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: false,
+          });
+        } catch (e2) {
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          } catch (e3) {
+            showErr("Camera/mic unavailable: " + (e1.message || e3.message));
+            setState("err", "blocked");
+            $("overlay").hidden = false; $("stopBtn").hidden = true;
+            return;
+          }
+        }
+      }
+    }
 
     $("preview").srcObject = stream;
+    $("preview").play().catch(() => {});
     const track = stream.getVideoTracks()[0];
-    const s = track.getSettings();
-    $("capRes").textContent = s.width + "×" + s.height;
-    $("capFps").textContent = s.frameRate ? Math.round(s.frameRate) : "—";
+    const s = track ? track.getSettings() : { width: 640, height: 360, frameRate: 30 };
+    $("capRes").textContent = (s.width || 640) + "×" + (s.height || 360);
+    $("capFps").textContent = s.frameRate ? Math.round(s.frameRate) : "30";
     $("stats").hidden = false;
 
     setState("", "signaling…");
@@ -154,8 +215,10 @@
 
     pc = new RTCPeerConnection({ iceServers: (await iceServers()).iceServers });
     stream.getTracks().forEach((t) => pc.addTrack(t, stream));
+
+    let offerSent = false;
     pc.onicecandidate = (e) => {
-      if (ws.readyState === WebSocket.OPEN) {
+      if (offerSent && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: "ice", candidate: e.candidate ? e.candidate.toJSON() : null }));
       }
     };
@@ -168,6 +231,7 @@
     await pc.setLocalDescription(offer);
     await opened;
     ws.send(JSON.stringify({ type: "offer", sdp: pc.localDescription.sdp, audio: audioMode }));
+    offerSent = true;
 
     ws.onmessage = async (e) => {
       const msg = JSON.parse(e.data);
@@ -180,19 +244,27 @@
 
   function stop() {
     running = false;
+    if (synthAnim) { cancelAnimationFrame(synthAnim); synthAnim = null; }
     if (pc) { pc.onicecandidate = null; pc.close(); pc = null; }
     if (ws) { ws.onclose = null; ws.close(); ws = null; }
     const stream = $("preview").srcObject;
     if (stream) stream.getTracks().forEach((t) => t.stop());
     $("preview").srcObject = null;
-    $("overlay").hidden = false; $("startBtn").hidden = false;
+    $("overlay").hidden = false;
     $("stopBtn").hidden = true; $("restartBtn").hidden = true; $("stats").hidden = true;
     setState("", "idle");
   }
 
   $("startBtn").addEventListener("click", async () => {
+    useSynthetic = false;
     running = true;
-    $("startBtn").hidden = true; $("overlay").hidden = true; $("stopBtn").hidden = false;
+    $("overlay").hidden = true; $("stopBtn").hidden = false;
+    await start();
+  });
+  $("synthBtn").addEventListener("click", async () => {
+    useSynthetic = true;
+    running = true;
+    $("overlay").hidden = true; $("stopBtn").hidden = false;
     await start();
   });
   $("restartBtn").addEventListener("click", async () => {

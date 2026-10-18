@@ -3,14 +3,17 @@
 Usage: uv run python experiments.py"""
 
 import io
+import time
 import zlib
 
 from PIL import Image
 
 from app.adaptive import AdaptiveStreamSession
-from app.codecs import lossless, lossy, spatial_audio
+from app.codecs import audio_codec, lossless, lossy, spatial_audio, video_codec
+from app.experiments_runner import run_all_experiments
 from app.media_source import SyntheticXRSource
 from app.viewport import foveated_jpeg, gaze_roi
+from app.viewport_tiles import encode_and_reconstruct_tiles
 
 source = SyntheticXRSource()
 frame = source.frame(1.0)
@@ -81,3 +84,32 @@ for kbps in (5000, 4800, 1000, 300, 2500, 6000):
         f"  link ~{kbps:>5} kbps -> profile {session.profile:<6}"
         f" jpeg q={k['jpeg_quality']:<3} audio {k['audio_channels']}ch  foveated={k['foveated']}"
     )
+
+print("\n== 7. Real H.264 (AVC) vs JPEG Round-Trip on Identical Frame ==")
+for br in (500, 1000, 2000, 3500):
+    h_blob, h_rec, h_m = video_codec.h264_roundtrip(frame, bitrate_kbps=br, fps=30)
+    print(
+        f"  H.264 target {br:>4} kbps -> {len(h_blob):>7,} B   "
+        f"PSNR {h_m['psnr_db']:4.1f} dB   SSIM {h_m['ssim']:.3f}   "
+        f"enc {h_m['encode_time_s']*1000:4.1f}ms  dec {h_m['decode_time_s']*1000:4.1f}ms"
+    )
+
+print("\n== 8. 4x4 Viewport-Aware Tile Compression (Center vs Off-Center Gaze) ==")
+for yaw in (0, 15, 30):
+    t_res = encode_and_reconstruct_tiles(frame, yaw_deg=float(yaw), codec="jpeg")
+    print(
+        f"  yaw={yaw:>2} deg | tiles: {len(t_res.tiles)} total {t_res.total_bytes:>7,} B | "
+        f"Viewport PSNR {t_res.viewport_psnr_db:4.1f} dB (SSIM {t_res.viewport_ssim:.3f}) | "
+        f"Periph PSNR {t_res.peripheral_psnr_db:4.1f} dB (SSIM {t_res.peripheral_ssim:.3f}) | "
+        f"Full PSNR {t_res.full_psnr_db:4.1f} dB"
+    )
+
+print("\n== 9. Real Opus Audio Codec vs Classical Methods (1.0 s Stereo) ==")
+audio_table = audio_codec.compare_audio_codecs(foa, sample_rate=48000, opus_bitrates=(24, 64, 96, 128))
+for entry in audio_table:
+    br_str = f"{entry['bitrate_kbps']:>5.0f} kbps" if entry.get("bitrate_kbps") else "N/A"
+    snr_str = f"{entry['snr_db']:4.1f} dB" if entry.get("snr_db") is not None and entry['snr_db'] != float("inf") else "inf"
+    print(f"  {entry['method']:<32} {entry['bytes']:>8,} B   {br_str}   SNR {snr_str}")
+
+print("\n== 10. Executing Full 4-Condition Benchmark Suite & Exporting Artifacts ==")
+run_all_experiments()

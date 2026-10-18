@@ -228,3 +228,82 @@ async def _run():
 
 def test_live_pipeline_end_to_end():
     asyncio.run(_run())
+
+
+async def _run_synthetic_viewer():
+    old_servers = config.ICE_SERVERS
+    config.ICE_SERVERS = []
+    server = None
+    server_task = None
+    viewer_ws = None
+    viewer_pc = None
+    port = 8210
+    base = f"ws://127.0.0.1:{port}"
+    try:
+        import uvicorn
+
+        server = uvicorn.Server(
+            uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning", ws="websockets")
+        )
+        server_task = asyncio.create_task(server.serve())
+        for _ in range(200):
+            if server.started:
+                break
+            await asyncio.sleep(0.05)
+        assert server.started, "uvicorn did not start"
+
+        viewer_pc = RTCPeerConnection()
+        video_frames: list[VideoFrame] = []
+        audio_frames: list[AudioFrame] = []
+
+        @viewer_pc.on("track")
+        def on_track(track):
+            async def read_video():
+                try:
+                    while True:
+                        video_frames.append(await track.recv())
+                except MediaStreamError:
+                    pass
+
+            async def read_audio():
+                try:
+                    while True:
+                        audio_frames.append(await track.recv())
+                except MediaStreamError:
+                    pass
+
+            if track.kind == "video":
+                asyncio.create_task(read_video())
+            else:
+                asyncio.create_task(read_audio())
+
+        viewer_pc.addTransceiver("video", direction="recvonly")
+        viewer_pc.addTransceiver("audio", direction="recvonly")
+        viewer_ws = Ws(await websockets.connect(f"{base}/ws/viewer"))
+        await _negotiate(viewer_ws, viewer_pc, {"type": "offer"})
+
+        m = await viewer_ws.recv("metrics", 10)
+        assert m["synthetic_active"] is True
+        assert m["phone_connected"] is False
+
+        await asyncio.sleep(1.5)
+        assert len(video_frames) >= 5, f"expected >=5 synthetic video frames, got {len(video_frames)}"
+        assert len(audio_frames) >= 5, f"expected >=5 audio frames (comfort silence), got {len(audio_frames)}"
+    finally:
+        config.ICE_SERVERS = old_servers
+        if viewer_ws:
+            await viewer_ws.close()
+        if viewer_pc:
+            await viewer_pc.close()
+        if server:
+            server.should_exit = True
+            if server_task:
+                try:
+                    await asyncio.wait_for(server_task, 10)
+                except Exception:
+                    pass
+
+
+def test_synthetic_viewer_receives_feed():
+    asyncio.run(_run_synthetic_viewer())
+

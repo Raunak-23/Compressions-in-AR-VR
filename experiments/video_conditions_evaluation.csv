@@ -1,0 +1,21 @@
+condition,codec,available_bw_kbps,selected_profile,gaze_yaw,gaze_pitch,total_encoded_bytes,measured_bitrate_kbps,compression_ratio_vs_raw,psnr_db,ssim,viewport_psnr_db,viewport_ssim,peripheral_psnr_db,peripheral_ssim,encode_time_ms,decode_time_ms,overshoot_bytes
+A: Fixed baseline,JPEG (uniform q=75),250,high (fixed),0.0,0.0,35476,8514.2,77.93,39.1,0.9826,37.82,0.9755,39.1,0.9826,10.82,4.33,34435
+B: Bandwidth adaptation only,"JPEG (uniform q=35, scale=0.5)",250,low,0.0,0.0,8604,1032.5,321.34,32.04,0.9439,30.62,0.9209,32.04,0.9439,4.78,1.91,6521
+C: Viewport adaptation only,4x4 Tiled JPEG (fixed 85/55/25),250,high (fixed),10.0,0.0,47605,11425.2,58.08,38.26,0.9796,38.32,0.9794,38.22,0.9811,10.99,11.99,46564
+D: Combined adaptation,4x4 Tiled JPEG (45/30/15),250,low,10.0,0.0,37699,4523.9,73.34,36.43,0.9738,34.49,0.9661,38.23,0.9803,14.29,16.56,35616
+A: Fixed baseline,JPEG (uniform q=75),500,high (fixed),0.0,0.0,35476,8514.2,77.93,39.1,0.9826,37.82,0.9755,39.1,0.9826,13.04,5.22,33393
+B: Bandwidth adaptation only,"JPEG (uniform q=35, scale=0.5)",500,low,0.0,0.0,8604,1032.5,321.34,32.04,0.9439,30.62,0.9209,32.04,0.9439,4.22,1.69,4438
+C: Viewport adaptation only,4x4 Tiled JPEG (fixed 85/55/25),500,high (fixed),10.0,0.0,47605,11425.2,58.08,38.26,0.9796,38.32,0.9794,38.22,0.9811,6.99,11.39,45522
+D: Combined adaptation,4x4 Tiled JPEG (45/30/15),500,low,10.0,0.0,37699,4523.9,73.34,36.43,0.9738,34.49,0.9661,38.23,0.9803,10.67,14.44,33533
+A: Fixed baseline,JPEG (uniform q=75),1000,high (fixed),0.0,0.0,35476,8514.2,77.93,39.1,0.9826,37.82,0.9755,39.1,0.9826,15.89,6.36,31310
+B: Bandwidth adaptation only,"JPEG (uniform q=55, scale=0.75)",1000,medium,0.0,0.0,18224,2915.8,151.71,34.0,0.9627,32.68,0.9505,34.0,0.9627,8.47,3.39,11974
+C: Viewport adaptation only,4x4 Tiled JPEG (fixed 85/55/25),1000,high (fixed),10.0,0.0,47605,11425.2,58.08,38.26,0.9796,38.32,0.9794,38.22,0.9811,11.64,11.94,43439
+D: Combined adaptation,4x4 Tiled JPEG (65/45/20),1000,medium,10.0,0.0,41096,6575.4,67.28,37.49,0.9763,35.56,0.9708,39.26,0.9825,16.25,18.12,34846
+A: Fixed baseline,JPEG (uniform q=75),2000,high (fixed),0.0,0.0,35476,8514.2,77.93,39.1,0.9826,37.82,0.9755,39.1,0.9826,13.03,5.21,27143
+B: Bandwidth adaptation only,"JPEG (uniform q=75, scale=1.0)",2000,high,0.0,0.0,35476,8514.2,77.93,39.1,0.9826,37.82,0.9755,39.1,0.9826,13.09,5.24,27143
+C: Viewport adaptation only,4x4 Tiled JPEG (fixed 85/55/25),2000,high (fixed),10.0,0.0,47605,11425.2,58.08,38.26,0.9796,38.32,0.9794,38.22,0.9811,9.73,10.6,39272
+D: Combined adaptation,4x4 Tiled JPEG (80/60/30),2000,high,10.0,0.0,45727,10974.5,60.46,37.92,0.9781,37.43,0.9776,38.24,0.9804,9.24,19.11,37394
+A: Fixed baseline,JPEG (uniform q=75),4000,high (fixed),0.0,0.0,35476,8514.2,77.93,39.1,0.9826,37.82,0.9755,39.1,0.9826,14.74,5.9,18810
+B: Bandwidth adaptation only,"JPEG (uniform q=90, scale=1.0)",4000,ultra,0.0,0.0,45793,10990.3,60.38,41.32,0.989,40.09,0.9859,41.32,0.989,15.31,6.12,29127
+C: Viewport adaptation only,4x4 Tiled JPEG (fixed 85/55/25),4000,high (fixed),10.0,0.0,47605,11425.2,58.08,38.26,0.9796,38.32,0.9794,38.22,0.9811,10.26,11.42,30939
+D: Combined adaptation,4x4 Tiled JPEG (90/75/40),4000,ultra,10.0,0.0,53134,12752.2,52.03,40.52,0.985,39.18,0.9833,41.58,0.9872,15.5,19.84,36468

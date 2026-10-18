@@ -104,11 +104,19 @@ async def phone_endpoint(bridge: Bridge, websocket: WebSocket) -> None:
     pc: RTCPeerConnection | None = None
     pumps: list[asyncio.Task] = []
     try:
-        first = json.loads(await websocket.receive_text())
-        if first.get("type") != "offer":
+        early_candidates = []
+        msg = json.loads(await websocket.receive_text())
+        while msg.get("type") == "ice":
+            early_candidates.append(msg.get("candidate"))
+            msg = json.loads(await websocket.receive_text())
+        if msg.get("type") != "offer":
             return
+        first = msg
         mode = first.get("audio", "mic")
         bridge.audio_mode = mode if mode in ("mic", "foa") else "mic"
+
+        # Stop the synthetic pump if it was running
+        bridge._synthetic_active = False
 
         pc = RTCPeerConnection(configuration=_rtc_config())
         bridge.phone_pc = pc
@@ -124,6 +132,8 @@ async def phone_endpoint(bridge: Bridge, websocket: WebSocket) -> None:
         await pc.setRemoteDescription(RTCSessionDescription(sdp=first["sdp"], type="offer"))
         await pc.setLocalDescription(await pc.createAnswer())
         await websocket.send_json({"type": "answer", "sdp": pc.localDescription.sdp})
+        for cand in early_candidates:
+            await _safe_add_ice(pc, cand)
         logger.info("phone connected (audio mode: %s)", bridge.audio_mode)
 
         while True:
@@ -138,6 +148,8 @@ async def phone_endpoint(bridge: Bridge, websocket: WebSocket) -> None:
     finally:
         bridge.phone_pc = None
         bridge.phone_connected = False
+        # Allow the synthetic pump to resume
+        bridge._synthetic_active = False
         for task in pumps:
             task.cancel()
         if pc is not None:
@@ -175,6 +187,7 @@ def _metrics_snapshot(bridge: Bridge, state: ViewerState) -> dict:
         "frames_sent": state.frames_sent,
         "audio_frames": state.audio_frames,
         "phone_connected": bridge.phone_connected,
+        "synthetic_active": getattr(bridge, "_synthetic_active", False),
         "phone": bridge.phone_stats,
         "audio_mode": bridge.audio_mode,
     }
@@ -197,9 +210,14 @@ async def viewer_endpoint(bridge: Bridge, websocket: WebSocket) -> None:
     video_track = audio_track = None
     metrics_task: asyncio.Task | None = None
     try:
-        first = json.loads(await websocket.receive_text())
-        if first.get("type") != "offer":
+        early_candidates = []
+        msg = json.loads(await websocket.receive_text())
+        while msg.get("type") == "ice":
+            early_candidates.append(msg.get("candidate"))
+            msg = json.loads(await websocket.receive_text())
+        if msg.get("type") != "offer":
             return
+        first = msg
         state = bridge.new_viewer()
         pc = RTCPeerConnection(configuration=_rtc_config())
 
@@ -212,6 +230,8 @@ async def viewer_endpoint(bridge: Bridge, websocket: WebSocket) -> None:
         await pc.setRemoteDescription(RTCSessionDescription(sdp=first["sdp"], type="offer"))
         await pc.setLocalDescription(await pc.createAnswer())
         await websocket.send_json({"type": "answer", "sdp": pc.localDescription.sdp})
+        for cand in early_candidates:
+            await _safe_add_ice(pc, cand)
         logger.info("viewer %s connected", state.id)
 
         while True:
