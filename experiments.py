@@ -111,5 +111,12 @@ for entry in audio_table:
     snr_str = f"{entry['snr_db']:4.1f} dB" if entry.get("snr_db") is not None and entry['snr_db'] != float("inf") else "inf"
     print(f"  {entry['method']:<32} {entry['bytes']:>8,} B   {br_str}   SNR {snr_str}")
 
-print("\n== 10. Executing Full 4-Condition Benchmark Suite & Exporting Artifacts ==")
+print("\n== 10. Intelligent RDO Viewport Allocator vs Classical Fixed Tiers ==")
+t_fixed = encode_and_reconstruct_tiles(frame, yaw_deg=10.0, allocation_strategy="fixed_tiers", budget_bytes=40_000)
+t_intel = encode_and_reconstruct_tiles(frame, yaw_deg=10.0, allocation_strategy="intelligent_allocator", budget_bytes=40_000)
+print(f"  Target Budget: 40,000 B (at 1000 kbps @ 30fps)")
+print(f"  Fixed Tiers:     {t_fixed.total_bytes:>7,} B | Viewport PSNR {t_fixed.viewport_psnr_db:4.1f} dB (SSIM {t_fixed.viewport_ssim:.4f}) | Within Budget: {t_fixed.within_budget}")
+print(f"  Intelligent RDO: {t_intel.total_bytes:>7,} B | Viewport PSNR {t_intel.viewport_psnr_db:4.1f} dB (SSIM {t_intel.viewport_ssim:.4f}) | Within Budget: {t_intel.within_budget}")
+
+print("\n== 11. Executing Full 5-Condition Benchmark Suite & Exporting Artifacts ==")
 run_all_experiments()

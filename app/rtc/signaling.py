@@ -170,6 +170,12 @@ def _metrics_snapshot(bridge: Bridge, state: ViewerState) -> dict:
         "profile": state.profile,
         "profile_source": state.profile_source,
         "measured_kbps": round(state.estimator.kbps, 1) if state.has_measurement else None,
+        "volatility_ratio": round(state.estimator.volatility_ratio, 3),
+        "safe_kbps": round(state.estimator.safe_kbps(), 1),
+        "adaptation_reason": getattr(state.controller, "_last_reason", "normal"),
+        "adaptation_action": getattr(state.controller, "_last_action", "maintain"),
+        "allocation_strategy": getattr(state, "allocation_strategy", "intelligent_allocator"),
+        "prediction_enabled": getattr(state, "prediction_enabled", False),
         "cap_kbps": state.cap_kbps,
         "jpeg_quality": knobs["jpeg_quality"],
         "scale": knobs["scale"],
@@ -183,6 +189,16 @@ def _metrics_snapshot(bridge: Bridge, state: ViewerState) -> dict:
             "raw_bytes": shadow.get("raw_bytes", canvas_bytes),
             "effective": shadow.get("effective"),
             "roi": shadow.get("roi"),
+            "tile_bytes": shadow.get("tile_bytes"),
+            "viewport_psnr_db": shadow.get("viewport_psnr_db"),
+            "guard_band_psnr_db": shadow.get("guard_band_psnr_db"),
+            "peripheral_psnr_db": shadow.get("peripheral_psnr_db"),
+            "budget_bytes": shadow.get("budget_bytes"),
+            "overshoot_bytes": shadow.get("overshoot_bytes"),
+            "budget_retries": shadow.get("budget_retries"),
+            "within_budget": shadow.get("within_budget"),
+            "boundary_artifact_mse": shadow.get("boundary_artifact_mse"),
+            "note": shadow.get("note"),
         },
         "frames_sent": state.frames_sent,
         "audio_frames": state.audio_frames,
@@ -240,7 +256,8 @@ async def viewer_endpoint(bridge: Bridge, websocket: WebSocket) -> None:
             if mtype == "ice":
                 await _safe_add_ice(pc, msg.get("candidate"))
             elif mtype == "stats" and state is not None:
-                state.report_throughput(int(msg["bytes"]), float(msg["dt"]))
+                proc_delay = float(msg.get("proc_delay", 0.0))
+                state.report_throughput(int(msg["bytes"]), float(msg["dt"]), processing_delay_s=proc_delay)
             elif mtype == "set_profile" and state is not None:
                 profile = msg.get("profile")
                 state.force_profile = None if profile in (None, "auto") else str(profile)
@@ -249,6 +266,14 @@ async def viewer_endpoint(bridge: Bridge, websocket: WebSocket) -> None:
                 kbps = msg.get("kbps")
                 state.cap_kbps = None if kbps is None else float(kbps)
                 state.repick_profile()
+            elif mtype == "set_mode" and state is not None:
+                state.allocation_strategy = str(msg.get("mode", "intelligent_allocator"))
+            elif mtype == "set_prediction" and state is not None:
+                state.prediction_enabled = bool(msg.get("enabled", False))
+            elif mtype == "set_gaze":
+                x = float(msg.get("x", 0.5))
+                y = float(msg.get("y", 0.5))
+                bridge.set_gaze(x, y)
     except WebSocketDisconnect:
         pass
     finally:

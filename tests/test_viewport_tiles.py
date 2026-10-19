@@ -127,3 +127,73 @@ def test_tile_encoding_h264_codec(frame):
     assert len(res.tiles) == 16
     assert res.reconstructed.size == (1280, 720)
     assert res.total_bytes > 0
+
+
+def test_tile_budget_enforcement_and_retries(frame):
+    # Unconstrained encoding baseline
+    unconstrained = encode_and_reconstruct_tiles(
+        frame,
+        quality_ladder={"high": 90, "medium": 70, "low": 50},
+        codec="jpeg",
+        budget_bytes=None,
+    )
+
+    # Set budget to 60% of unconstrained size
+    target_budget = int(unconstrained.total_bytes * 0.6)
+    budgeted = encode_and_reconstruct_tiles(
+        frame,
+        quality_ladder={"high": 90, "medium": 70, "low": 50},
+        codec="jpeg",
+        budget_bytes=target_budget,
+        max_retries=3,
+        quality_step=10,
+    )
+
+    # Must attempt retries
+    assert budgeted.budget_retries > 0
+    # Encoded bytes must be strictly lower than unconstrained
+    assert budgeted.total_bytes < unconstrained.total_bytes
+    assert budgeted.budget_bytes == target_budget
+
+
+def test_guard_band_and_boundary_metrics(frame):
+    res = encode_and_reconstruct_tiles(
+        frame,
+        yaw_deg=0.0,
+        pitch_deg=0.0,
+        quality_ladder={"high": 85, "medium": 60, "low": 30},
+        codec="jpeg",
+    )
+    # Guard band quality is measured separately from viewport and peripheral
+    assert res.guard_band_psnr_db > 0.0
+    assert res.guard_band_ssim > 0.0
+    assert res.viewport_psnr_db > 0.0
+    assert res.peripheral_psnr_db > 0.0
+    # Verify all tiers are present in the resulting tile breakdown
+    assert any(t.tier == "high" for t in res.tiles)
+    assert any(t.tier == "medium" for t in res.tiles)
+    assert any(t.tier == "low" for t in res.tiles)
+    # Boundary artifact metric is computed (non-negative MSE)
+    assert res.boundary_artifact_mse >= 0.0
+
+
+def test_adaptive_stream_session_budget_control():
+    from app.adaptive import AdaptiveStreamSession
+    source = SyntheticXRSource(1280, 720)
+    session = AdaptiveStreamSession("low")  # low profile: tight budget
+
+    res, report = session.encode_frame_tiled(
+        source,
+        t=1.0,
+        yaw_deg=0.0,
+        pitch_deg=0.0,
+        enforce_budget=True,
+        max_retries=3,
+    )
+    assert "budget_bytes" in report
+    assert "nominal_codec_bitrate_kbps" in report
+    assert "measured_frame_bitrate_kbps" in report
+    assert "budget_retries" in report
+    assert report["fps"] > 0
+    assert report["budget_bytes"] > 0
+

@@ -45,6 +45,7 @@ def process_frame(
     gaze_norm: tuple[float, float],
     do_sample: bool,
     experimental_codec: str | None = None,
+    allocation_strategy: str = "intelligent_allocator",
 ) -> tuple[Image.Image, dict]:
     """Adaptive stage for one frame: profile resolution + foveation + shadow
     metrics. Returns the canvas-sized image to transmit and a metrics dict."""
@@ -78,9 +79,15 @@ def process_frame(
         "roi": list(roi) if roi else None,
         "tile_bytes": None,
         "viewport_psnr_db": None,
+        "guard_band_psnr_db": None,
         "peripheral_psnr_db": None,
+        "budget_bytes": None,
         "overshoot_bytes": None,
+        "budget_retries": 0,
+        "within_budget": True,
+        "boundary_artifact_mse": None,
         "h264_bytes": h264_shadow_bytes,
+        "allocation_strategy": allocation_strategy,
         "note": "Shadow metrics are experimental calculations, not actual VP8 transport payload",
     }
     if do_sample:
@@ -94,6 +101,7 @@ def process_frame(
             target_kbps = knobs.get("target_kbps", 1800)
             fps = max(knobs.get("fps", 30), 1)
             budget_bytes = int((target_kbps * 1000 / 8) / fps)
+            shadow["budget_bytes"] = budget_bytes
             try:
                 tile_res = viewport_tiles.encode_and_reconstruct_tiles(
                     work,
@@ -101,11 +109,17 @@ def process_frame(
                     pitch_deg=pitch,
                     quality_ladder=knobs.get("tile_ladder"),
                     codec="jpeg",
+                    budget_bytes=budget_bytes,
+                    allocation_strategy=allocation_strategy,
                 )
                 shadow["tile_bytes"] = tile_res.total_bytes
                 shadow["viewport_psnr_db"] = tile_res.viewport_psnr_db
+                shadow["guard_band_psnr_db"] = tile_res.guard_band_psnr_db
                 shadow["peripheral_psnr_db"] = tile_res.peripheral_psnr_db
-                shadow["overshoot_bytes"] = max(0, tile_res.total_bytes - budget_bytes)
+                shadow["overshoot_bytes"] = tile_res.overshoot_bytes
+                shadow["budget_retries"] = tile_res.budget_retries
+                shadow["within_budget"] = tile_res.within_budget
+                shadow["boundary_artifact_mse"] = tile_res.boundary_artifact_mse
             except Exception as e:
                 logger.debug("tile shadow metric error: %s", e)
 
@@ -145,7 +159,13 @@ class ProcessedVideoTrack(MediaStreamTrack):
         knobs = self._state.knobs
         do_sample = self._frame_count % config.SHADOW_SAMPLE_EVERY_N == 0
         out, shadow = await asyncio.to_thread(
-            process_frame, img, knobs, self._bridge.gaze_norm, do_sample
+            process_frame,
+            img,
+            knobs,
+            self._bridge.gaze_norm,
+            do_sample,
+            None,
+            getattr(self._state, "allocation_strategy", "intelligent_allocator"),
         )
         self._state.shadow = shadow
         self._state.frames_sent += 1

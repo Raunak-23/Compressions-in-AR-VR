@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from app import config
-from app.adaptive import BandwidthEstimator, pick_profile
+from app.adaptive import BandwidthEstimator, IntelligentBudgetController, pick_profile
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +33,12 @@ class ViewerState:
     shadow: dict[str, Any] = field(default_factory=dict)
     frames_sent: int = 0
     audio_frames: int = 0
+    controller: IntelligentBudgetController = field(init=False)
+    allocation_strategy: str = "intelligent_allocator"
+    prediction_enabled: bool = False
+
+    def __post_init__(self):
+        self.controller = IntelligentBudgetController(estimator=self.estimator, initial_profile=self.profile)
 
     @property
     def knobs(self) -> dict:
@@ -48,22 +54,29 @@ class ViewerState:
             return "measured"
         return "default"
 
-    def report_throughput(self, nbytes: int, seconds: float) -> None:
-        """Feed WebRTC receiver stats (bytes received over dt) into the EWMA."""
+    def report_throughput(self, nbytes: int, seconds: float, processing_delay_s: float = 0.0) -> None:
+        """Feed WebRTC receiver stats (bytes received over dt) into the controller."""
         if seconds <= 0:
             return
-        self.estimator.update(nbytes, seconds)
+        if self.cap_kbps is not None:
+            effective_bytes = min(nbytes, int(self.cap_kbps * 1000 * seconds / 8))
+            self.controller.update(effective_bytes, seconds, processing_delay_s=processing_delay_s)
+        else:
+            self.controller.update(nbytes, seconds, processing_delay_s=processing_delay_s)
         self.has_measurement = True
         self.repick_profile()
 
     def repick_profile(self) -> None:
         if self.force_profile:
             self.profile = self.force_profile
+            self.controller.current_profile = self.force_profile
         elif self.cap_kbps is not None:
-            self.profile = pick_profile(self.cap_kbps)
+            candidate = pick_profile(self.cap_kbps)
+            self.profile = candidate
+            self.controller.current_profile = candidate
         elif self.has_measurement:
             self.profile = pick_profile(self.estimator.kbps)
-        # else: keep the startup rung until the first measurement arrives
+            self.controller.current_profile = self.profile
 
 
 class VideoSlot:
@@ -74,9 +87,23 @@ class VideoSlot:
     """
 
     def __init__(self) -> None:
-        self.cond = asyncio.Condition()
+        self._cond: asyncio.Condition | None = None
         self.image = None  # PIL.Image, already normalized to the canvas
         self.seq = 0
+
+    @property
+    def cond(self) -> asyncio.Condition:
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+        if self._cond is None or (loop is not None and getattr(self._cond, "_loop", None) not in (None, loop)):
+            self._cond = asyncio.Condition()
+        return self._cond
+
+    @cond.setter
+    def cond(self, val: asyncio.Condition) -> None:
+        self._cond = val
 
     async def publish(self, image) -> int:
         async with self.cond:
@@ -95,9 +122,23 @@ class AudioSlot:
     """Latest published audio frame, guarded by a condition for fan-out."""
 
     def __init__(self) -> None:
-        self.cond = asyncio.Condition()
+        self._cond: asyncio.Condition | None = None
         self.frame = None  # av.AudioFrame
         self.seq = 0
+
+    @property
+    def cond(self) -> asyncio.Condition:
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+        if self._cond is None or (loop is not None and getattr(self._cond, "_loop", None) not in (None, loop)):
+            self._cond = asyncio.Condition()
+        return self._cond
+
+    @cond.setter
+    def cond(self, val: asyncio.Condition) -> None:
+        self._cond = val
 
     async def publish(self, frame) -> int:
         async with self.cond:
