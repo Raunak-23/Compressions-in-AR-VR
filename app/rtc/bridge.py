@@ -31,8 +31,11 @@ class ViewerState:
     profile: str = "high"
     has_measurement: bool = False
     shadow: dict[str, Any] = field(default_factory=dict)
+    shadow_sample: dict[str, Any] = field(default_factory=dict)  # last JPEG/PSNR sample (sticky between samples)
     frames_sent: int = 0
     audio_frames: int = 0
+    frames_dropped: int = 0  # adapter skips: consumer arrived late, newest frame won
+    last_report_kbps: float | None = None  # instantaneous wire rate from the last stats report
     controller: IntelligentBudgetController = field(init=False)
     allocation_strategy: str = "intelligent_allocator"
     prediction_enabled: bool = False
@@ -58,6 +61,7 @@ class ViewerState:
         """Feed WebRTC receiver stats (bytes received over dt) into the controller."""
         if seconds <= 0:
             return
+        self.last_report_kbps = round(nbytes * 8 / 1000 / seconds, 1)
         if self.cap_kbps is not None:
             effective_bytes = min(nbytes, int(self.cap_kbps * 1000 * seconds / 8))
             self.controller.update(effective_bytes, seconds, processing_delay_s=processing_delay_s)
@@ -163,11 +167,16 @@ class Bridge:
         self.audio_mode = "mic"  # "mic" (relay) | "foa" (synthesized B-format)
         self.phone_connected = False
         self.phone_pc = None  # aiortc RTCPeerConnection, set by signaling
+        self.phone_ws = None  # signaling websocket of the current owner
+        self.phone_frames = 0  # total decoded phone frames published
+        self.phone_capture: list[int] | None = None  # [w, h] of the incoming stream
         self.phone_stats: dict[str, Any] = {
             "inbound_kbps": None,
             "packets_lost": None,
             "frames_decoded": None,
         }
+        # what the phone's own getStats sampler reports (video-only wire rate)
+        self.phone_reported: dict[str, Any] = {"sent_kbps": None, "sent_fps": None}
         self.viewers: dict[str, ViewerState] = {}
         self._ids = itertools.count(1)
         self._synthetic_active = False  # True when synthetic pump is feeding frames
@@ -182,3 +191,30 @@ class Bridge:
 
     def set_gaze(self, nx: float, ny: float) -> None:
         self.gaze_norm = (min(max(nx, 0.0), 1.0), min(max(ny, 0.0), 1.0))
+
+    async def claim_phone(self, ws, pc) -> None:
+        """Take over as the active phone; the previous publisher is kicked so
+        two sources can never interleave into the same frame slot."""
+        old_ws, old_pc = self.phone_ws, self.phone_pc
+        self.phone_ws, self.phone_pc = ws, pc
+        self.phone_connected = True
+        if old_pc is not None and old_pc is not pc:
+            try:
+                await old_pc.close()
+            except Exception:
+                pass
+        if old_ws is not None and old_ws is not ws:
+            try:
+                await old_ws.close()
+            except Exception:
+                pass
+
+    def release_phone(self, ws) -> None:
+        """Clear publisher state only if `ws` still owns it (a newer phone may
+        have taken over while this session was cleaning up)."""
+        if self.phone_ws is ws:
+            self.phone_ws = None
+            self.phone_pc = None
+            self.phone_connected = False
+            self.phone_capture = None
+            self.phone_reported = {"sent_kbps": None, "sent_fps": None}

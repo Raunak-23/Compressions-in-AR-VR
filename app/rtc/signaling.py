@@ -10,6 +10,8 @@ Message protocol (JSON):
                     {"type": "offer", "sdp": str}                        (viewer, first)
                     {"type": "ice", "candidate": {...}|None}
                     {"type": "gaze", "nx": float, "ny": float}            (phone)
+                    {"type": "txstats", "kbps": float, "fps": float}      (phone: its own
+                                                                           video-only wire rate)
                     {"type": "stats", "bytes": int, "dt": float}          (viewer)
                     {"type": "set_profile", "profile": "auto"|name}       (viewer)
                     {"type": "set_cap", "kbps": float|null}               (viewer)
@@ -76,17 +78,20 @@ def _to_canvas_image(frame, canvas: tuple[int, int]):
     return img
 
 
-async def _pump_video(bridge: Bridge, track) -> None:
+async def _pump_video(bridge: Bridge, track, pc) -> None:
     bridge.phone_connected = True
     try:
         while True:
             frame = await track.recv()
+            bridge.phone_capture = [frame.width, frame.height]
+            bridge.phone_frames += 1
             img = await asyncio.to_thread(_to_canvas_image, frame, (config.VIDEO_CANVAS_WIDTH, config.VIDEO_CANVAS_HEIGHT))
             await bridge.video.publish(img)
     except MediaStreamError:
         pass
     finally:
-        bridge.phone_connected = False
+        if bridge.phone_pc is pc:  # a newer phone may already own the bridge
+            bridge.phone_connected = False
 
 
 async def _pump_audio(bridge: Bridge, track) -> None:
@@ -119,12 +124,12 @@ async def phone_endpoint(bridge: Bridge, websocket: WebSocket) -> None:
         bridge._synthetic_active = False
 
         pc = RTCPeerConnection(configuration=_rtc_config())
-        bridge.phone_pc = pc
+        await bridge.claim_phone(websocket, pc)  # kicks any previous publisher
 
         @pc.on("track")
         def on_track(track):
             if track.kind == "video":
-                pumps.append(asyncio.create_task(_pump_video(bridge, track)))
+                pumps.append(asyncio.create_task(_pump_video(bridge, track, pc)))
             elif bridge.audio_mode == "mic":
                 pumps.append(asyncio.create_task(_pump_audio(bridge, track)))
             # in "foa" mode the phone's audio is intentionally not relayed
@@ -143,11 +148,15 @@ async def phone_endpoint(bridge: Bridge, websocket: WebSocket) -> None:
                 await _safe_add_ice(pc, msg.get("candidate"))
             elif mtype == "gaze":
                 bridge.set_gaze(float(msg["nx"]), float(msg["ny"]))
+            elif mtype == "txstats":
+                # the phone's own video-only wire measurement; aiortc's stats
+                # cannot isolate video bytes from the transport total, so the
+                # sender-side compression ratio uses this number
+                bridge.phone_reported = {"sent_kbps": msg.get("kbps"), "sent_fps": msg.get("fps")}
     except WebSocketDisconnect:
         pass
     finally:
-        bridge.phone_pc = None
-        bridge.phone_connected = False
+        bridge.release_phone(websocket)  # no-op if a newer phone took over
         # Allow the synthetic pump to resume
         bridge._synthetic_active = False
         for task in pumps:
@@ -163,10 +172,12 @@ async def phone_endpoint(bridge: Bridge, websocket: WebSocket) -> None:
 def _metrics_snapshot(bridge: Bridge, state: ViewerState) -> dict:
     knobs = state.knobs
     shadow = state.shadow
+    sample = state.shadow_sample  # JPEG/PSNR etc: sticky between samples
     canvas_bytes = config.VIDEO_CANVAS_WIDTH * config.VIDEO_CANVAS_HEIGHT * 3
     return {
         "ts": round(time.time(), 3),
         "viewer_id": state.id,
+        "canvas": [config.VIDEO_CANVAS_WIDTH, config.VIDEO_CANVAS_HEIGHT],
         "profile": state.profile,
         "profile_source": state.profile_source,
         "measured_kbps": round(state.estimator.kbps, 1) if state.has_measurement else None,
@@ -184,36 +195,62 @@ def _metrics_snapshot(bridge: Bridge, state: ViewerState) -> dict:
         "audio_channels": min(knobs["audio_channels"], 2) if bridge.audio_mode == "foa" else 2,
         "gaze": list(bridge.gaze_norm),
         "shadow": {
-            "jpeg_bytes": shadow.get("jpeg_bytes"),
-            "psnr_db": shadow.get("psnr_db"),
+            "jpeg_bytes": sample.get("jpeg_bytes"),
+            "psnr_db": sample.get("psnr_db"),
             "raw_bytes": shadow.get("raw_bytes", canvas_bytes),
             "effective": shadow.get("effective"),
             "roi": shadow.get("roi"),
-            "tile_bytes": shadow.get("tile_bytes"),
-            "viewport_psnr_db": shadow.get("viewport_psnr_db"),
-            "guard_band_psnr_db": shadow.get("guard_band_psnr_db"),
-            "peripheral_psnr_db": shadow.get("peripheral_psnr_db"),
-            "budget_bytes": shadow.get("budget_bytes"),
-            "overshoot_bytes": shadow.get("overshoot_bytes"),
-            "budget_retries": shadow.get("budget_retries"),
-            "within_budget": shadow.get("within_budget"),
-            "boundary_artifact_mse": shadow.get("boundary_artifact_mse"),
+            "tile_bytes": sample.get("tile_bytes"),
+            "viewport_psnr_db": sample.get("viewport_psnr_db"),
+            "guard_band_psnr_db": sample.get("guard_band_psnr_db"),
+            "peripheral_psnr_db": sample.get("peripheral_psnr_db"),
+            "budget_bytes": sample.get("budget_bytes"),
+            "overshoot_bytes": sample.get("overshoot_bytes"),
+            "budget_retries": sample.get("budget_retries"),
+            "within_budget": sample.get("within_budget", True),
+            "boundary_artifact_mse": sample.get("boundary_artifact_mse"),
+            "h264_bytes": shadow.get("h264_bytes"),
+            "allocation_strategy": shadow.get("allocation_strategy", "intelligent_allocator"),
             "note": shadow.get("note"),
         },
         "frames_sent": state.frames_sent,
         "audio_frames": state.audio_frames,
         "phone_connected": bridge.phone_connected,
         "synthetic_active": getattr(bridge, "_synthetic_active", False),
-        "phone": bridge.phone_stats,
+        "phone": bridge.phone_stats | bridge.phone_reported,
         "audio_mode": bridge.audio_mode,
     }
 
 
 async def _push_metrics(bridge: Bridge, state: ViewerState, websocket: WebSocket) -> None:
+    last_ts = time.monotonic()
+    last_fs = last_pf = 0
     while True:
         await asyncio.sleep(config.METRICS_INTERVAL_S)
+        now = time.monotonic()
+        dt = max(now - last_ts, 1e-6)
         try:
-            await websocket.send_json({"type": "metrics", **_metrics_snapshot(bridge, state)})
+            fs, pf = state.frames_sent, bridge.phone_frames
+            d_fs, d_pf = fs - last_fs, pf - last_pf
+            last_ts, last_fs, last_pf = now, fs, pf
+            snapshot = _metrics_snapshot(bridge, state)
+            capture = bridge.phone_capture or [0, 0]
+            snapshot["sender"] = {
+                "capture": capture,
+                "fps_in": round(d_pf / dt, 1),
+                "raw_kbps": round(d_pf * capture[0] * capture[1] * 3 * 8 / 1000 / dt, 1) if d_pf else 0.0,
+                # video-only wire rate as reported by the phone itself (the
+                # server's transport meter mixes in audio + RTCP + retransmits)
+                "wire_kbps": bridge.phone_reported.get("sent_kbps"),
+            }
+            canvas_bytes = config.VIDEO_CANVAS_WIDTH * config.VIDEO_CANVAS_HEIGHT * 3
+            snapshot["receiver"] = {
+                "fps_actual": round(d_fs / dt, 1),
+                "raw_kbps": round(d_fs * canvas_bytes * 8 / 1000 / dt, 1) if d_fs else 0.0,
+                "wire_kbps": state.last_report_kbps,
+                "frames_dropped": state.frames_dropped,
+            }
+            await websocket.send_json({"type": "metrics", **snapshot})
         except Exception:
             break  # viewer websocket is gone; the endpoint loop cleans up
 

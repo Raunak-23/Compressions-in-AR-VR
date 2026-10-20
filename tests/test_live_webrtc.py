@@ -182,6 +182,19 @@ async def _run():
         assert video_frames[-1].height == config.VIDEO_CANVAS_HEIGHT
         assert len(audio_frames) >= 10, "viewer should be receiving audio"
 
+        # --- sender/receiver byte accounting is live in the metrics ----------
+        m = await viewer_ws.recv("metrics", 5)
+        await phone_ws.send({"type": "txstats", "kbps": 2200.0, "fps": 24.0})
+        while m["sender"]["wire_kbps"] is None:
+            m = await viewer_ws.recv("metrics", 5)
+        assert m["sender"]["capture"] == [320, 180]
+        assert m["sender"]["raw_kbps"] > 0 and m["sender"]["fps_in"] > 0
+        assert m["sender"]["wire_kbps"] == pytest.approx(2200.0)
+        assert m["phone"]["sent_kbps"] == pytest.approx(2200.0)
+        assert m["receiver"]["fps_actual"] > 0
+        assert m["receiver"]["raw_kbps"] > 0
+        assert m["receiver"]["frames_dropped"] >= 0
+
         # --- real receiver stats -> EWMA -> ladder ---------------------------
         await viewer_ws.send({"type": "stats", "bytes": 125_000, "dt": 0.25})  # 4000 kbps
         m = await viewer_ws.recv("metrics", 5)
@@ -207,7 +220,10 @@ async def _run():
 
         # low profile: half resolution, foveated -> shadow jpeg bytes present
         await asyncio.sleep(1.0)
-        assert m["shadow"]["effective"] == [640, 360]
+        assert m["shadow"]["effective"] == [
+            config.VIDEO_CANVAS_WIDTH // 2,
+            config.VIDEO_CANVAS_HEIGHT // 2,
+        ]
         assert m["shadow"]["roi"] is not None  # foveation is on at 'low'
     finally:
         config.ICE_SERVERS = old_servers

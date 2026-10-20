@@ -19,7 +19,7 @@ import logging
 
 import numpy as np
 from av import AudioFrame, AudioResampler, VideoFrame
-from PIL import Image
+from PIL import Image, ImageFilter
 from PIL.Image import Resampling
 
 from aiortc import MediaStreamTrack
@@ -43,24 +43,33 @@ def process_frame(
     img: Image.Image,
     knobs: dict,
     gaze_norm: tuple[float, float],
-    do_sample: bool,
     experimental_codec: str | None = None,
     allocation_strategy: str = "intelligent_allocator",
-) -> tuple[Image.Image, dict]:
-    """Adaptive stage for one frame: profile resolution + foveation + shadow
-    metrics. Returns the canvas-sized image to transmit and a metrics dict."""
+) -> tuple[Image.Image, Image.Image, dict]:
+    """Adaptive stage for one frame (hot path): profile resolution + foveation.
+    Returns (canvas frame, effective-res work image, per-frame shadow). JPEG/PSNR
+    shadow sampling lives in ProcessedVideoTrack._sample_shadow so its ~40 ms
+    never sits on the frame path (it ran inline and spiked latency every Nth
+    frame)."""
     eff_w = max(8, int(CANVAS[0] * knobs["scale"]))
     eff_h = max(8, int(CANVAS[1] * knobs["scale"]))
-    work = img.resize((eff_w, eff_h), Resampling.BILINEAR)
+    work = img if img.size == (eff_w, eff_h) else img.resize((eff_w, eff_h), Resampling.BILINEAR)
     roi = None
     yaw = (gaze_norm[0] - 0.5) * config.HFOV_DEG
     pitch = (0.5 - gaze_norm[1]) * config.VFOV_DEG
     if knobs["foveated"]:
         roi = gaze_roi(eff_w, eff_h, yaw_deg=yaw, pitch_deg=pitch)
-        work = foveate_image(work, roi, blur_radius=knobs["blur"])
+        # shortcut: periphery blur approximated at quarter size (Gaussian r/4
+        # upscaled ~= Gaussian r) -- ~3 ms vs ~28 ms inline. The study plane
+        # keeps the exact foveate_image(); upgrade if the blur ever looks soft.
+        small = work.resize((max(8, eff_w // 4), max(8, eff_h // 4)), Resampling.BILINEAR)
+        blurred = small.filter(ImageFilter.GaussianBlur(max(knobs["blur"] / 4, 0.5)))
+        blurred = blurred.resize((eff_w, eff_h), Resampling.BILINEAR)
+        blurred.paste(work.crop(roi), roi[:2])
+        work = blurred
 
     h264_shadow_bytes = None
-    if experimental_codec == "h264" and do_sample:
+    if experimental_codec == "h264":
         try:
             target_kbps = knobs.get("target_kbps", 1000)
             h264_blob = video_codec.encode_frame(work, bitrate_kbps=target_kbps, fps=knobs.get("fps", 30))
@@ -69,61 +78,35 @@ def process_frame(
         except Exception as e:
             logger.debug("experimental H.264 stage error: %s", e)
 
-    out = work.resize(CANVAS, Resampling.BILINEAR)
+    out = work if work.size == CANVAS else work.resize(CANVAS, Resampling.BILINEAR)
 
     shadow: dict = {
-        "jpeg_bytes": None,
-        "psnr_db": None,
         "raw_bytes": eff_w * eff_h * 3,
         "effective": [eff_w, eff_h],
         "roi": list(roi) if roi else None,
-        "tile_bytes": None,
-        "viewport_psnr_db": None,
-        "guard_band_psnr_db": None,
-        "peripheral_psnr_db": None,
-        "budget_bytes": None,
-        "overshoot_bytes": None,
-        "budget_retries": 0,
-        "within_budget": True,
-        "boundary_artifact_mse": None,
         "h264_bytes": h264_shadow_bytes,
         "allocation_strategy": allocation_strategy,
         "note": "Shadow metrics are experimental calculations, not actual VP8 transport payload",
     }
-    if do_sample:
-        blob = lossy.jpeg_encode(work, quality=knobs["jpeg_quality"])
-        ref = img.resize((eff_w, eff_h), Resampling.BILINEAR)
-        shadow["jpeg_bytes"] = len(blob)
-        psnr = lossy.psnr(ref, work)
-        shadow["psnr_db"] = round(psnr, 2) if psnr != float("inf") else None
+    return out, work, shadow
 
-        if knobs.get("enable_tile_shadow"):
-            target_kbps = knobs.get("target_kbps", 1800)
-            fps = max(knobs.get("fps", 30), 1)
-            budget_bytes = int((target_kbps * 1000 / 8) / fps)
-            shadow["budget_bytes"] = budget_bytes
-            try:
-                tile_res = viewport_tiles.encode_and_reconstruct_tiles(
-                    work,
-                    yaw_deg=yaw,
-                    pitch_deg=pitch,
-                    quality_ladder=knobs.get("tile_ladder"),
-                    codec="jpeg",
-                    budget_bytes=budget_bytes,
-                    allocation_strategy=allocation_strategy,
-                )
-                shadow["tile_bytes"] = tile_res.total_bytes
-                shadow["viewport_psnr_db"] = tile_res.viewport_psnr_db
-                shadow["guard_band_psnr_db"] = tile_res.guard_band_psnr_db
-                shadow["peripheral_psnr_db"] = tile_res.peripheral_psnr_db
-                shadow["overshoot_bytes"] = tile_res.overshoot_bytes
-                shadow["budget_retries"] = tile_res.budget_retries
-                shadow["within_budget"] = tile_res.within_budget
-                shadow["boundary_artifact_mse"] = tile_res.boundary_artifact_mse
-            except Exception as e:
-                logger.debug("tile shadow metric error: %s", e)
 
-    return out, shadow
+def _stage_and_frame(
+    img: Image.Image,
+    knobs: dict,
+    gaze_norm: tuple[float, float],
+    experimental_codec: str | None,
+    allocation_strategy: str,
+    pts: int,
+) -> tuple[Image.Image, Image.Image, dict, VideoFrame]:
+    """Stage one frame and build its yuv420p VideoFrame. Measured slower off
+    the loop on this machine (thread ping-pong), so recv runs it in-loop."""
+    out, work, shadow = process_frame(img, knobs, gaze_norm, experimental_codec, allocation_strategy)
+    frame = VideoFrame.from_ndarray(np.asarray(out, dtype=np.uint8), format="rgb24")
+    frame = frame.reformat(format="yuv420p")  # saves the encoder its own reformat
+    frame.pts = pts
+    frame.time_base = VIDEO_TIME_BASE
+    return out, work, shadow, frame
 
 
 class ProcessedVideoTrack(MediaStreamTrack):
@@ -140,11 +123,61 @@ class ProcessedVideoTrack(MediaStreamTrack):
         self._start: float | None = None
         self._next_send: float | None = None
         self._pts = 0
+        self._shadow_task: asyncio.Task | None = None
+
+    async def _sample_shadow(self, img: Image.Image, work: Image.Image, knobs: dict) -> None:
+        """JPEG size / PSNR shadow metrics, off the frame path (they cost
+        ~40 ms; inline they added a latency spike every Nth frame). Skipped,
+        never queued, if the previous sample is still running."""
+        def run() -> dict:
+            eff = work.size
+            ref = img if img.size == eff else img.resize(eff, Resampling.BILINEAR)
+            psnr = lossy.psnr(ref, work)
+            sample: dict = {
+                "jpeg_bytes": len(lossy.jpeg_encode(work, quality=knobs["jpeg_quality"])),
+                "psnr_db": round(psnr, 2) if psnr != float("inf") else None,
+            }
+            if knobs.get("enable_tile_shadow"):
+                yaw = (self._bridge.gaze_norm[0] - 0.5) * config.HFOV_DEG
+                pitch = (0.5 - self._bridge.gaze_norm[1]) * config.VFOV_DEG
+                fps = max(knobs.get("fps", 30), 1)
+                budget_bytes = int((knobs.get("target_kbps", 1800) * 1000 / 8) / fps)
+                sample["budget_bytes"] = budget_bytes
+                try:
+                    tile_res = viewport_tiles.encode_and_reconstruct_tiles(
+                        work,
+                        yaw_deg=yaw,
+                        pitch_deg=pitch,
+                        quality_ladder=knobs.get("tile_ladder"),
+                        codec="jpeg",
+                        budget_bytes=budget_bytes,
+                        allocation_strategy=self._state.allocation_strategy,
+                    )
+                    sample.update(
+                        tile_bytes=tile_res.total_bytes,
+                        viewport_psnr_db=tile_res.viewport_psnr_db,
+                        guard_band_psnr_db=tile_res.guard_band_psnr_db,
+                        peripheral_psnr_db=tile_res.peripheral_psnr_db,
+                        overshoot_bytes=tile_res.overshoot_bytes,
+                        budget_retries=tile_res.budget_retries,
+                        within_budget=tile_res.within_budget,
+                        boundary_artifact_mse=tile_res.boundary_artifact_mse,
+                    )
+                except Exception as e:
+                    logger.debug("tile shadow metric error: %s", e)
+            return sample
+
+        try:
+            self._state.shadow_sample = await asyncio.to_thread(run)
+        except Exception:
+            logger.debug("shadow sampling failed", exc_info=True)
 
     async def recv(self) -> VideoFrame:
         if self.readyState != "live":
             raise MediaStreamError
         img, seq = await self._bridge.video.wait_for(self._last_seen)
+        if seq > self._last_seen + 1:  # skipped frames: this viewer fell behind
+            self._state.frames_dropped += seq - self._last_seen - 1
         self._last_seen = seq
 
         loop = asyncio.get_running_loop()
@@ -152,32 +185,34 @@ class ProcessedVideoTrack(MediaStreamTrack):
         if self._start is None:
             self._start = now
             self._next_send = now
+        cycle_start = now
         if self._next_send > now:
             await asyncio.sleep(self._next_send - now)
 
         self._frame_count += 1
         knobs = self._state.knobs
-        do_sample = self._frame_count % config.SHADOW_SAMPLE_EVERY_N == 0
-        out, shadow = await asyncio.to_thread(
-            process_frame,
-            img,
-            knobs,
-            self._bridge.gaze_norm,
-            do_sample,
-            None,
-            getattr(self._state, "allocation_strategy", "intelligent_allocator"),
-        )
-        self._state.shadow = shadow
-        self._state.frames_sent += 1
-        self._next_send = max(loop.time(), self._next_send) + 1.0 / max(knobs["fps"], 1)
-
-        frame = VideoFrame.from_ndarray(np.asarray(out, dtype=np.uint8), format="rgb24")
         pts = int((loop.time() - self._start) * config.VIDEO_CLOCK_RATE)
         if pts <= self._pts:  # keep RTP timestamps strictly increasing
             pts = self._pts + 1
+        out, work, shadow, frame = _stage_and_frame(
+            img,
+            knobs,
+            self._bridge.gaze_norm,
+            None,
+            getattr(self._state, "allocation_strategy", "intelligent_allocator"),
+            pts,
+        )
         self._pts = pts
-        frame.pts = pts
-        frame.time_base = VIDEO_TIME_BASE
+        self._state.shadow = shadow
+        self._state.frames_sent += 1
+        if self._frame_count % config.SHADOW_SAMPLE_EVERY_N == 0 and (
+            self._shadow_task is None or self._shadow_task.done()
+        ):
+            self._shadow_task = asyncio.create_task(self._sample_shadow(img, work, knobs))
+        # pace at the profile fps when ahead; when behind, never add a sleep --
+        # the next recv runs immediately (a full period of extra sleep here
+        # capped the pipeline below its real capacity whenever it fell behind)
+        self._next_send = max(cycle_start + 1.0 / max(knobs["fps"], 1), loop.time())
         return frame
 
 
