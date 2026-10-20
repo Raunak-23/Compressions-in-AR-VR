@@ -3,3 +3,4 @@ __pycache__/
 .pytest_cache/
 *.docx
 *pdf
+!XR_Compression_Lab_Complete_Architecture_and_Features_Guide.pdf
