@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XR Compression Lab — Quality Comparison</title>
+<meta name="description" content="Interactive before/after compression comparison with draggable slider, actual quality metrics (PSNR, SSIM, compression ratio), and multi-codec support.">
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    color-scheme: light dark;
+    --surface-1: #0f1117; --surface-2: #181b24; --surface-3: #222634;
+    --ink: #f3f4f6; --ink-2: #9ca3af; --muted: #6b7280;
+    --grid: #2d3345; --baseline: #3f475f; --accent: #3b82f6; --accent-glow: rgba(59,130,246,0.18);
+    --good: #10b981; --warning: #f59e0b; --critical: #ef4444;
+    --radius: 12px; --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --surface-1: #f8fafc; --surface-2: #f1f5f9; --surface-3: #e2e8f0;
+      --ink: #0f172a; --ink-2: #475569; --muted: #64748b;
+      --grid: #cbd5e1; --baseline: #94a3b8; --accent: #2563eb; --accent-glow: rgba(37,99,235,0.12);
+      --good: #059669; --warning: #d97706; --critical: #dc2626;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  [hidden] { display: none !important; }
+  body { font: 15px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--surface-1); color: var(--ink); }
+
+  /* Navigation */
+  nav.top-nav { display: flex; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid var(--grid);
+                max-width: 1300px; margin: 0 auto; flex-wrap: wrap; }
+  nav.top-nav h1 { font-size: 17px; font-weight: 700; }
+  nav.top-nav .links { display: flex; gap: 8px; margin-left: auto; }
+  nav.top-nav .links a { font-size: 13px; font-weight: 500; padding: 6px 12px; border-radius: var(--radius-sm);
+                         text-decoration: none; color: var(--ink-2); border: 1px solid var(--grid);
+                         transition: all 0.2s; }
+  nav.top-nav .links a:hover, nav.top-nav .links a.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .container { max-width: 1300px; margin: 0 auto; padding: 24px 24px 48px; }
+  .header-group { margin-bottom: 20px; }
+  .section-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .section-desc { color: var(--ink-2); font-size: 14px; }
+
+  /* Notice Box */
+  .info-note { background: var(--accent-glow); border: 1px solid var(--accent); border-radius: var(--radius-sm);
+              padding: 10px 14px; font-size: 13px; color: var(--ink); margin-bottom: 20px; display: flex; gap: 10px; align-items: flex-start; }
+  .info-note svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--accent); margin-top: 1px; }
+
+  /* Source Bar */
+  .source-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+                 padding: 14px 18px; border-radius: var(--radius); border: 1px solid var(--grid);
+                 background: var(--surface-2); margin-bottom: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  .source-bar label { font-size: 13px; color: var(--ink-2); font-weight: 600; }
+  .source-bar select, .source-bar input[type="number"], .source-bar input[type="text"] {
+    font: inherit; padding: 6px 10px; border-radius: var(--radius-sm);
+    border: 1px solid var(--grid); background: var(--surface-1); color: var(--ink); font-size: 13px;
+  }
+  .upload-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px;
+                border-radius: var(--radius-sm); border: 1px dashed var(--accent);
+                background: var(--accent-glow); color: var(--accent); cursor: pointer;
+                font-size: 13px; font-weight: 600; transition: all 0.2s; }
+  .upload-btn:hover { background: var(--accent); color: #fff; }
+  .upload-btn input[type="file"] { display: none; }
+  .upload-name { font-size: 12px; color: var(--muted); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .compress-btn { margin-left: auto; padding: 8px 20px; border-radius: var(--radius-sm); border: none;
+                   background: var(--accent); color: #fff; font: inherit; font-weight: 600;
+                   cursor: pointer; transition: all 0.2s; font-size: 13px; }
+  .compress-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .compress-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* Controls Panel */
+  .controls-panel { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+                    gap: 12px; margin-bottom: 20px; }
+  .control-card { padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--grid);
+                  background: var(--surface-2); }
+  .control-card .ctrl-label { font-size: 12px; color: var(--ink-2); font-weight: 600; margin-bottom: 4px; }
+  .control-card .ctrl-row { display: flex; align-items: center; gap: 10px; }
+  .control-card input[type="range"] { flex: 1; accent-color: var(--accent); }
+  .control-card .ctrl-val { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums;
+                            min-width: 50px; text-align: right; }
+  .control-card input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; }
+
+  /* Status message */
+  .status-msg { padding: 10px 16px; border-radius: var(--radius-sm); font-size: 13px;
+                margin-bottom: 16px; display: none; }
+  .status-msg.error { display: block; background: rgba(239,68,68,0.12); border: 1px solid var(--critical); color: var(--critical); }
+  .status-msg.info { display: block; background: var(--accent-glow); border: 1px solid var(--accent); color: var(--accent); }
+  .status-msg.loading { display: flex; align-items: center; background: var(--accent-glow); border: 1px solid var(--accent); color: var(--accent); }
+  .loading-spinner { display: inline-block; width: 18px; height: 18px; border: 2.5px solid var(--grid);
+                     border-top-color: var(--accent); border-radius: 50%;
+                     animation: spin 0.8s linear infinite; margin-right: 10px; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Before / After Slider */
+  .slider-wrapper { position: relative; width: 100%; margin: 0 auto 24px; }
+  .slider-container {
+    position: relative; width: 100%; border-radius: var(--radius); overflow: hidden;
+    background: #000; cursor: ew-resize; touch-action: none;
+    border: 1px solid var(--grid); box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    user-select: none;
+  }
+  .slider-container:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .slider-container img.base-img {
+    display: block; width: 100%; height: auto; pointer-events: none; user-select: none;
+  }
+  .slider-overlay {
+    position: absolute; top: 0; left: 0; height: 100%; width: 50%;
+    overflow: hidden; pointer-events: none;
+  }
+  .slider-overlay img.top-img {
+    position: absolute; top: 0; left: 0; height: 100%; max-width: none;
+    pointer-events: none; user-select: none;
+  }
+  .slider-divider {
+    position: absolute; top: 0; bottom: 0; width: 2px; background: #ffffff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.6); z-index: 10; pointer-events: none;
+  }
+  .slider-handle {
+    position: absolute; top: 50%; width: 38px; height: 38px; border-radius: 50%;
+    background: #ffffff; border: 2px solid var(--accent); box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    z-index: 11; transform: translate(-50%, -50%); pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .slider-handle svg { width: 18px; height: 18px; color: var(--accent); }
+  .slider-tag {
+    position: absolute; top: 14px; padding: 4px 12px; border-radius: var(--radius-sm);
+    font-size: 12px; font-weight: 700; z-index: 12; pointer-events: none;
+    letter-spacing: 0.3px; text-transform: uppercase;
+  }
+  .slider-tag.left { left: 14px; background: rgba(59,130,246,0.9); color: #fff; }
+  .slider-tag.right { right: 14px; background: rgba(239,68,68,0.9); color: #fff; }
+  .reset-slider-btn {
+    position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+    padding: 6px 14px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(15,17,23,0.7); color: #fff; font-size: 12px; font-weight: 600;
+    cursor: pointer; z-index: 12; backdrop-filter: blur(6px); transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .reset-slider-btn:hover { background: rgba(15,17,23,0.9); }
+
+  /* Empty State */
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 320px; border-radius: var(--radius); border: 1px dashed var(--grid);
+    background: var(--surface-2); color: var(--muted); text-align: center; gap: 10px; padding: 24px;
+    margin-bottom: 24px;
+  }
+  .empty-state svg { width: 44px; height: 44px; opacity: 0.5; }
+
+  /* Metrics Panel */
+  .metrics-header { font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .metric-card {
+    padding: 14px; border-radius: var(--radius); border: 1px solid var(--grid);
+    background: var(--surface-2); text-align: center; transition: border-color 0.2s;
+  }
+  .metric-card .metric-label { font-size: 11px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .metric-card .metric-value { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; margin: 4px 0; }
+  .metric-card .metric-sub { font-size: 11px; color: var(--muted); }
+  .metric-card.good .metric-value { color: var(--good); }
+  .metric-card.warn .metric-value { color: var(--warning); }
+  .metric-card.bad .metric-value { color: var(--critical); }
+
+  @media (max-width: 768px) {
+    .metrics-grid { grid-template-columns: 1fr 1fr; }
+    .controls-panel { grid-template-columns: 1fr; }
+    nav.top-nav { padding: 10px 16px; }
+    .container { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <h1>XR Compression Lab</h1>
+  <div class="links">
+    <a href="/viewer">Live Viewer</a>
+    <a href="/compare" class="active">Quality Comparison</a>
+    <a href="/playground">Video Playground</a>
+    <a href="/phone">Phone Source</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="header-group">
+    <h2 class="section-title">Before / After Quality Comparison Slider</h2>
+    <p class="section-desc">Interactive visual inspection comparing original frames against compressed outputs across JPEG, H.264, and Viewport-Tiled compression.</p>
+  </div>
+
+  <div class="info-note">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <div>
+      <strong>Precision Pixel Inspection:</strong> Frame-by-frame comparison operates on corresponding extracted frames scaled to identical display geometry. Full continuous synchronized playback is available in the <a href="/playground" style="color:var(--accent); font-weight:600;">Video Playground</a>.
+    </div>
+  </div>
+
+  <!-- Source selector -->
+  <div class="source-bar">
+    <label for="sourceSelect">Source:</label>
+    <select id="sourceSelect">
+      <option value="synthetic" selected>Synthetic XR Frame</option>
+      <option value="upload">Upload Image / Video</option>
+      <option value="job">Video Playground Job</option>
+    </select>
+
+    <!-- Synthetic or Video timestamp -->
+    <label for="frameTime" id="frameTimeLabel">Timestamp (s):</label>
+    <input type="number" id="frameTime" value="1.0" min="0" max="100" step="0.1" style="width:75px;">
+
+    <!-- Job ID input -->
+    <div id="jobInputGroup" style="display:none; align-items:center; gap:8px;">
+      <label for="jobIdInput">Job ID:</label>
+      <input type="text" id="jobIdInput" placeholder="Enter Job ID" style="width:130px;">
+    </div>
+
+    <!-- Upload button -->
+    <label class="upload-btn" id="uploadArea" style="display:none;">
+      📁 Browse File
+      <input type="file" id="fileInput" accept="image/*,video/*,.mp4,.webm,.mkv,.avi,.mov">
+    </label>
+    <span class="upload-name" id="uploadName"></span>
+
+    <!-- Compression Method selection (hidden for existing jobs) -->
+    <div id="methodSelectGroup" style="display:inline-flex; align-items:center; gap:8px; margin-left:auto;">
+      <label for="methodSelect">Codec:</label>
+      <select id="methodSelect">
+        <option value="jpeg" selected>JPEG</option>
+        <option value="h264">H.264 / AVC</option>
+        <option value="tiles">Viewport Tiles (4×4)</option>
+      </select>
+    </div>
+
+    <button class="compress-btn" id="compressBtn">Compress & Compare</button>
+  </div>
+
+  <!-- Codec Controls -->
+  <div class="controls-panel" id="controlsPanel"></div>
+
+  <!-- Status message -->
+  <div class="status-msg" id="statusMsg"></div>
+
+  <!-- Draggable Slider Viewing Area -->
+  <div class="slider-wrapper">
+    <div class="slider-container" id="sliderContainer" style="display:none;" tabindex="0" role="slider" aria-label="Before/After comparison slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+      <img id="compressedImg" class="base-img" alt="Compressed frame" draggable="false">
+      <div class="slider-overlay" id="sliderOverlay">
+        <img id="originalImg" class="top-img" alt="Original frame" draggable="false">
+      </div>
+      <div class="slider-divider" id="sliderLine"></div>
+      <div class="slider-handle" id="sliderHandle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/><polyline points="9 18 3 12 9 6" transform="translate(12,0) scale(-1,1)"/></svg>
+      </div>
+      <span class="slider-tag left">Original</span>
+      <span class="slider-tag right">Compressed</span>
+      <button class="reset-slider-btn" id="resetBtn" title="Reset slider to center (50%)">↺ Center</button>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/><polyline points="8 8 4 12 8 16"/><polyline points="16 8 20 12 16 16"/></svg>
+      <div><strong>Ready for Comparison</strong></div>
+      <div style="font-size:13px; max-width:440px;">Select your source frame and compression parameters above, then tap <strong>Compress & Compare</strong> to inspect visual fidelity and distortion metrics.</div>
+    </div>
+  </div>
+
+  <!-- Metrics Dashboard -->
+  <div id="metricsSection" style="display:none;">
+    <div class="metrics-header">Measured Compression & Fidelity Metrics</div>
+    <div class="metrics-grid" id="metricsGrid"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const fmtB = (v) => {
+    if (v == null || isNaN(v)) return "N/A";
+    return v >= 1e6 ? (v/1e6).toFixed(2)+" MB" : v >= 1e3 ? (v/1e3).toFixed(1)+" KB" : v+" B";
+  };
+
+  let methodControls = {};
+  let currentFile = null;
+  let sliderPosition = 0.5;
+  let isDragging = false;
+  let activeJobId = null;
+
+  async function init() {
+    // Check URL parameters for job_id
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramJobId = urlParams.get("job_id");
+
+    try {
+      const resp = await fetch("/api/compression-methods");
+      const data = await resp.json();
+      data.methods.forEach(m => { methodControls[m.id] = m; });
+      buildControls();
+    } catch(e) {
+      console.warn("Using fallback method controls:", e);
+      buildDefaultControls();
+    }
+
+    $("sourceSelect").addEventListener("change", onSourceChange);
+    $("methodSelect").addEventListener("change", buildControls);
+    $("compressBtn").addEventListener("click", doCompress);
+    $("resetBtn").addEventListener("click", resetSlider);
+    $("fileInput").addEventListener("change", onFileSelect);
+
+    // Slider Drag & Touch
+    const sc = $("sliderContainer");
+    sc.addEventListener("mousedown", startDrag);
+    sc.addEventListener("touchstart", startDrag, {passive: false});
+    window.addEventListener("mousemove", onDrag);
+    window.addEventListener("touchmove", onDrag, {passive: false});
+    window.addEventListener("mouseup", endDrag);
+    window.addEventListener("touchend", endDrag);
+
+    // Keyboard accessibility
+    sc.addEventListener("keydown", (e) => {
+      let step = e.shiftKey ? 0.1 : 0.02;
+      if (e.key === "ArrowLeft") { sliderPosition = Math.max(0, sliderPosition - step); updateSlider(); e.preventDefault(); }
+      else if (e.key === "ArrowRight") { sliderPosition = Math.min(1, sliderPosition + step); updateSlider(); e.preventDefault(); }
+      else if (e.key === "Home") { sliderPosition = 0; updateSlider(); e.preventDefault(); }
+      else if (e.key === "End") { sliderPosition = 1; updateSlider(); e.preventDefault(); }
+    });
+
+    // If job_id was passed, automatically configure and load
+    if (paramJobId) {
+      $("sourceSelect").value = "job";
+      $("jobIdInput").value = paramJobId;
+      onSourceChange();
+      doCompress();
+    }
+  }
+
+  function onSourceChange() {
+    const src = $("sourceSelect").value;
+    const isSynth = src === "synthetic";
+    const isUpload = src === "upload";
+    const isJob = src === "job";
+
+    $("frameTimeLabel").style.display = isJob ? "" : (isSynth ? "" : "none");
+    $("frameTime").style.display = isJob ? "" : (isSynth ? "" : "none");
+    $("uploadArea").style.display = isUpload ? "inline-flex" : "none";
+    $("uploadName").textContent = isUpload && currentFile ? currentFile.name : "";
+    $("jobInputGroup").style.display = isJob ? "inline-flex" : "none";
+    $("methodSelectGroup").style.display = isJob ? "none" : "inline-flex";
+    $("controlsPanel").style.display = isJob ? "none" : "grid";
+
+    if (isJob) {
+      $("compressBtn").textContent = "Load Job Frames";
+    } else {
+      $("compressBtn").textContent = "Compress & Compare";
+    }
+  }
+
+  function onFileSelect(e) {
+    const f = e.target.files[0];
+    if (f) {
+      currentFile = f;
+      $("uploadName").textContent = f.name;
+      const isVideo = f.name.match(/\.(mp4|webm|mkv|avi|mov)$/i);
+      $("frameTimeLabel").style.display = isVideo ? "" : "none";
+      $("frameTime").style.display = isVideo ? "" : "none";
+    }
+  }
+
+  function buildControls() {
+    const method = $("methodSelect").value;
+    const info = methodControls[method];
+    const panel = $("controlsPanel");
+    panel.innerHTML = "";
+
+    if (!info || !info.controls) return;
+
+    info.controls.forEach(ctrl => {
+      const card = document.createElement("div");
+      card.className = "control-card";
+
+      if (ctrl.type === "range") {
+        card.innerHTML = `
+          <div class="ctrl-label">${ctrl.label}</div>
+          <div class="ctrl-row">
+            <input type="range" id="ctrl_${ctrl.id}" min="${ctrl.min}" max="${ctrl.max}" value="${ctrl.default}" step="${ctrl.step || 1}">
+            <span class="ctrl-val" id="val_${ctrl.id}">${ctrl.default}</span>
+          </div>`;
+        panel.appendChild(card);
+        const input = card.querySelector("input");
+        const valSpan = card.querySelector(".ctrl-val");
+        input.addEventListener("input", () => { valSpan.textContent = input.value; });
+      } else if (ctrl.type === "checkbox") {
+        card.innerHTML = `
+          <div class="ctrl-label">${ctrl.label}</div>
+          <div class="ctrl-row">
+            <input type="checkbox" id="ctrl_${ctrl.id}" ${ctrl.default ? "checked" : ""}>
+            <span class="ctrl-val" id="val_${ctrl.id}">${ctrl.default ? "On" : "Off"}</span>
+          </div>`;
+        panel.appendChild(card);
+        const input = card.querySelector("input");
+        const valSpan = card.querySelector(".ctrl-val");
+        input.addEventListener("change", () => { valSpan.textContent = input.checked ? "On" : "Off"; });
+      }
+    });
+  }
+
+  function buildDefaultControls() {
+    methodControls = {
+      jpeg: { controls: [
+        {id:"quality",label:"JPEG Quality",type:"range",min:1,max:100,default:75,step:1},
+        {id:"chroma_subsample",label:"Chroma Subsampling (4:2:0)",type:"checkbox",default:true},
+      ]},
+      h264: { controls: [
+        {id:"bitrate_kbps",label:"Target Bitrate (kbps)",type:"range",min:100,max:5000,default:1800,step:50},
+      ]},
+      tiles: { controls: [
+        {id:"quality_high",label:"Viewport Quality",type:"range",min:10,max:100,default:85,step:5},
+        {id:"quality_medium",label:"Guard Band Quality",type:"range",min:10,max:100,default:55,step:5},
+        {id:"quality_low",label:"Periphery Quality",type:"range",min:5,max:100,default:25,step:5},
+        {id:"yaw_deg",label:"Gaze Yaw (°)",type:"range",min:-50,max:50,default:0,step:1},
+        {id:"pitch_deg",label:"Gaze Pitch (°)",type:"range",min:-30,max:30,default:0,step:1},
+      ]},
+    };
+    buildControls();
+  }
+
+  function showStatus(type, msg) {
+    const el = $("statusMsg");
+    el.className = "status-msg " + type;
+    el.innerHTML = type === "loading" ? `<span class="loading-spinner"></span>${msg}` : msg;
+  }
+  function hideStatus() { $("statusMsg").className = "status-msg"; }
+
+  async function doCompress() {
+    const source = $("sourceSelect").value;
+    const btn = $("compressBtn");
+    btn.disabled = true;
+
+    if (source === "job") {
+      const jid = $("jobIdInput").value.trim();
+      if (!jid) {
+        showStatus("error", "Please enter a valid Job ID.");
+        btn.disabled = false;
+        return;
+      }
+      activeJobId = jid;
+      const t = parseFloat($("frameTime").value) || 0.0;
+      showStatus("loading", `Extracting job frames at t=${t.toFixed(1)}s...`);
+
+      try {
+        const resp = await fetch(`/api/compare-video-frames/${jid}?time_s=${t}`);
+        const data = await resp.json();
+        if (!resp.ok) {
+          showStatus("error", data.error || "Failed to load video frames for job");
+          btn.disabled = false;
+          return;
+        }
+        hideStatus();
+        showJobComparison(data);
+      } catch(e) {
+        showStatus("error", "Failed to load job: " + e.message);
+      }
+      btn.disabled = false;
+      return;
+    }
+
+    // Single image / video frame compression
+    const method = $("methodSelect").value;
+    showStatus("loading", "Executing compression pipeline and computing PSNR / SSIM...");
+
+    const fd = new FormData();
+    fd.append("method", method);
+    fd.append("source_type", source);
+    fd.append("t", $("frameTime").value);
+
+    const info = methodControls[method];
+    if (info && info.controls) {
+      info.controls.forEach(ctrl => {
+        const el = document.getElementById("ctrl_" + ctrl.id);
+        if (el) {
+          if (ctrl.type === "checkbox") fd.append(ctrl.id, el.checked ? "true" : "false");
+          else fd.append(ctrl.id, el.value);
+        }
+      });
+    }
+
+    if (source === "upload") {
+      if (!currentFile) {
+        showStatus("error", "Please choose an image or video file to upload.");
+        btn.disabled = false;
+        return;
+      }
+      fd.append("file", currentFile);
+    }
+
+    try {
+      const resp = await fetch("/api/compress-image", { method: "POST", body: fd });
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        showStatus("error", data.error || "Compression failed");
+        btn.disabled = false;
+        return;
+      }
+
+      hideStatus();
+      showImageComparison(data);
+    } catch(e) {
+      showStatus("error", "Compression request failed: " + e.message);
+    }
+
+    btn.disabled = false;
+  }
+
+  function showImageComparison(data) {
+    $("emptyState").style.display = "none";
+    $("sliderContainer").style.display = "block";
+    $("metricsSection").style.display = "block";
+
+    const origSrc = "data:image/jpeg;base64," + data.original_image_b64;
+    const compSrc = "data:image/jpeg;base64," + data.result.compressed_image_b64;
+
+    $("compressedImg").src = compSrc;
+    $("originalImg").src = origSrc;
+
+    $("compressedImg").onload = () => {
+      sliderPosition = 0.5;
+      updateSlider();
+    };
+
+    const r = data.result;
+    const metricsHTML = [
+      metricCard("Original Size", fmtB(r.original_bytes), r.original_file_bytes ? "Uploaded file" : "Raw uncompressed RGB"),
+      metricCard("Compressed Size", fmtB(r.compressed_bytes), r.method),
+      metricCard("Size Reduction", (r.size_reduction_pct != null ? r.size_reduction_pct.toFixed(1) + "%" : "N/A"),
+        fmtB(r.size_reduction_bytes) + " saved",
+        r.size_reduction_pct > 80 ? "good" : r.size_reduction_pct > 40 ? "" : "warn"),
+      metricCard("Compression Ratio", (r.compression_ratio != null ? r.compression_ratio.toFixed(1) + ":1" : "N/A"), "S_orig / S_comp"),
+      metricCard("PSNR", r.psnr_db != null ? r.psnr_db.toFixed(1) + " dB" : "N/A",
+        r.psnr_db != null ? (r.psnr_db > 35 ? "High fidelity" : r.psnr_db > 28 ? "Acceptable" : "Visible loss") : "Unavailable",
+        r.psnr_db != null ? (r.psnr_db > 35 ? "good" : r.psnr_db > 28 ? "" : "bad") : ""),
+      metricCard("SSIM", r.ssim != null ? r.ssim.toFixed(4) : "N/A",
+        r.ssim != null ? (r.ssim > 0.95 ? "Near-perfect" : r.ssim > 0.85 ? "Good" : "Degraded") : "Unavailable",
+        r.ssim != null ? (r.ssim > 0.95 ? "good" : r.ssim > 0.85 ? "" : "bad") : ""),
+      metricCard("Processing Time", (r.processing_time_s * 1000).toFixed(1) + " ms", "Encode + decode roundtrip"),
+      metricCard("Resolution", `${r.width}×${r.height}`, `${r.output_width}×${r.output_height} output`),
+    ];
+
+    if (r.extra) {
+      if (r.extra.viewport_psnr_db != null)
+        metricsHTML.push(metricCard("Viewport PSNR", r.extra.viewport_psnr_db.toFixed(1) + " dB", "Gaze center (high quality)", "good"));
+      if (r.extra.peripheral_psnr_db != null)
+        metricsHTML.push(metricCard("Peripheral PSNR", r.extra.peripheral_psnr_db.toFixed(1) + " dB", "Periphery tiles (low quality)"));
+      if (r.extra.boundary_artifact_mse != null)
+        metricsHTML.push(metricCard("Boundary Seam MSE", r.extra.boundary_artifact_mse.toFixed(2), "Inter-tile border continuity"));
+    }
+
+    $("metricsGrid").innerHTML = metricsHTML.join("");
+  }
+
+  function showJobComparison(data) {
+    $("emptyState").style.display = "none";
+    $("sliderContainer").style.display = "block";
+    $("metricsSection").style.display = "block";
+
+    $("compressedImg").src = "data:image/jpeg;base64," + data.compressed_image_b64;
+    $("originalImg").src = "data:image/jpeg;base64," + data.original_image_b64;
+
+    $("compressedImg").onload = () => {
+      sliderPosition = 0.5;
+      updateSlider();
+    };
+
+    const jm = data.job_metrics || {};
+    const metricsHTML = [
+      metricCard("Original File Size", fmtB(jm.original_bytes), `${jm.original_width}×${jm.original_height}`),
+      metricCard("Compressed File Size", fmtB(jm.compressed_bytes), jm.method || "Video Output"),
+      metricCard("Size Reduction", (jm.size_reduction_pct != null ? jm.size_reduction_pct.toFixed(1) + "%" : "N/A"),
+        fmtB(jm.original_bytes - jm.compressed_bytes) + " saved",
+        jm.size_reduction_pct > 50 ? "good" : "warn"),
+      metricCard("Compression Ratio", (jm.compression_ratio != null ? jm.compression_ratio.toFixed(1) + ":1" : "N/A"), "S_orig / S_comp"),
+      metricCard("Frame PSNR (t=" + data.time_s.toFixed(1) + "s)",
+        data.frame_psnr_db != null ? data.frame_psnr_db.toFixed(1) + " dB" : "N/A",
+        jm.avg_psnr_db ? "Avg video PSNR: " + jm.avg_psnr_db.toFixed(1) + " dB" : "Current inspected frame",
+        data.frame_psnr_db > 35 ? "good" : ""),
+      metricCard("Frame SSIM (t=" + data.time_s.toFixed(1) + "s)",
+        data.frame_ssim != null ? data.frame_ssim.toFixed(4) : "N/A",
+        jm.avg_ssim ? "Avg video SSIM: " + jm.avg_ssim.toFixed(4) : "Current inspected frame",
+        data.frame_ssim > 0.95 ? "good" : ""),
+      metricCard("Average Bitrate", jm.avg_bitrate_kbps ? jm.avg_bitrate_kbps.toFixed(0) + " kbps" : "N/A",
+        jm.target_met != null ? (jm.target_met ? "Target met (" + jm.target_bitrate_kbps + " kbps)" : "Target exceeded") : "Measured bitrate"),
+      metricCard("Server Encode Time", (jm.processing_time_s || 0).toFixed(1) + " s", `${jm.output_fps || 30} fps output`),
+    ];
+
+    $("metricsGrid").innerHTML = metricsHTML.join("");
+  }
+
+  function metricCard(label, value, sub, cls) {
+    return `<div class="metric-card ${cls||""}">
+      <div class="metric-label">${label}</div>
+      <div class="metric-value">${value}</div>
+      <div class="metric-sub">${sub}</div>
+    </div>`;
+  }
+
+  // Slider dragging logic
+  function startDrag(e) {
+    isDragging = true;
+    updateSliderFromEvent(e);
+    if (e.type === "touchstart") e.preventDefault();
+  }
+  function onDrag(e) {
+    if (!isDragging) return;
+    updateSliderFromEvent(e);
+    if (e.type === "touchmove") e.preventDefault();
+  }
+  function endDrag() { isDragging = false; }
+
+  function updateSliderFromEvent(e) {
+    const rect = $("sliderContainer").getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    sliderPosition = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    updateSlider();
+  }
+
+  function updateSlider() {
+    const container = $("sliderContainer");
+    const w = container.offsetWidth;
+    const h = container.offsetHeight;
+    const pos = Math.round(sliderPosition * w);
+
+    $("sliderOverlay").style.width = pos + "px";
+    $("sliderLine").style.left = pos + "px";
+    $("sliderHandle").style.left = pos + "px";
+
+    // Align original image exactly to container geometry
+    const orig = $("originalImg");
+    orig.style.width = w + "px";
+    if (h > 0) orig.style.height = h + "px";
+
+    container.setAttribute("aria-valuenow", Math.round(sliderPosition * 100));
+  }
+
+  function resetSlider() {
+    sliderPosition = 0.5;
+    updateSlider();
+  }
+
+  window.addEventListener("resize", () => {
+    if ($("sliderContainer").style.display !== "none") updateSlider();
+  });
+
+  init();
+})();
+</script>
+</body>
+</html>

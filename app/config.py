@@ -23,10 +23,10 @@ BANDWIDTH_LADDER = [
 # The live pipeline adds transport levers: `scale` (encode resolution as a
 # fraction of the canvas), `fps` (frame pacing) and `blur` (periphery radius).
 PROFILES = {
-    "ultra": {"jpeg_quality": 90, "audio_channels": 4, "foveated": False, "scale": 1.0, "fps": 24, "blur": 0.0, "tile_ladder": {"high": 90, "medium": 75, "low": 40}, "target_kbps": 3500},
-    "high": {"jpeg_quality": 75, "audio_channels": 4, "foveated": False, "scale": 1.0, "fps": 24, "blur": 0.0, "tile_ladder": {"high": 80, "medium": 60, "low": 30}, "target_kbps": 1800},
-    "medium": {"jpeg_quality": 55, "audio_channels": 2, "foveated": True, "scale": 0.75, "fps": 20, "blur": 6.0, "tile_ladder": {"high": 65, "medium": 45, "low": 20}, "target_kbps": 800},
-    "low": {"jpeg_quality": 35, "audio_channels": 1, "foveated": True, "scale": 0.5, "fps": 15, "blur": 8.0, "tile_ladder": {"high": 45, "medium": 30, "low": 15}, "target_kbps": 400},
+    "ultra": {"jpeg_quality": 90, "audio_channels": 4, "foveated": False, "scale": 1.0, "fps": 24, "blur": 0.0, "tile_ladder": {"high": 90, "medium": 75, "low": 40}, "target_kbps": 3500, "enable_tile_shadow": True},
+    "high": {"jpeg_quality": 75, "audio_channels": 4, "foveated": False, "scale": 1.0, "fps": 24, "blur": 0.0, "tile_ladder": {"high": 80, "medium": 60, "low": 30}, "target_kbps": 1800, "enable_tile_shadow": True},
+    "medium": {"jpeg_quality": 55, "audio_channels": 2, "foveated": True, "scale": 0.75, "fps": 20, "blur": 6.0, "tile_ladder": {"high": 65, "medium": 45, "low": 20}, "target_kbps": 800, "enable_tile_shadow": True},
+    "low": {"jpeg_quality": 35, "audio_channels": 1, "foveated": True, "scale": 0.5, "fps": 15, "blur": 8.0, "tile_ladder": {"high": 45, "medium": 30, "low": 15}, "target_kbps": 400, "enable_tile_shadow": True},
 }
 
 # --- Live WebRTC demo ---------------------------------------------------------

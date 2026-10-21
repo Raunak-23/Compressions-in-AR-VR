@@ -1,4 +1,4 @@
 method,source_type,num_frames,fps,total_bytes,avg_bitrate_kbps,avg_psnr_db,avg_ssim,total_encode_ms,total_decode_ms,avg_encode_ms_per_frame,avg_decode_ms_per_frame
-JPEG frame-by-frame (q=75),Synthetic SBS stereo (not 360°),30,30,1088392,8707.1,38.87,0.9819,97.52,164.24,3.251,5.475
-H.264 continuous stream (1800 kbps),Synthetic SBS stereo (not 360°),30,30,99085,792.7,41.17,0.9932,279.41,342.43,9.314,11.414
-4x4 Tiled JPEG frame-by-frame (viewport-aware),Synthetic SBS stereo (not 360°),30,30,1452548,11620.4,38.07,0.9789,453.31,299.67,15.11,9.989
+JPEG frame-by-frame (q=75),Synthetic SBS stereo (not 360°),30,30,1088392,8707.1,38.87,0.9819,101.2,163.71,3.373,5.457
+H.264 continuous stream (1800 kbps),Synthetic SBS stereo (not 360°),30,30,99085,792.7,41.17,0.9932,286.33,416.92,9.544,13.897
+4x4 Tiled JPEG frame-by-frame (viewport-aware),Synthetic SBS stereo (not 360°),30,30,1441028,11528.2,37.93,0.978,301.3,175.93,10.043,5.864

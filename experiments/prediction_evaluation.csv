@@ -1,0 +1,1057 @@
+step,time_s,trajectory_type,horizon_ms,strategy,current_yaw,predicted_yaw,ground_truth_yaw,angular_error_deg,viewport_iou,viewport_coverage,confidence,is_saccade,fallback_used,worse_than_current,overhead_us
+3,0.099,Stationary fixation with jitter,50,A: Current Gaze,0.79,0.79,-0.23,1.19,0.894,1.0,1.0,0,0,0,1.2
+3,0.099,Stationary fixation with jitter,50,B: Predicted (Unconstrained),0.79,0.96,-0.23,1.39,0.8794,1.0,0.978,0,0,1,11.7
+3,0.099,Stationary fixation with jitter,50,C: Predicted (with Fallback),0.79,0.96,-0.23,1.39,0.8794,1.0,0.978,0,0,1,6.3
+4,0.132,Stationary fixation with jitter,50,A: Current Gaze,-0.23,-0.23,0.12,1.28,0.8691,1.0,1.0,0,0,0,1.2
+4,0.132,Stationary fixation with jitter,50,B: Predicted (Unconstrained),-0.23,-0.36,0.12,1.37,0.8655,1.0,0.985,0,0,1,8.3
+4,0.132,Stationary fixation with jitter,50,C: Predicted (with Fallback),-0.23,-0.36,0.12,1.37,0.8655,1.0,0.985,0,0,1,5.5
+5,0.165,Stationary fixation with jitter,50,A: Current Gaze,-0.23,-0.23,-0.86,0.63,0.9532,1.0,1.0,0,0,0,1.2
+5,0.165,Stationary fixation with jitter,50,B: Predicted (Unconstrained),-0.23,-0.44,-0.86,0.44,0.966,1.0,0.971,0,0,0,5.5
+5,0.165,Stationary fixation with jitter,50,C: Predicted (with Fallback),-0.23,-0.44,-0.86,0.44,0.966,1.0,0.971,0,0,0,5.1
+6,0.198,Stationary fixation with jitter,50,A: Current Gaze,0.12,0.12,-0.51,1.28,0.8717,1.0,1.0,0,0,0,1.2
+6,0.198,Stationary fixation with jitter,50,B: Predicted (Unconstrained),0.12,0.05,-0.51,1.67,0.8417,1.0,0.948,0,0,1,8.9
+6,0.198,Stationary fixation with jitter,50,C: Predicted (with Fallback),0.12,0.05,-0.51,1.67,0.8417,1.0,0.948,0,0,1,6.3
+7,0.231,Stationary fixation with jitter,50,A: Current Gaze,-0.86,-0.86,-0.45,0.59,0.9362,1.0,1.0,0,0,0,1.2
+7,0.231,Stationary fixation with jitter,50,B: Predicted (Unconstrained),-0.86,-1.21,-0.45,0.78,0.9343,1.0,0.953,0,0,1,7.9
+7,0.231,Stationary fixation with jitter,50,C: Predicted (with Fallback),-0.86,-1.21,-0.45,0.78,0.9343,1.0,0.953,0,0,1,12.1
+8,0.264,Stationary fixation with jitter,50,A: Current Gaze,-0.51,-0.51,0.73,1.27,0.9099,1.0,1.0,0,0,0,1.2
+8,0.264,Stationary fixation with jitter,50,B: Predicted (Unconstrained),-0.51,-0.76,0.73,1.53,0.8911,1.0,0.971,0,0,1,8.6
+8,0.264,Stationary fixation with jitter,50,C: Predicted (with Fallback),-0.51,-0.76,0.73,1.53,0.8911,1.0,0.971,0,0,1,4.8
+9,0.297,Stationary fixation with jitter,50,A: Current Gaze,-0.45,-0.45,0.03,0.49,0.9736,1.0,1.0,0,0,0,1.2
+9,0.297,Stationary fixation with jitter,50,B: Predicted (Unconstrained),-0.45,-0.59,0.03,0.64,0.9574,1.0,0.979,0,0,1,5.2
+9,0.297,Stationary fixation with jitter,50,C: Predicted (with Fallback),-0.45,-0.59,0.03,0.64,0.9574,1.0,0.979,0,0,1,4.9
+10,0.33,Stationary fixation with jitter,50,A: Current Gaze,0.73,0.73,-0.27,1.02,0.9292,1.0,1.0,0,0,0,1.2
+10,0.33,Stationary fixation with jitter,50,B: Predicted (Unconstrained),0.73,1.11,-0.27,1.39,0.9157,1.0,0.958,0,0,1,4.6
+10,0.33,Stationary fixation with jitter,50,C: Predicted (with Fallback),0.73,1.11,-0.27,1.39,0.9157,1.0,0.958,0,0,1,4.5
+11,0.363,Stationary fixation with jitter,50,A: Current Gaze,0.03,0.03,-0.58,1.09,0.8855,1.0,1.0,0,0,0,1.2
+11,0.363,Stationary fixation with jitter,50,B: Predicted (Unconstrained),0.03,0.27,-0.58,1.33,0.8674,1.0,0.97,0,0,1,5.2
+11,0.363,Stationary fixation with jitter,50,C: Predicted (with Fallback),0.03,0.27,-0.58,1.33,0.8674,1.0,0.97,0,0,1,4.6
+12,0.396,Stationary fixation with jitter,50,A: Current Gaze,-0.27,-0.27,-0.3,0.2,0.9843,1.0,1.0,0,0,0,1.2
+12,0.396,Stationary fixation with jitter,50,B: Predicted (Unconstrained),-0.27,-0.26,-0.3,0.32,0.9688,1.0,0.987,0,0,1,4.8
+12,0.396,Stationary fixation with jitter,50,C: Predicted (with Fallback),-0.27,-0.26,-0.3,0.32,0.9688,1.0,0.987,0,0,1,4.4
+13,0.429,Stationary fixation with jitter,50,A: Current Gaze,-0.58,-0.58,-0.3,0.79,0.9224,1.0,1.0,0,0,0,1.2
+13,0.429,Stationary fixation with jitter,50,B: Predicted (Unconstrained),-0.58,-0.77,-0.3,0.69,0.9289,1.0,0.966,0,0,0,4.6
+13,0.429,Stationary fixation with jitter,50,C: Predicted (with Fallback),-0.58,-0.77,-0.3,0.69,0.9289,1.0,0.966,0,0,0,4.5
+14,0.462,Stationary fixation with jitter,50,A: Current Gaze,-0.3,-0.3,-0.01,0.48,0.9485,1.0,1.0,0,0,0,1.2
+14,0.462,Stationary fixation with jitter,50,B: Predicted (Unconstrained),-0.3,-0.43,-0.01,0.65,0.9329,1.0,0.982,0,0,1,4.9
+14,0.462,Stationary fixation with jitter,50,C: Predicted (with Fallback),-0.3,-0.43,-0.01,0.65,0.9329,1.0,0.982,0,0,1,4.6
+15,0.495,Stationary fixation with jitter,50,A: Current Gaze,-0.3,-0.3,0.41,1.69,0.8347,1.0,1.0,0,0,0,1.2
+15,0.495,Stationary fixation with jitter,50,B: Predicted (Unconstrained),-0.3,-0.37,0.41,2.1,0.7993,1.0,0.953,0,0,1,5.0
+15,0.495,Stationary fixation with jitter,50,C: Predicted (with Fallback),-0.3,-0.37,0.41,2.1,0.7993,1.0,0.953,0,0,1,4.4
+16,0.528,Stationary fixation with jitter,50,A: Current Gaze,-0.01,-0.01,0.1,0.46,0.9527,1.0,1.0,0,0,0,1.2
+16,0.528,Stationary fixation with jitter,50,B: Predicted (Unconstrained),-0.01,0.07,0.1,0.36,0.9645,1.0,0.987,0,0,0,5.0
+16,0.528,Stationary fixation with jitter,50,C: Predicted (with Fallback),-0.01,0.07,0.1,0.36,0.9645,1.0,0.987,0,0,0,4.6
+17,0.561,Stationary fixation with jitter,50,A: Current Gaze,0.41,0.41,-0.66,1.29,0.8764,1.0,1.0,0,0,0,1.2
+17,0.561,Stationary fixation with jitter,50,B: Predicted (Unconstrained),0.41,0.68,-0.66,1.68,0.8454,1.0,0.956,0,0,1,5.0
+17,0.561,Stationary fixation with jitter,50,C: Predicted (with Fallback),0.41,0.68,-0.66,1.68,0.8454,1.0,0.956,0,0,1,4.6
+18,0.594,Stationary fixation with jitter,50,A: Current Gaze,0.1,0.1,0.37,1.1,0.8975,1.0,1.0,0,0,0,1.2
+18,0.594,Stationary fixation with jitter,50,B: Predicted (Unconstrained),0.1,0.27,0.37,1.51,0.87,1.0,0.947,0,0,1,4.6
+18,0.594,Stationary fixation with jitter,50,C: Predicted (with Fallback),0.1,0.27,0.37,1.51,0.87,1.0,0.947,0,0,1,4.5
+19,0.627,Stationary fixation with jitter,50,A: Current Gaze,-0.66,-0.66,-0.06,0.66,0.9426,1.0,1.0,0,0,0,1.2
+19,0.627,Stationary fixation with jitter,50,B: Predicted (Unconstrained),-0.66,-0.85,-0.06,0.83,0.9343,1.0,0.979,0,0,1,4.6
+19,0.627,Stationary fixation with jitter,50,C: Predicted (with Fallback),-0.66,-0.85,-0.06,0.83,0.9343,1.0,0.979,0,0,1,4.5
+20,0.66,Stationary fixation with jitter,50,A: Current Gaze,0.37,0.37,-0.74,1.19,0.9039,1.0,1.0,0,0,0,1.2
+20,0.66,Stationary fixation with jitter,50,B: Predicted (Unconstrained),0.37,0.46,-0.74,1.35,0.8862,1.0,0.979,0,0,1,4.8
+20,0.66,Stationary fixation with jitter,50,C: Predicted (with Fallback),0.37,0.46,-0.74,1.35,0.8862,1.0,0.979,0,0,1,4.5
+21,0.693,Stationary fixation with jitter,50,A: Current Gaze,-0.06,-0.06,-0.23,0.7,0.9304,1.0,1.0,0,0,0,1.2
+21,0.693,Stationary fixation with jitter,50,B: Predicted (Unconstrained),-0.06,-0.04,-0.23,0.6,0.9378,1.0,0.987,0,0,0,4.7
+21,0.693,Stationary fixation with jitter,50,C: Predicted (with Fallback),-0.06,-0.04,-0.23,0.6,0.9378,1.0,0.987,0,0,0,4.5
+22,0.726,Stationary fixation with jitter,50,A: Current Gaze,-0.74,-0.74,0.17,1.05,0.9048,1.0,1.0,0,0,0,1.2
+22,0.726,Stationary fixation with jitter,50,B: Predicted (Unconstrained),-0.74,N/A,0.17,1.28,0.8931,1.0,0.971,0,0,1,4.8
+22,0.726,Stationary fixation with jitter,50,C: Predicted (with Fallback),-0.74,N/A,0.17,1.28,0.8931,1.0,0.971,0,0,1,4.4
+23,0.759,Stationary fixation with jitter,50,A: Current Gaze,-0.23,-0.23,0.16,0.82,0.9112,1.0,1.0,0,0,0,1.2
+23,0.759,Stationary fixation with jitter,50,B: Predicted (Unconstrained),-0.23,-0.35,0.16,1.11,0.8824,1.0,0.968,0,0,1,4.9
+23,0.759,Stationary fixation with jitter,50,C: Predicted (with Fallback),-0.23,-0.35,0.16,1.11,0.8824,1.0,0.968,0,0,1,4.5
+24,0.792,Stationary fixation with jitter,50,A: Current Gaze,0.17,0.17,-0.34,1.29,0.8686,1.0,1.0,0,0,0,1.2
+24,0.792,Stationary fixation with jitter,50,B: Predicted (Unconstrained),0.17,0.28,-0.34,1.52,0.8515,1.0,0.974,0,0,1,4.9
+24,0.792,Stationary fixation with jitter,50,C: Predicted (with Fallback),0.17,0.28,-0.34,1.52,0.8515,1.0,0.974,0,0,1,4.6
+3,0.099,Stationary fixation with jitter,100,A: Current Gaze,0.79,0.79,0.12,1.5,0.8479,1.0,1.0,0,0,0,1.2
+3,0.099,Stationary fixation with jitter,100,B: Predicted (Unconstrained),0.79,1.13,0.12,1.84,0.8209,1.0,0.978,0,0,1,4.6
+3,0.099,Stationary fixation with jitter,100,C: Predicted (with Fallback),0.79,1.13,0.12,1.84,0.8209,1.0,0.978,0,0,1,5.1
+4,0.132,Stationary fixation with jitter,100,A: Current Gaze,-0.23,-0.23,-0.86,0.84,0.9136,1.0,1.0,0,0,0,1.2
+4,0.132,Stationary fixation with jitter,100,B: Predicted (Unconstrained),-0.23,-0.48,-0.86,0.77,0.9184,1.0,0.985,0,0,0,4.7
+4,0.132,Stationary fixation with jitter,100,C: Predicted (with Fallback),-0.23,-0.48,-0.86,0.77,0.9184,1.0,0.985,0,0,0,4.6
+5,0.165,Stationary fixation with jitter,100,A: Current Gaze,-0.23,-0.23,-0.51,0.48,0.9519,1.0,1.0,0,0,0,1.2
+5,0.165,Stationary fixation with jitter,100,B: Predicted (Unconstrained),-0.23,-0.65,-0.51,0.71,0.9304,1.0,0.971,0,0,1,4.8
+5,0.165,Stationary fixation with jitter,100,C: Predicted (with Fallback),-0.23,-0.65,-0.51,0.71,0.9304,1.0,0.971,0,0,1,4.5
+6,0.198,Stationary fixation with jitter,100,A: Current Gaze,0.12,0.12,-0.45,0.63,0.9468,1.0,1.0,0,0,0,1.2
+6,0.198,Stationary fixation with jitter,100,B: Predicted (Unconstrained),0.12,-0.01,-0.45,1.26,0.8829,1.0,0.948,0,0,1,5.9
+6,0.198,Stationary fixation with jitter,100,C: Predicted (with Fallback),0.12,-0.01,-0.45,1.26,0.8829,1.0,0.948,0,0,1,4.6
+7,0.231,Stationary fixation with jitter,100,A: Current Gaze,-0.86,-0.86,0.73,1.6,0.8967,1.0,1.0,0,0,0,1.2
+7,0.231,Stationary fixation with jitter,100,B: Predicted (Unconstrained),-0.86,-1.56,0.73,2.38,0.83,1.0,0.953,0,0,1,4.6
+7,0.231,Stationary fixation with jitter,100,C: Predicted (with Fallback),-0.86,-1.56,0.73,2.38,0.83,1.0,0.953,0,0,1,4.6
+8,0.264,Stationary fixation with jitter,100,A: Current Gaze,-0.51,-0.51,0.03,1.02,0.8963,1.0,1.0,0,0,0,1.2
+8,0.264,Stationary fixation with jitter,100,B: Predicted (Unconstrained),-0.51,-1.01,0.03,1.46,0.86,1.0,0.971,0,0,1,5.3
+8,0.264,Stationary fixation with jitter,100,C: Predicted (with Fallback),-0.51,-1.01,0.03,1.46,0.86,1.0,0.971,0,0,1,4.6
+9,0.297,Stationary fixation with jitter,100,A: Current Gaze,-0.45,-0.45,-0.27,0.78,0.923,1.0,1.0,0,0,0,1.2
+9,0.297,Stationary fixation with jitter,100,B: Predicted (Unconstrained),-0.45,-0.72,-0.27,1.12,0.8861,1.0,0.979,0,0,1,4.7
+9,0.297,Stationary fixation with jitter,100,C: Predicted (with Fallback),-0.45,-0.72,-0.27,1.12,0.8861,1.0,0.979,0,0,1,4.6
+10,0.33,Stationary fixation with jitter,100,A: Current Gaze,0.73,0.73,-0.58,1.34,0.8989,1.0,1.0,0,0,0,1.2
+10,0.33,Stationary fixation with jitter,100,B: Predicted (Unconstrained),0.73,1.49,-0.58,2.08,0.8666,1.0,0.958,0,0,1,4.6
+10,0.33,Stationary fixation with jitter,100,C: Predicted (with Fallback),0.73,1.49,-0.58,2.08,0.8666,1.0,0.958,0,0,1,4.9
+11,0.363,Stationary fixation with jitter,100,A: Current Gaze,0.03,0.03,-0.3,0.66,0.9296,1.0,1.0,0,0,0,1.2
+11,0.363,Stationary fixation with jitter,100,B: Predicted (Unconstrained),0.03,0.51,-0.3,1.16,0.8848,1.0,0.97,0,0,1,4.8
+11,0.363,Stationary fixation with jitter,100,C: Predicted (with Fallback),0.03,0.51,-0.3,1.16,0.8848,1.0,0.97,0,0,1,5.2
+12,0.396,Stationary fixation with jitter,100,A: Current Gaze,-0.27,-0.27,-0.3,0.87,0.9237,1.0,1.0,0,0,0,1.2
+12,0.396,Stationary fixation with jitter,100,B: Predicted (Unconstrained),-0.27,-0.24,-0.3,0.64,0.9459,1.0,0.987,0,0,0,4.6
+12,0.396,Stationary fixation with jitter,100,C: Predicted (with Fallback),-0.27,-0.24,-0.3,0.64,0.9459,1.0,0.987,0,0,0,4.4
+13,0.429,Stationary fixation with jitter,100,A: Current Gaze,-0.58,-0.58,-0.01,0.91,0.9033,1.0,1.0,0,0,0,1.2
+13,0.429,Stationary fixation with jitter,100,B: Predicted (Unconstrained),-0.58,-0.96,-0.01,1.52,0.8504,1.0,0.966,0,0,1,4.7
+13,0.429,Stationary fixation with jitter,100,C: Predicted (with Fallback),-0.58,-0.96,-0.01,1.52,0.8504,1.0,0.966,0,0,1,4.6
+14,0.462,Stationary fixation with jitter,100,A: Current Gaze,-0.3,-0.3,0.41,0.85,0.9168,1.0,1.0,0,0,0,1.2
+14,0.462,Stationary fixation with jitter,100,B: Predicted (Unconstrained),-0.3,-0.55,0.41,1.17,0.8871,1.0,0.982,0,0,1,4.8
+14,0.462,Stationary fixation with jitter,100,C: Predicted (with Fallback),-0.3,-0.55,0.41,1.17,0.8871,1.0,0.982,0,0,1,4.8
+15,0.495,Stationary fixation with jitter,100,A: Current Gaze,-0.3,-0.3,0.1,1.95,0.8223,1.0,1.0,0,0,0,1.2
+15,0.495,Stationary fixation with jitter,100,B: Predicted (Unconstrained),-0.3,-0.44,0.1,2.79,0.7534,1.0,0.953,0,0,1,4.6
+15,0.495,Stationary fixation with jitter,100,C: Predicted (with Fallback),-0.3,-0.44,0.1,2.79,0.7534,1.0,0.953,0,0,1,4.6
+16,0.528,Stationary fixation with jitter,100,A: Current Gaze,-0.01,-0.01,-0.66,0.91,0.9065,1.0,1.0,0,0,0,1.2
+16,0.528,Stationary fixation with jitter,100,B: Predicted (Unconstrained),-0.01,0.15,-0.66,1.14,0.8848,1.0,0.987,0,0,1,8.7
+16,0.528,Stationary fixation with jitter,100,C: Predicted (with Fallback),-0.01,0.15,-0.66,1.14,0.8848,1.0,0.987,0,0,1,6.3
+17,0.561,Stationary fixation with jitter,100,A: Current Gaze,0.41,0.41,0.37,0.7,0.9344,1.0,1.0,0,0,0,1.2
+17,0.561,Stationary fixation with jitter,100,B: Predicted (Unconstrained),0.41,0.95,0.37,1.42,0.8649,1.0,0.956,0,0,1,8.4
+17,0.561,Stationary fixation with jitter,100,C: Predicted (with Fallback),0.41,0.95,0.37,1.42,0.8649,1.0,0.956,0,0,1,4.9
+18,0.594,Stationary fixation with jitter,100,A: Current Gaze,0.1,0.1,-0.06,0.85,0.9158,1.0,1.0,0,0,0,1.2
+18,0.594,Stationary fixation with jitter,100,B: Predicted (Unconstrained),0.1,0.44,-0.06,1.79,0.832,1.0,0.947,0,0,1,4.6
+18,0.594,Stationary fixation with jitter,100,C: Predicted (with Fallback),0.1,0.44,-0.06,1.79,0.832,1.0,0.947,0,0,1,4.5
+19,0.627,Stationary fixation with jitter,100,A: Current Gaze,-0.66,-0.66,-0.74,0.46,0.9493,1.0,1.0,0,0,0,1.2
+19,0.627,Stationary fixation with jitter,100,B: Predicted (Unconstrained),-0.66,-1.05,-0.74,0.55,0.937,1.0,0.979,0,0,1,7.5
+19,0.627,Stationary fixation with jitter,100,C: Predicted (with Fallback),-0.66,-1.05,-0.74,0.55,0.937,1.0,0.979,0,0,1,7.3
+20,0.66,Stationary fixation with jitter,100,A: Current Gaze,0.37,0.37,-0.23,0.75,0.9248,1.0,1.0,0,0,0,1.2
+20,0.66,Stationary fixation with jitter,100,B: Predicted (Unconstrained),0.37,0.54,-0.23,0.78,0.9458,1.0,0.979,0,0,1,8.1
+20,0.66,Stationary fixation with jitter,100,C: Predicted (with Fallback),0.37,0.54,-0.23,0.78,0.9458,1.0,0.979,0,0,1,7.0
+21,0.693,Stationary fixation with jitter,100,A: Current Gaze,-0.06,-0.06,0.17,0.77,0.9191,1.0,1.0,0,0,0,1.2
+21,0.693,Stationary fixation with jitter,100,B: Predicted (Unconstrained),-0.06,-0.01,0.17,0.97,0.9047,1.0,0.987,0,0,1,7.9
+21,0.693,Stationary fixation with jitter,100,C: Predicted (with Fallback),-0.06,-0.01,0.17,0.97,0.9047,1.0,0.987,0,0,1,7.7
+22,0.726,Stationary fixation with jitter,100,A: Current Gaze,-0.74,-0.74,0.16,0.92,0.9333,1.0,1.0,0,0,0,1.2
+22,0.726,Stationary fixation with jitter,100,B: Predicted (Unconstrained),-0.74,-1.25,0.16,1.43,0.9047,1.0,0.971,0,0,1,14.0
+22,0.726,Stationary fixation with jitter,100,C: Predicted (with Fallback),-0.74,-1.25,0.16,1.43,0.9047,1.0,0.971,0,0,1,10.8
+23,0.759,Stationary fixation with jitter,100,A: Current Gaze,-0.23,-0.23,-0.34,0.25,0.9679,1.0,1.0,0,0,0,1.2
+23,0.759,Stationary fixation with jitter,100,B: Predicted (Unconstrained),-0.23,-0.47,-0.34,0.76,0.923,1.0,0.968,0,0,1,10.6
+23,0.759,Stationary fixation with jitter,100,C: Predicted (with Fallback),-0.23,-0.47,-0.34,0.76,0.923,1.0,0.968,0,0,1,10.0
+24,0.792,Stationary fixation with jitter,100,A: Current Gaze,0.17,0.17,0.52,1.39,0.8659,1.0,1.0,0,0,0,1.2
+24,0.792,Stationary fixation with jitter,100,B: Predicted (Unconstrained),0.17,0.39,0.52,1.76,0.8459,1.0,0.974,0,0,1,5.1
+24,0.792,Stationary fixation with jitter,100,C: Predicted (with Fallback),0.17,0.39,0.52,1.76,0.8459,1.0,0.974,0,0,1,4.6
+3,0.099,Stationary fixation with jitter,150,A: Current Gaze,0.79,0.79,-0.51,1.32,0.9059,1.0,1.0,0,0,0,1.2
+3,0.099,Stationary fixation with jitter,150,B: Predicted (Unconstrained),0.79,1.3,-0.51,1.88,0.8623,1.0,0.978,0,0,1,6.8
+3,0.099,Stationary fixation with jitter,150,C: Predicted (with Fallback),0.79,1.3,-0.51,1.88,0.8623,1.0,0.978,0,0,1,7.0
+4,0.132,Stationary fixation with jitter,150,A: Current Gaze,-0.23,-0.23,-0.45,1.0,0.9014,1.0,1.0,0,0,0,1.2
+4,0.132,Stationary fixation with jitter,150,B: Predicted (Unconstrained),-0.23,-0.61,-0.45,1.17,0.8872,1.0,0.985,0,0,1,8.1
+4,0.132,Stationary fixation with jitter,150,C: Predicted (with Fallback),-0.23,-0.61,-0.45,1.17,0.8872,1.0,0.985,0,0,1,6.9
+5,0.165,Stationary fixation with jitter,150,A: Current Gaze,-0.23,-0.23,0.73,0.97,0.9405,1.0,1.0,0,0,0,1.2
+5,0.165,Stationary fixation with jitter,150,B: Predicted (Unconstrained),-0.23,-0.86,0.73,1.69,0.8633,1.0,0.971,0,0,1,7.8
+5,0.165,Stationary fixation with jitter,150,C: Predicted (with Fallback),-0.23,-0.86,0.73,1.69,0.8633,1.0,0.971,0,0,1,21.6
+6,0.198,Stationary fixation with jitter,150,A: Current Gaze,0.12,0.12,0.03,0.26,0.9722,1.0,1.0,0,0,0,1.2
+6,0.198,Stationary fixation with jitter,150,B: Predicted (Unconstrained),0.12,-0.08,0.03,1.64,0.8527,1.0,0.948,0,0,1,11.6
+6,0.198,Stationary fixation with jitter,150,C: Predicted (with Fallback),0.12,-0.08,0.03,1.64,0.8527,1.0,0.948,0,0,1,5.0
+7,0.231,Stationary fixation with jitter,150,A: Current Gaze,-0.86,-0.86,-0.27,0.68,0.9353,1.0,1.0,0,0,0,1.2
+7,0.231,Stationary fixation with jitter,150,B: Predicted (Unconstrained),-0.86,-1.91,-0.27,1.94,0.8311,1.0,0.953,0,0,1,4.8
+7,0.231,Stationary fixation with jitter,150,C: Predicted (with Fallback),-0.86,-1.91,-0.27,1.94,0.8311,1.0,0.953,0,0,1,4.4
+8,0.264,Stationary fixation with jitter,150,A: Current Gaze,-0.51,-0.51,-0.58,0.08,0.9877,1.0,1.0,0,0,0,1.2
+8,0.264,Stationary fixation with jitter,150,B: Predicted (Unconstrained),-0.51,-1.26,-0.58,0.71,0.9458,1.0,0.971,0,0,1,6.6
+8,0.264,Stationary fixation with jitter,150,C: Predicted (with Fallback),-0.51,-1.26,-0.58,0.71,0.9458,1.0,0.971,0,0,1,4.6
+9,0.297,Stationary fixation with jitter,150,A: Current Gaze,-0.45,-0.45,-0.3,0.58,0.9378,1.0,1.0,0,0,0,1.2
+9,0.297,Stationary fixation with jitter,150,B: Predicted (Unconstrained),-0.45,-0.85,-0.3,1.1,0.8893,1.0,0.979,0,0,1,4.7
+9,0.297,Stationary fixation with jitter,150,C: Predicted (with Fallback),-0.45,-0.85,-0.3,1.1,0.8893,1.0,0.979,0,0,1,4.3
+10,0.33,Stationary fixation with jitter,150,A: Current Gaze,0.73,0.73,-0.3,1.47,0.86,1.0,1.0,0,0,0,1.2
+10,0.33,Stationary fixation with jitter,150,B: Predicted (Unconstrained),0.73,1.87,-0.3,2.37,0.8161,1.0,0.958,0,0,1,4.7
+10,0.33,Stationary fixation with jitter,150,C: Predicted (with Fallback),0.73,1.87,-0.3,2.37,0.8161,1.0,0.958,0,0,1,4.3
+11,0.363,Stationary fixation with jitter,150,A: Current Gaze,0.03,0.03,-0.01,0.19,0.9799,1.0,1.0,0,0,0,1.2
+11,0.363,Stationary fixation with jitter,150,B: Predicted (Unconstrained),0.03,0.75,-0.01,0.95,0.9128,1.0,0.97,0,0,1,8.4
+11,0.363,Stationary fixation with jitter,150,C: Predicted (with Fallback),0.03,0.75,-0.01,0.95,0.9128,1.0,0.97,0,0,1,7.7
+12,0.396,Stationary fixation with jitter,150,A: Current Gaze,-0.27,-0.27,0.41,0.95,0.9026,1.0,1.0,0,0,0,1.2
+12,0.396,Stationary fixation with jitter,150,B: Predicted (Unconstrained),-0.27,-0.23,0.41,1.21,0.8786,1.0,0.987,0,0,1,6.9
+12,0.396,Stationary fixation with jitter,150,C: Predicted (with Fallback),-0.27,-0.23,0.41,1.21,0.8786,1.0,0.987,0,0,1,7.1
+13,0.429,Stationary fixation with jitter,150,A: Current Gaze,-0.58,-0.58,0.1,1.35,0.8613,1.0,1.0,0,0,0,1.2
+13,0.429,Stationary fixation with jitter,150,B: Predicted (Unconstrained),-0.58,-1.15,0.1,2.26,0.7859,1.0,0.966,0,0,1,7.4
+13,0.429,Stationary fixation with jitter,150,C: Predicted (with Fallback),-0.58,-1.15,0.1,2.26,0.7859,1.0,0.966,0,0,1,7.1
+14,0.462,Stationary fixation with jitter,150,A: Current Gaze,-0.3,-0.3,-0.66,0.44,0.9552,1.0,1.0,0,0,0,1.2
+14,0.462,Stationary fixation with jitter,150,B: Predicted (Unconstrained),-0.3,-0.68,-0.66,0.07,1.0,1.0,0.982,0,0,0,7.4
+14,0.462,Stationary fixation with jitter,150,C: Predicted (with Fallback),-0.3,-0.68,-0.66,0.07,1.0,1.0,0.982,0,0,0,7.2
+15,0.495,Stationary fixation with jitter,150,A: Current Gaze,-0.3,-0.3,0.37,1.07,0.8925,1.0,1.0,0,0,0,1.2
+15,0.495,Stationary fixation with jitter,150,B: Predicted (Unconstrained),-0.3,-0.51,0.37,2.27,0.7836,1.0,0.953,0,0,1,8.0
+15,0.495,Stationary fixation with jitter,150,C: Predicted (with Fallback),-0.3,-0.51,0.37,2.27,0.7836,1.0,0.953,0,0,1,6.7
+16,0.528,Stationary fixation with jitter,150,A: Current Gaze,-0.01,-0.01,-0.06,0.38,0.9611,1.0,1.0,0,0,0,1.2
+16,0.528,Stationary fixation with jitter,150,B: Predicted (Unconstrained),-0.01,0.22,-0.06,0.7,0.9264,1.0,0.987,0,0,1,4.8
+16,0.528,Stationary fixation with jitter,150,C: Predicted (with Fallback),-0.01,0.22,-0.06,0.7,0.9264,1.0,0.987,0,0,1,4.5
+17,0.561,Stationary fixation with jitter,150,A: Current Gaze,0.41,0.41,-0.74,1.18,0.9139,1.0,1.0,0,0,0,1.2
+17,0.561,Stationary fixation with jitter,150,B: Predicted (Unconstrained),0.41,1.22,-0.74,2.27,0.8108,1.0,0.956,0,0,1,4.6
+17,0.561,Stationary fixation with jitter,150,C: Predicted (with Fallback),0.41,1.22,-0.74,2.27,0.8108,1.0,0.956,0,0,1,4.5
+18,0.594,Stationary fixation with jitter,150,A: Current Gaze,0.1,0.1,-0.23,1.55,0.8523,1.0,1.0,0,0,0,1.2
+18,0.594,Stationary fixation with jitter,150,B: Predicted (Unconstrained),0.1,0.61,-0.23,2.96,0.7386,1.0,0.947,0,0,1,5.0
+18,0.594,Stationary fixation with jitter,150,C: Predicted (with Fallback),0.1,0.61,-0.23,2.96,0.7386,1.0,0.947,0,0,1,4.7
+19,0.627,Stationary fixation with jitter,150,A: Current Gaze,-0.66,-0.66,0.17,1.29,0.8674,1.0,1.0,0,0,0,1.2
+19,0.627,Stationary fixation with jitter,150,B: Predicted (Unconstrained),-0.66,-1.24,0.17,1.71,0.8483,1.0,0.979,0,0,1,4.5
+19,0.627,Stationary fixation with jitter,150,C: Predicted (with Fallback),-0.66,-1.24,0.17,1.71,0.8483,1.0,0.979,0,0,1,4.4
+20,0.66,Stationary fixation with jitter,150,A: Current Gaze,0.37,0.37,0.16,0.35,0.9679,1.0,1.0,0,0,0,1.2
+20,0.66,Stationary fixation with jitter,150,B: Predicted (Unconstrained),0.37,0.63,0.16,0.91,0.9073,1.0,0.979,0,0,1,6.0
+20,0.66,Stationary fixation with jitter,150,C: Predicted (with Fallback),0.37,0.63,0.16,0.91,0.9073,1.0,0.979,0,0,1,4.6
+21,0.693,Stationary fixation with jitter,150,A: Current Gaze,-0.06,-0.06,-0.34,0.54,0.9444,1.0,1.0,0,0,0,1.2
+21,0.693,Stationary fixation with jitter,150,B: Predicted (Unconstrained),-0.06,0.01,-0.34,0.37,0.9703,1.0,0.987,0,0,0,4.9
+21,0.693,Stationary fixation with jitter,150,C: Predicted (with Fallback),-0.06,0.01,-0.34,0.37,0.9703,1.0,0.987,0,0,0,4.9
+22,0.726,Stationary fixation with jitter,150,A: Current Gaze,-0.74,-0.74,0.52,1.5,0.8622,1.0,1.0,0,0,0,1.2
+22,0.726,Stationary fixation with jitter,150,B: Predicted (Unconstrained),-0.74,-1.51,0.52,2.2,0.8258,1.0,0.971,0,0,1,4.7
+22,0.726,Stationary fixation with jitter,150,C: Predicted (with Fallback),-0.74,-1.51,0.52,2.2,0.8258,1.0,0.971,0,0,1,4.6
+23,0.759,Stationary fixation with jitter,150,A: Current Gaze,-0.23,-0.23,-0.42,0.71,0.9264,1.0,1.0,0,0,0,1.2
+23,0.759,Stationary fixation with jitter,150,B: Predicted (Unconstrained),-0.23,-0.6,-0.42,1.48,0.8663,1.0,0.968,0,0,1,4.8
+23,0.759,Stationary fixation with jitter,150,C: Predicted (with Fallback),-0.23,-0.6,-0.42,1.48,0.8663,1.0,0.968,0,0,1,4.4
+24,0.792,Stationary fixation with jitter,150,A: Current Gaze,0.17,0.17,0.17,1.37,0.8806,1.0,1.0,0,0,0,1.2
+24,0.792,Stationary fixation with jitter,150,B: Predicted (Unconstrained),0.17,0.49,0.17,2.0,0.8192,1.0,0.974,0,0,1,5.0
+24,0.792,Stationary fixation with jitter,150,C: Predicted (with Fallback),0.17,0.49,0.17,2.0,0.8192,1.0,0.974,0,0,1,4.8
+3,0.099,Stationary fixation with jitter,200,A: Current Gaze,0.79,0.79,-0.45,1.65,0.8425,1.0,1.0,0,0,0,1.2
+3,0.099,Stationary fixation with jitter,200,B: Predicted (Unconstrained),0.79,1.47,-0.45,2.43,0.7898,1.0,0.978,0,0,1,4.7
+3,0.099,Stationary fixation with jitter,200,C: Predicted (with Fallback),0.79,1.47,-0.45,2.43,0.7898,1.0,0.978,0,0,1,4.5
+4,0.132,Stationary fixation with jitter,200,A: Current Gaze,-0.23,-0.23,0.73,1.04,0.9079,1.0,1.0,0,0,0,1.2
+4,0.132,Stationary fixation with jitter,200,B: Predicted (Unconstrained),-0.23,-0.73,0.73,1.59,0.8709,1.0,0.985,0,0,1,4.6
+4,0.132,Stationary fixation with jitter,200,C: Predicted (with Fallback),-0.23,-0.73,0.73,1.59,0.8709,1.0,0.985,0,0,1,4.6
+5,0.165,Stationary fixation with jitter,200,A: Current Gaze,-0.23,-0.23,0.03,0.55,0.9411,1.0,1.0,0,0,0,1.2
+5,0.165,Stationary fixation with jitter,200,B: Predicted (Unconstrained),-0.23,-1.08,0.03,1.12,0.9322,1.0,0.971,0,0,1,4.5
+5,0.165,Stationary fixation with jitter,200,C: Predicted (with Fallback),-0.23,-1.08,0.03,1.12,0.9322,1.0,0.971,0,0,1,4.6
+6,0.198,Stationary fixation with jitter,200,A: Current Gaze,0.12,0.12,-0.27,1.09,0.8899,1.0,1.0,0,0,0,1.2
+6,0.198,Stationary fixation with jitter,200,B: Predicted (Unconstrained),0.12,-0.15,-0.27,2.88,0.7624,1.0,0.948,0,0,1,4.8
+6,0.198,Stationary fixation with jitter,200,C: Predicted (with Fallback),0.12,-0.15,-0.27,2.88,0.7624,1.0,0.948,0,0,1,4.5
+7,0.231,Stationary fixation with jitter,200,A: Current Gaze,-0.86,-0.86,-0.58,0.55,0.937,1.0,1.0,0,0,0,1.2
+7,0.231,Stationary fixation with jitter,200,B: Predicted (Unconstrained),-0.86,-2.26,-0.58,2.19,0.7999,1.0,0.953,0,0,1,4.7
+7,0.231,Stationary fixation with jitter,200,C: Predicted (with Fallback),-0.86,-2.26,-0.58,2.19,0.7999,1.0,0.953,0,0,1,4.4
+8,0.264,Stationary fixation with jitter,200,A: Current Gaze,-0.51,-0.51,-0.3,0.37,0.9636,1.0,1.0,0,0,0,1.2
+8,0.264,Stationary fixation with jitter,200,B: Predicted (Unconstrained),-0.51,-1.51,-0.3,1.35,0.8824,1.0,0.971,0,0,1,5.5
+8,0.264,Stationary fixation with jitter,200,C: Predicted (with Fallback),-0.51,-1.51,-0.3,1.35,0.8824,1.0,0.971,0,0,1,4.5
+9,0.297,Stationary fixation with jitter,200,A: Current Gaze,-0.45,-0.45,-0.3,1.64,0.8527,1.0,1.0,0,0,0,1.2
+9,0.297,Stationary fixation with jitter,200,B: Predicted (Unconstrained),-0.45,-0.98,-0.3,2.27,0.79,1.0,0.979,0,0,1,4.6
+9,0.297,Stationary fixation with jitter,200,C: Predicted (with Fallback),-0.45,-0.98,-0.3,2.27,0.79,1.0,0.979,0,0,1,4.4
+10,0.33,Stationary fixation with jitter,200,A: Current Gaze,0.73,0.73,-0.01,0.85,0.9199,1.0,1.0,0,0,0,1.2
+10,0.33,Stationary fixation with jitter,200,B: Predicted (Unconstrained),0.73,2.25,-0.01,2.32,0.8337,1.0,0.958,0,0,1,4.7
+10,0.33,Stationary fixation with jitter,200,C: Predicted (with Fallback),0.73,2.25,-0.01,2.32,0.8337,1.0,0.958,0,0,1,4.3
+11,0.363,Stationary fixation with jitter,200,A: Current Gaze,0.03,0.03,0.41,0.39,0.9703,1.0,1.0,0,0,0,1.2
+11,0.363,Stationary fixation with jitter,200,B: Predicted (Unconstrained),0.03,0.99,0.41,0.85,0.9176,1.0,0.97,0,0,1,4.6
+11,0.363,Stationary fixation with jitter,200,C: Predicted (with Fallback),0.03,0.99,0.41,0.85,0.9176,1.0,0.97,0,0,1,4.4
+12,0.396,Stationary fixation with jitter,200,A: Current Gaze,-0.27,-0.27,0.1,1.1,0.8899,1.0,1.0,0,0,0,1.2
+12,0.396,Stationary fixation with jitter,200,B: Predicted (Unconstrained),-0.27,-0.22,0.1,1.54,0.8523,1.0,0.987,0,0,1,5.0
+12,0.396,Stationary fixation with jitter,200,C: Predicted (with Fallback),-0.27,-0.22,0.1,1.54,0.8523,1.0,0.987,0,0,1,4.4
+13,0.429,Stationary fixation with jitter,200,A: Current Gaze,-0.58,-0.58,-0.66,0.13,0.9877,1.0,1.0,0,0,0,1.2
+13,0.429,Stationary fixation with jitter,200,B: Predicted (Unconstrained),-0.58,-1.34,-0.66,1.23,0.8749,1.0,0.966,0,0,1,4.5
+13,0.429,Stationary fixation with jitter,200,C: Predicted (with Fallback),-0.58,-1.34,-0.66,1.23,0.8749,1.0,0.966,0,0,1,4.5
+14,0.462,Stationary fixation with jitter,200,A: Current Gaze,-0.3,-0.3,0.37,0.71,0.95,1.0,1.0,0,0,0,1.2
+14,0.462,Stationary fixation with jitter,200,B: Predicted (Unconstrained),-0.3,-0.8,0.37,1.19,0.9139,1.0,0.982,0,0,1,5.9
+14,0.462,Stationary fixation with jitter,200,C: Predicted (with Fallback),-0.3,-0.8,0.37,1.19,0.9139,1.0,0.982,0,0,1,5.6
+15,0.495,Stationary fixation with jitter,200,A: Current Gaze,-0.3,-0.3,-0.06,1.1,0.8975,1.0,1.0,0,0,0,1.2
+15,0.495,Stationary fixation with jitter,200,B: Predicted (Unconstrained),-0.3,-0.58,-0.06,2.8,0.7534,1.0,0.953,0,0,1,4.7
+15,0.495,Stationary fixation with jitter,200,C: Predicted (with Fallback),-0.3,-0.58,-0.06,2.8,0.7534,1.0,0.953,0,0,1,5.5
+16,0.528,Stationary fixation with jitter,200,A: Current Gaze,-0.01,-0.01,-0.74,0.75,0.9458,1.0,1.0,0,0,0,1.2
+16,0.528,Stationary fixation with jitter,200,B: Predicted (Unconstrained),-0.01,0.3,-0.74,1.16,0.9009,1.0,0.987,0,0,1,4.7
+16,0.528,Stationary fixation with jitter,200,C: Predicted (with Fallback),-0.01,0.3,-0.74,1.16,0.9009,1.0,0.987,0,0,1,4.4
+17,0.561,Stationary fixation with jitter,200,A: Current Gaze,0.41,0.41,-0.23,1.31,0.8649,1.0,1.0,0,0,0,1.2
+17,0.561,Stationary fixation with jitter,200,B: Predicted (Unconstrained),0.41,1.48,-0.23,2.89,0.7407,1.0,0.956,0,0,1,6.0
+17,0.561,Stationary fixation with jitter,200,C: Predicted (with Fallback),0.41,1.48,-0.23,2.89,0.7407,1.0,0.956,0,0,1,4.4
+18,0.594,Stationary fixation with jitter,200,A: Current Gaze,0.1,0.1,0.17,0.12,0.9877,1.0,1.0,0,0,0,1.2
+18,0.594,Stationary fixation with jitter,200,B: Predicted (Unconstrained),0.1,0.78,0.17,1.97,0.8156,1.0,0.947,0,0,1,4.7
+18,0.594,Stationary fixation with jitter,200,C: Predicted (with Fallback),0.1,0.78,0.17,1.97,0.8156,1.0,0.947,0,0,1,4.8
+19,0.627,Stationary fixation with jitter,200,A: Current Gaze,-0.66,-0.66,0.16,0.88,0.923,1.0,1.0,0,0,0,1.2
+19,0.627,Stationary fixation with jitter,200,B: Predicted (Unconstrained),-0.66,-1.43,0.16,1.62,0.89,1.0,0.979,0,0,1,4.5
+19,0.627,Stationary fixation with jitter,200,C: Predicted (with Fallback),-0.66,-1.43,0.16,1.62,0.89,1.0,0.979,0,0,1,4.4
+20,0.66,Stationary fixation with jitter,200,A: Current Gaze,0.37,0.37,-0.34,0.74,0.9384,1.0,1.0,0,0,0,1.2
+20,0.66,Stationary fixation with jitter,200,B: Predicted (Unconstrained),0.37,0.72,-0.34,1.15,0.9039,1.0,0.979,0,0,1,4.8
+20,0.66,Stationary fixation with jitter,200,C: Predicted (with Fallback),0.37,0.72,-0.34,1.15,0.9039,1.0,0.979,0,0,1,4.5
+21,0.693,Stationary fixation with jitter,200,A: Current Gaze,-0.06,-0.06,0.52,0.84,0.9176,1.0,1.0,0,0,0,1.2
+21,0.693,Stationary fixation with jitter,200,B: Predicted (Unconstrained),-0.06,0.03,0.52,0.52,0.9584,1.0,0.987,0,0,0,4.8
+21,0.693,Stationary fixation with jitter,200,C: Predicted (with Fallback),-0.06,0.03,0.52,0.52,0.9584,1.0,0.987,0,0,0,4.6
+22,0.726,Stationary fixation with jitter,200,A: Current Gaze,-0.74,-0.74,-0.42,0.38,0.9594,1.0,1.0,0,0,0,1.2
+22,0.726,Stationary fixation with jitter,200,B: Predicted (Unconstrained),-0.74,-1.77,-0.42,1.38,0.9059,1.0,0.971,0,0,1,4.6
+22,0.726,Stationary fixation with jitter,200,C: Predicted (with Fallback),-0.74,-1.77,-0.42,1.38,0.9059,1.0,0.971,0,0,1,6.2
+23,0.759,Stationary fixation with jitter,200,A: Current Gaze,-0.23,-0.23,0.17,0.4,0.9703,1.0,1.0,0,0,0,1.2
+23,0.759,Stationary fixation with jitter,200,B: Predicted (Unconstrained),-0.23,-0.72,0.17,1.4,0.857,1.0,0.968,0,0,1,5.5
+23,0.759,Stationary fixation with jitter,200,C: Predicted (with Fallback),-0.23,-0.72,0.17,1.4,0.857,1.0,0.968,0,0,1,6.4
+24,0.792,Stationary fixation with jitter,200,A: Current Gaze,0.17,0.17,-0.24,0.89,0.9073,1.0,1.0,0,0,0,1.2
+24,0.792,Stationary fixation with jitter,200,B: Predicted (Unconstrained),0.17,0.6,-0.24,1.81,0.8278,1.0,0.974,0,0,1,4.9
+24,0.792,Stationary fixation with jitter,200,C: Predicted (with Fallback),0.17,0.6,-0.24,1.81,0.8278,1.0,0.974,0,0,1,6.0
+3,0.099,Smooth pursuit (harmonic),50,A: Current Gaze,3.87,3.87,6.41,2.54,0.8501,1.0,1.0,0,0,0,1.2
+3,0.099,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),3.87,5.33,6.41,1.09,0.925,1.0,0.838,0,0,0,7.2
+3,0.099,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),3.87,5.33,6.41,1.09,0.925,1.0,0.838,0,0,0,4.5
+4,0.132,Smooth pursuit (harmonic),50,A: Current Gaze,5.15,5.15,7.65,2.52,0.8476,1.0,1.0,0,0,0,1.2
+4,0.132,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),5.15,6.89,7.65,0.78,0.9458,1.0,0.806,0,0,0,6.9
+4,0.132,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),5.15,6.89,7.65,0.78,0.9458,1.0,0.806,0,0,0,4.5
+5,0.165,Smooth pursuit (harmonic),50,A: Current Gaze,6.41,6.41,8.87,2.49,0.8451,1.0,1.0,0,0,0,1.2
+5,0.165,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),6.41,8.31,8.87,0.6,0.9542,1.0,0.788,0,0,0,6.0
+5,0.165,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),6.41,8.31,8.87,0.6,0.9542,1.0,0.788,0,0,0,4.7
+6,0.198,Smooth pursuit (harmonic),50,A: Current Gaze,7.65,7.65,10.07,2.45,0.8451,1.0,1.0,0,0,0,1.2
+6,0.198,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),7.65,9.61,10.07,0.51,0.9627,1.0,0.781,0,0,0,5.2
+6,0.198,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),7.65,9.61,10.07,0.51,0.9627,1.0,0.781,0,0,0,4.5
+7,0.231,Smooth pursuit (harmonic),50,A: Current Gaze,8.87,8.87,11.24,2.41,0.8425,1.0,1.0,0,0,0,1.2
+7,0.231,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),8.87,10.83,11.24,0.47,0.9552,1.0,0.781,0,0,0,4.9
+7,0.231,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),8.87,10.83,11.24,0.47,0.9552,1.0,0.781,0,0,0,4.5
+8,0.264,Smooth pursuit (harmonic),50,A: Current Gaze,10.07,10.07,12.39,2.36,0.8362,1.0,1.0,0,0,0,1.2
+8,0.264,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),10.07,12.0,12.39,0.45,0.9552,1.0,0.785,0,0,0,4.6
+8,0.264,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),10.07,12.0,12.39,0.45,0.9552,1.0,0.785,0,0,0,4.6
+9,0.297,Smooth pursuit (harmonic),50,A: Current Gaze,11.24,11.24,13.49,2.31,0.8399,1.0,1.0,0,0,0,1.2
+9,0.297,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),11.24,13.12,13.49,0.44,0.9552,1.0,0.79,0,0,0,5.0
+9,0.297,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),11.24,13.12,13.49,0.44,0.9552,1.0,0.79,0,0,0,4.7
+10,0.33,Smooth pursuit (harmonic),50,A: Current Gaze,12.39,12.39,14.57,2.25,0.8436,1.0,1.0,0,0,0,1.2
+10,0.33,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),12.39,14.21,14.57,0.43,0.9552,1.0,0.795,0,0,0,4.6
+10,0.33,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),12.39,14.21,14.57,0.43,0.9552,1.0,0.795,0,0,0,4.6
+11,0.363,Smooth pursuit (harmonic),50,A: Current Gaze,13.49,13.49,15.6,2.19,0.841,1.0,1.0,0,0,0,1.2
+11,0.363,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),13.49,15.26,15.6,0.43,0.9594,1.0,0.8,0,0,0,4.7
+11,0.363,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),13.49,15.26,15.6,0.43,0.9594,1.0,0.8,0,0,0,4.5
+12,0.396,Smooth pursuit (harmonic),50,A: Current Gaze,14.57,14.57,16.59,2.13,0.8383,1.0,1.0,0,0,0,1.2
+12,0.396,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),14.57,16.28,16.59,0.41,0.9594,1.0,0.805,0,0,0,7.0
+12,0.396,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),14.57,16.28,16.59,0.41,0.9594,1.0,0.805,0,0,0,4.7
+13,0.429,Smooth pursuit (harmonic),50,A: Current Gaze,15.6,15.6,17.54,2.06,0.842,1.0,1.0,0,0,0,1.2
+13,0.429,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),15.6,17.25,17.54,0.39,0.9594,1.0,0.811,0,0,0,4.6
+13,0.429,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),15.6,17.25,17.54,0.39,0.9594,1.0,0.811,0,0,0,4.4
+14,0.462,Smooth pursuit (harmonic),50,A: Current Gaze,16.59,16.59,18.44,1.98,0.8457,1.0,1.0,0,0,0,1.2
+14,0.462,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),16.59,18.18,18.44,0.37,0.9594,1.0,0.816,0,0,0,4.7
+14,0.462,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),16.59,18.18,18.44,0.37,0.9594,1.0,0.816,0,0,0,4.4
+15,0.495,Smooth pursuit (harmonic),50,A: Current Gaze,17.54,17.54,19.29,1.91,0.8466,1.0,1.0,0,0,0,1.2
+15,0.495,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),17.54,19.07,19.29,0.35,0.9603,1.0,0.821,0,0,0,4.8
+15,0.495,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),17.54,19.07,19.29,0.35,0.9603,1.0,0.821,0,0,0,4.9
+16,0.528,Smooth pursuit (harmonic),50,A: Current Gaze,18.44,18.44,20.09,1.83,0.8503,1.0,1.0,0,0,0,1.2
+16,0.528,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),18.44,19.9,20.09,0.33,0.9636,1.0,0.827,0,0,0,4.6
+16,0.528,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),18.44,19.9,20.09,0.33,0.9636,1.0,0.827,0,0,0,4.5
+17,0.561,Smooth pursuit (harmonic),50,A: Current Gaze,19.29,19.29,20.83,1.75,0.854,1.0,1.0,0,0,0,1.2
+17,0.561,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),19.29,20.69,20.83,0.31,0.9679,1.0,0.833,0,0,0,4.7
+17,0.561,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),19.29,20.69,20.83,0.31,0.9679,1.0,0.833,0,0,0,4.6
+18,0.594,Smooth pursuit (harmonic),50,A: Current Gaze,20.09,20.09,21.52,1.67,0.8548,1.0,1.0,0,0,0,1.2
+18,0.594,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),20.09,21.41,21.52,0.31,0.9722,1.0,0.839,0,0,0,4.9
+18,0.594,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),20.09,21.41,21.52,0.31,0.9722,1.0,0.839,0,0,0,5.0
+19,0.627,Smooth pursuit (harmonic),50,A: Current Gaze,20.83,20.83,22.15,1.59,0.852,1.0,1.0,0,0,0,1.2
+19,0.627,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),20.83,22.08,22.15,0.29,0.9645,1.0,0.846,0,0,0,4.7
+19,0.627,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),20.83,22.08,22.15,0.29,0.9645,1.0,0.846,0,0,0,4.4
+20,0.66,Smooth pursuit (harmonic),50,A: Current Gaze,21.52,21.52,22.72,1.51,0.8593,1.0,1.0,0,0,0,1.2
+20,0.66,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),21.52,22.69,22.72,0.29,0.9765,1.0,0.852,0,0,0,4.8
+20,0.66,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),21.52,22.69,22.72,0.29,0.9765,1.0,0.852,0,0,0,4.6
+21,0.693,Smooth pursuit (harmonic),50,A: Current Gaze,22.15,22.15,23.23,1.43,0.863,1.0,1.0,0,0,0,1.2
+21,0.693,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),22.15,23.23,23.23,0.28,0.9688,1.0,0.859,0,0,0,4.7
+21,0.693,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),22.15,23.23,23.23,0.28,0.9688,1.0,0.859,0,0,0,4.7
+22,0.726,Smooth pursuit (harmonic),50,A: Current Gaze,22.72,22.72,23.68,1.36,0.8667,1.0,1.0,0,0,0,1.2
+22,0.726,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),22.72,23.72,23.68,0.29,0.9765,1.0,0.866,0,0,0,4.9
+22,0.726,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),22.72,23.72,23.68,0.29,0.9765,1.0,0.866,0,0,0,4.6
+23,0.759,Smooth pursuit (harmonic),50,A: Current Gaze,23.23,23.23,24.06,1.29,0.8779,1.0,1.0,0,0,0,1.2
+23,0.759,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),23.23,24.14,24.06,0.3,0.9722,1.0,0.873,0,0,0,4.5
+23,0.759,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),23.23,24.14,24.06,0.3,0.9722,1.0,0.873,0,0,0,4.9
+24,0.792,Smooth pursuit (harmonic),50,A: Current Gaze,23.68,23.68,24.38,1.22,0.8749,1.0,1.0,0,0,0,1.2
+24,0.792,Smooth pursuit (harmonic),50,B: Predicted (Unconstrained),23.68,24.5,24.38,0.31,0.9722,1.0,0.879,0,0,0,4.7
+24,0.792,Smooth pursuit (harmonic),50,C: Predicted (with Fallback),23.68,24.5,24.38,0.31,0.9722,1.0,0.879,0,0,0,4.6
+3,0.099,Smooth pursuit (harmonic),100,A: Current Gaze,3.87,3.87,7.65,3.8,0.7836,1.0,1.0,0,0,0,1.2
+3,0.099,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),3.87,6.79,7.65,0.9,0.9302,1.0,0.838,0,0,0,5.1
+3,0.099,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),3.87,6.79,7.65,0.9,0.9302,1.0,0.838,0,0,0,4.6
+4,0.132,Smooth pursuit (harmonic),100,A: Current Gaze,5.15,5.15,8.87,3.75,0.778,1.0,1.0,0,0,0,1.2
+4,0.132,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),5.15,8.64,8.87,0.37,0.9636,1.0,0.806,0,0,0,4.7
+4,0.132,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),5.15,8.64,8.87,0.37,0.9636,1.0,0.806,0,0,0,4.5
+5,0.165,Smooth pursuit (harmonic),100,A: Current Gaze,6.41,6.41,10.07,3.7,0.7793,1.0,1.0,0,0,0,1.2
+5,0.165,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),6.41,10.21,10.07,0.31,0.9679,1.0,0.788,0,0,0,4.7
+5,0.165,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),6.41,10.21,10.07,0.31,0.9679,1.0,0.788,0,0,0,4.6
+6,0.198,Smooth pursuit (harmonic),100,A: Current Gaze,7.65,7.65,11.24,3.64,0.7737,1.0,1.0,0,0,0,1.2
+6,0.198,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),7.65,11.57,11.24,0.43,0.9552,1.0,0.781,0,0,0,4.8
+6,0.198,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),7.65,11.57,11.24,0.43,0.9552,1.0,0.781,0,0,0,4.4
+7,0.231,Smooth pursuit (harmonic),100,A: Current Gaze,8.87,8.87,12.39,3.57,0.7715,1.0,1.0,0,0,0,1.2
+7,0.231,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),8.87,12.79,12.39,0.48,0.9552,1.0,0.781,0,0,0,4.6
+7,0.231,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),8.87,12.79,12.39,0.48,0.9552,1.0,0.781,0,0,0,4.5
+8,0.264,Smooth pursuit (harmonic),100,A: Current Gaze,10.07,10.07,13.49,3.5,0.7693,1.0,1.0,0,0,0,1.2
+8,0.264,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),10.07,13.92,13.49,0.5,0.951,1.0,0.785,0,0,0,4.9
+8,0.264,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),10.07,13.92,13.49,0.5,0.951,1.0,0.785,0,0,0,4.5
+9,0.297,Smooth pursuit (harmonic),100,A: Current Gaze,11.24,11.24,14.57,3.42,0.7726,1.0,1.0,0,0,0,1.2
+9,0.297,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),11.24,14.99,14.57,0.49,0.9552,1.0,0.79,0,0,0,4.7
+9,0.297,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),11.24,14.99,14.57,0.49,0.9552,1.0,0.79,0,0,0,4.7
+10,0.33,Smooth pursuit (harmonic),100,A: Current Gaze,12.39,12.39,15.6,3.33,0.7737,1.0,1.0,0,0,0,1.2
+10,0.33,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),12.39,16.03,15.6,0.49,0.951,1.0,0.795,0,0,0,4.7
+10,0.33,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),12.39,16.03,15.6,0.49,0.951,1.0,0.795,0,0,0,4.8
+11,0.363,Smooth pursuit (harmonic),100,A: Current Gaze,13.49,13.49,16.59,3.24,0.7714,1.0,1.0,0,0,0,1.2
+11,0.363,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),13.49,17.02,16.59,0.49,0.9552,1.0,0.8,0,0,0,4.6
+11,0.363,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),13.49,17.02,16.59,0.49,0.9552,1.0,0.8,0,0,0,4.5
+12,0.396,Smooth pursuit (harmonic),100,A: Current Gaze,14.57,14.57,17.54,3.13,0.7724,1.0,1.0,0,0,0,1.2
+12,0.396,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),14.57,17.98,17.54,0.5,0.951,1.0,0.805,0,0,0,4.7
+12,0.396,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),14.57,17.98,17.54,0.5,0.951,1.0,0.805,0,0,0,5.0
+13,0.429,Smooth pursuit (harmonic),100,A: Current Gaze,15.6,15.6,18.44,3.03,0.7758,1.0,1.0,0,0,0,1.2
+13,0.429,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),15.6,18.9,18.44,0.51,0.9627,1.0,0.811,0,0,0,4.7
+13,0.429,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),15.6,18.9,18.44,0.51,0.9627,1.0,0.811,0,0,0,4.4
+14,0.462,Smooth pursuit (harmonic),100,A: Current Gaze,16.59,16.59,19.29,2.92,0.78,1.0,1.0,0,0,0,1.2
+14,0.462,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),16.59,19.78,19.29,0.53,0.9468,1.0,0.816,0,0,0,6.2
+14,0.462,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),16.59,19.78,19.29,0.53,0.9468,1.0,0.816,0,0,0,9.4
+15,0.495,Smooth pursuit (harmonic),100,A: Current Gaze,17.54,17.54,20.09,2.8,0.7834,1.0,1.0,0,0,0,1.2
+15,0.495,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),17.54,20.6,20.09,0.55,0.9584,1.0,0.821,0,0,0,5.3
+15,0.495,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),17.54,20.6,20.09,0.55,0.9584,1.0,0.821,0,0,0,4.6
+16,0.528,Smooth pursuit (harmonic),100,A: Current Gaze,18.44,18.44,20.83,2.69,0.7876,1.0,1.0,0,0,0,1.2
+16,0.528,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),18.44,21.37,20.83,0.57,0.9542,1.0,0.827,0,0,0,10.7
+16,0.528,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),18.44,21.37,20.83,0.57,0.9542,1.0,0.827,0,0,0,5.3
+17,0.561,Smooth pursuit (harmonic),100,A: Current Gaze,19.29,19.29,21.52,2.57,0.791,1.0,1.0,0,0,0,1.2
+17,0.561,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),19.29,22.08,21.52,0.59,0.9542,1.0,0.833,0,0,0,5.8
+17,0.561,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),19.29,22.08,21.52,0.59,0.9542,1.0,0.833,0,0,0,6.3
+18,0.594,Smooth pursuit (harmonic),100,A: Current Gaze,20.09,20.09,22.15,2.45,0.7892,1.0,1.0,0,0,0,1.2
+18,0.594,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),20.09,22.74,22.15,0.61,0.95,1.0,0.839,0,0,0,5.4
+18,0.594,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),20.09,22.74,22.15,0.61,0.95,1.0,0.839,0,0,0,4.7
+19,0.627,Smooth pursuit (harmonic),100,A: Current Gaze,20.83,20.83,22.72,2.33,0.7959,1.0,1.0,0,0,0,1.2
+19,0.627,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),20.83,23.33,22.72,0.63,0.95,1.0,0.846,0,0,0,6.7
+19,0.627,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),20.83,23.33,22.72,0.63,0.95,1.0,0.846,0,0,0,4.6
+20,0.66,Smooth pursuit (harmonic),100,A: Current Gaze,21.52,21.52,23.23,2.21,0.7965,1.0,1.0,0,0,0,1.2
+20,0.66,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),21.52,23.86,23.23,0.64,0.95,1.0,0.852,0,0,0,4.8
+20,0.66,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),21.52,23.86,23.23,0.64,0.95,1.0,0.852,0,0,0,6.1
+21,0.693,Smooth pursuit (harmonic),100,A: Current Gaze,22.15,22.15,23.68,2.09,0.8095,1.0,1.0,0,0,0,1.2
+21,0.693,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),22.15,24.32,23.68,0.65,0.9574,1.0,0.859,0,0,0,5.9
+21,0.693,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),22.15,24.32,23.68,0.65,0.9574,1.0,0.859,0,0,0,4.8
+22,0.726,Smooth pursuit (harmonic),100,A: Current Gaze,22.72,22.72,24.06,1.98,0.8135,1.0,1.0,0,0,0,1.2
+22,0.726,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),22.72,24.72,24.06,0.67,0.9532,1.0,0.866,0,0,0,6.2
+22,0.726,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),22.72,24.72,24.06,0.67,0.9532,1.0,0.866,0,0,0,4.5
+23,0.759,Smooth pursuit (harmonic),100,A: Current Gaze,23.23,23.23,24.38,1.88,0.8204,1.0,1.0,0,0,0,1.2
+23,0.759,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),23.23,25.05,24.38,0.68,0.9574,1.0,0.873,0,0,0,7.4
+23,0.759,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),23.23,25.05,24.38,0.68,0.9574,1.0,0.873,0,0,0,6.7
+24,0.792,Smooth pursuit (harmonic),100,A: Current Gaze,23.68,23.68,24.63,1.78,0.8243,1.0,1.0,0,0,0,1.2
+24,0.792,Smooth pursuit (harmonic),100,B: Predicted (Unconstrained),23.68,25.32,24.63,0.69,0.9532,1.0,0.879,0,0,0,6.8
+24,0.792,Smooth pursuit (harmonic),100,C: Predicted (with Fallback),23.68,25.32,24.63,0.69,0.9532,1.0,0.879,0,0,0,4.6
+3,0.099,Smooth pursuit (harmonic),150,A: Current Gaze,3.87,3.87,10.07,6.24,0.6632,1.0,1.0,0,0,0,1.2
+3,0.099,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),3.87,8.24,10.07,1.92,0.8558,1.0,0.838,0,0,0,7.1
+3,0.099,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),3.87,8.24,10.07,1.92,0.8558,1.0,0.838,0,0,0,8.3
+4,0.132,Smooth pursuit (harmonic),150,A: Current Gaze,5.15,5.15,11.24,6.16,0.6572,1.0,1.0,0,0,0,1.2
+4,0.132,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),5.15,10.39,11.24,1.06,0.9018,1.0,0.806,0,0,0,5.0
+4,0.132,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),5.15,10.39,11.24,1.06,0.9018,1.0,0.806,0,0,0,4.5
+5,0.165,Smooth pursuit (harmonic),150,A: Current Gaze,6.41,6.41,12.39,6.06,0.654,1.0,1.0,0,0,0,1.2
+5,0.165,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),6.41,12.12,12.39,0.68,0.9264,1.0,0.788,0,0,0,4.8
+5,0.165,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),6.41,12.12,12.39,0.68,0.9264,1.0,0.788,0,0,0,4.3
+6,0.198,Smooth pursuit (harmonic),150,A: Current Gaze,7.65,7.65,13.49,5.95,0.6524,1.0,1.0,0,0,0,1.2
+6,0.198,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),7.65,13.53,13.49,0.63,0.9344,1.0,0.781,0,0,0,5.0
+6,0.198,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),7.65,13.53,13.49,0.63,0.9344,1.0,0.781,0,0,0,4.9
+7,0.231,Smooth pursuit (harmonic),150,A: Current Gaze,8.87,8.87,14.57,5.82,0.6536,1.0,1.0,0,0,0,1.2
+7,0.231,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),8.87,14.75,14.57,0.66,0.9378,1.0,0.781,0,0,0,4.6
+7,0.231,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),8.87,14.75,14.57,0.66,0.9378,1.0,0.781,0,0,0,4.3
+8,0.264,Smooth pursuit (harmonic),150,A: Current Gaze,10.07,10.07,15.6,5.69,0.6503,1.0,1.0,0,0,0,1.2
+8,0.264,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),10.07,15.84,15.6,0.67,0.9337,1.0,0.785,0,0,0,5.0
+8,0.264,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),10.07,15.84,15.6,0.67,0.9337,1.0,0.785,0,0,0,4.5
+9,0.297,Smooth pursuit (harmonic),150,A: Current Gaze,11.24,11.24,16.59,5.54,0.6514,1.0,1.0,0,0,0,1.2
+9,0.297,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),11.24,16.86,16.59,0.68,0.9264,1.0,0.79,0,0,0,4.7
+9,0.297,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),11.24,16.86,16.59,0.68,0.9264,1.0,0.79,0,0,0,4.5
+10,0.33,Smooth pursuit (harmonic),150,A: Current Gaze,12.39,12.39,17.54,5.38,0.6553,1.0,1.0,0,0,0,1.2
+10,0.33,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),12.39,17.84,17.54,0.68,0.9296,1.0,0.795,0,0,0,5.0
+10,0.33,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),12.39,17.84,17.54,0.68,0.9296,1.0,0.795,0,0,0,4.6
+11,0.363,Smooth pursuit (harmonic),150,A: Current Gaze,13.49,13.49,18.44,5.22,0.6563,1.0,1.0,0,0,0,1.2
+11,0.363,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),13.49,18.79,18.44,0.7,0.9296,1.0,0.8,0,0,0,5.1
+11,0.363,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),13.49,18.79,18.44,0.7,0.9296,1.0,0.8,0,0,0,4.5
+12,0.396,Smooth pursuit (harmonic),150,A: Current Gaze,14.57,14.57,19.29,5.04,0.6582,1.0,1.0,0,0,0,1.2
+12,0.396,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),14.57,19.69,19.29,0.72,0.9216,1.0,0.805,0,0,0,4.8
+12,0.396,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),14.57,19.69,19.29,0.72,0.9216,1.0,0.805,0,0,0,8.1
+13,0.429,Smooth pursuit (harmonic),150,A: Current Gaze,15.6,15.6,20.09,4.86,0.6639,1.0,1.0,0,0,0,1.2
+13,0.429,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),15.6,20.56,20.09,0.75,0.9289,1.0,0.811,0,0,0,4.9
+13,0.429,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),15.6,20.56,20.09,0.75,0.9289,1.0,0.811,0,0,0,4.3
+14,0.462,Smooth pursuit (harmonic),150,A: Current Gaze,16.59,16.59,20.83,4.67,0.6704,1.0,1.0,0,0,0,1.2
+14,0.462,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),16.59,21.37,20.83,0.79,0.9248,1.0,0.816,0,0,0,4.5
+14,0.462,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),16.59,21.37,20.83,0.79,0.9248,1.0,0.816,0,0,0,4.4
+15,0.495,Smooth pursuit (harmonic),150,A: Current Gaze,17.54,17.54,21.52,4.47,0.674,1.0,1.0,0,0,0,1.2
+15,0.495,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),17.54,22.13,21.52,0.84,0.9208,1.0,0.821,0,0,0,4.6
+15,0.495,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),17.54,22.13,21.52,0.84,0.9208,1.0,0.821,0,0,0,4.5
+16,0.528,Smooth pursuit (harmonic),150,A: Current Gaze,18.44,18.44,22.15,4.27,0.6754,1.0,1.0,0,0,0,1.2
+16,0.528,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),18.44,22.84,22.15,0.88,0.9097,1.0,0.827,0,0,0,4.7
+16,0.528,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),18.44,22.84,22.15,0.88,0.9097,1.0,0.827,0,0,0,4.5
+17,0.561,Smooth pursuit (harmonic),150,A: Current Gaze,19.29,19.29,22.72,4.07,0.684,1.0,1.0,0,0,0,1.2
+17,0.561,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),19.29,23.48,22.72,0.93,0.9128,1.0,0.833,0,0,0,4.8
+17,0.561,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),19.29,23.48,22.72,0.93,0.9128,1.0,0.833,0,0,0,4.4
+18,0.594,Smooth pursuit (harmonic),150,A: Current Gaze,20.09,20.09,23.23,3.87,0.6851,1.0,1.0,0,0,0,1.2
+18,0.594,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),20.09,24.06,23.23,0.98,0.9128,1.0,0.839,0,0,0,4.5
+18,0.594,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),20.09,24.06,23.23,0.98,0.9128,1.0,0.839,0,0,0,4.4
+19,0.627,Smooth pursuit (harmonic),150,A: Current Gaze,20.83,20.83,23.68,3.67,0.6936,1.0,1.0,0,0,0,1.2
+19,0.627,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),20.83,24.58,23.68,1.03,0.9088,1.0,0.846,0,0,0,4.8
+19,0.627,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),20.83,24.58,23.68,1.03,0.9088,1.0,0.846,0,0,0,12.2
+20,0.66,Smooth pursuit (harmonic),150,A: Current Gaze,21.52,21.52,24.06,3.48,0.7027,1.0,1.0,0,0,0,1.2
+20,0.66,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),21.52,25.02,24.06,1.07,0.9009,1.0,0.852,0,0,0,4.7
+20,0.66,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),21.52,25.02,24.06,1.07,0.9009,1.0,0.852,0,0,0,4.6
+21,0.693,Smooth pursuit (harmonic),150,A: Current Gaze,22.15,22.15,24.38,3.3,0.7114,1.0,1.0,0,0,0,1.2
+21,0.693,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),22.15,25.41,24.38,1.13,0.9009,1.0,0.859,0,0,0,5.7
+21,0.693,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),22.15,25.41,24.38,1.13,0.9009,1.0,0.859,0,0,0,4.7
+22,0.726,Smooth pursuit (harmonic),150,A: Current Gaze,22.72,22.72,24.63,3.12,0.7175,1.0,1.0,0,0,0,1.2
+22,0.726,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),22.72,25.72,24.63,1.17,0.9039,1.0,0.866,0,0,0,7.1
+22,0.726,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),22.72,25.72,24.63,1.17,0.9039,1.0,0.866,0,0,0,4.8
+23,0.759,Smooth pursuit (harmonic),150,A: Current Gaze,23.23,23.23,24.82,2.97,0.7322,1.0,1.0,0,0,0,1.2
+23,0.759,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),23.23,25.96,24.82,1.21,0.9,1.0,0.873,0,0,0,4.9
+23,0.759,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),23.23,25.96,24.82,1.21,0.9,1.0,0.873,0,0,0,4.5
+24,0.792,Smooth pursuit (harmonic),150,A: Current Gaze,23.68,23.68,24.94,2.83,0.7384,1.0,1.0,0,0,0,1.2
+24,0.792,Smooth pursuit (harmonic),150,B: Predicted (Unconstrained),23.68,26.13,24.94,1.25,0.9,1.0,0.879,0,0,0,4.6
+24,0.792,Smooth pursuit (harmonic),150,C: Predicted (with Fallback),23.68,26.13,24.94,1.25,0.9,1.0,0.879,0,0,0,4.4
+3,0.099,Smooth pursuit (harmonic),200,A: Current Gaze,3.87,3.87,11.24,7.43,0.6073,1.0,1.0,0,0,0,1.2
+3,0.099,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),3.87,9.7,11.24,1.73,0.8577,1.0,0.838,0,0,0,4.7
+3,0.099,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),3.87,9.7,11.24,1.73,0.8577,1.0,0.838,0,0,0,4.6
+4,0.132,Smooth pursuit (harmonic),200,A: Current Gaze,5.15,5.15,12.39,7.32,0.602,1.0,1.0,0,0,0,1.2
+4,0.132,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),5.15,12.14,12.39,0.82,0.9191,1.0,0.806,0,0,0,4.9
+4,0.132,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),5.15,12.14,12.39,0.82,0.9191,1.0,0.806,0,0,0,4.4
+5,0.165,Smooth pursuit (harmonic),200,A: Current Gaze,6.41,6.41,13.49,7.2,0.602,1.0,1.0,0,0,0,1.2
+5,0.165,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),6.41,14.02,13.49,0.94,0.9033,1.0,0.788,0,0,0,4.8
+5,0.165,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),6.41,14.02,13.49,0.94,0.9033,1.0,0.788,0,0,0,6.8
+6,0.198,Smooth pursuit (harmonic),200,A: Current Gaze,7.65,7.65,14.57,7.06,0.6006,1.0,1.0,0,0,0,1.2
+6,0.198,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),7.65,15.49,14.57,1.2,0.884,1.0,0.781,0,0,0,9.1
+6,0.198,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),7.65,15.49,14.57,1.2,0.884,1.0,0.781,0,0,0,4.5
+7,0.231,Smooth pursuit (harmonic),200,A: Current Gaze,8.87,8.87,15.6,6.9,0.6004,1.0,1.0,0,0,0,1.2
+7,0.231,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),8.87,16.7,15.6,1.33,0.8764,1.0,0.781,0,0,0,4.8
+7,0.231,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),8.87,16.7,15.6,1.33,0.8764,1.0,0.781,0,0,0,4.5
+8,0.264,Smooth pursuit (harmonic),200,A: Current Gaze,10.07,10.07,16.59,6.73,0.5975,1.0,1.0,0,0,0,1.2
+8,0.264,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),10.07,17.76,16.59,1.37,0.8727,1.0,0.785,0,0,0,4.6
+8,0.264,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),10.07,17.76,16.59,1.37,0.8727,1.0,0.785,0,0,0,4.4
+9,0.297,Smooth pursuit (harmonic),200,A: Current Gaze,11.24,11.24,17.54,6.55,0.6012,1.0,1.0,0,0,0,1.2
+9,0.297,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),11.24,18.74,17.54,1.39,0.8794,1.0,0.79,0,0,0,4.7
+9,0.297,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),11.24,18.74,17.54,1.39,0.8794,1.0,0.79,0,0,0,4.8
+10,0.33,Smooth pursuit (harmonic),200,A: Current Gaze,12.39,12.39,18.44,6.35,0.6049,1.0,1.0,0,0,0,1.2
+10,0.33,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),12.39,19.66,18.44,1.39,0.8794,1.0,0.795,0,0,0,5.8
+10,0.33,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),12.39,19.66,18.44,1.39,0.8794,1.0,0.795,0,0,0,4.6
+11,0.363,Smooth pursuit (harmonic),200,A: Current Gaze,13.49,13.49,19.29,6.15,0.6068,1.0,1.0,0,0,0,1.2
+11,0.363,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),13.49,20.55,19.29,1.42,0.8718,1.0,0.8,0,0,0,6.6
+11,0.363,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),13.49,20.55,19.29,1.42,0.8718,1.0,0.8,0,0,0,28.3
+12,0.396,Smooth pursuit (harmonic),200,A: Current Gaze,14.57,14.57,20.09,5.93,0.6103,1.0,1.0,0,0,0,1.2
+12,0.396,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),14.57,21.4,20.09,1.45,0.8824,1.0,0.805,0,0,0,14.8
+12,0.396,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),14.57,21.4,20.09,1.45,0.8824,1.0,0.805,0,0,0,13.3
+13,0.429,Smooth pursuit (harmonic),200,A: Current Gaze,15.6,15.6,20.83,5.71,0.6164,1.0,1.0,0,0,0,1.2
+13,0.429,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),15.6,22.21,20.83,1.5,0.8747,1.0,0.811,0,0,0,5.5
+13,0.429,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),15.6,22.21,20.83,1.5,0.8747,1.0,0.811,0,0,0,4.5
+14,0.462,Smooth pursuit (harmonic),200,A: Current Gaze,16.59,16.59,21.52,5.48,0.6225,1.0,1.0,0,0,0,1.2
+14,0.462,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),16.59,22.96,21.52,1.55,0.8814,1.0,0.816,0,0,0,4.7
+14,0.462,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),16.59,22.96,21.52,1.55,0.8814,1.0,0.816,0,0,0,4.6
+15,0.495,Smooth pursuit (harmonic),200,A: Current Gaze,17.54,17.54,22.15,5.24,0.6239,1.0,1.0,0,0,0,1.2
+15,0.495,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),17.54,23.67,22.15,1.61,0.8709,1.0,0.821,0,0,0,4.8
+15,0.495,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),17.54,23.67,22.15,1.61,0.8709,1.0,0.821,0,0,0,4.6
+16,0.528,Smooth pursuit (harmonic),200,A: Current Gaze,18.44,18.44,22.72,5.0,0.6323,1.0,1.0,0,0,0,1.2
+16,0.528,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),18.44,24.3,22.72,1.66,0.8699,1.0,0.827,0,0,0,4.9
+16,0.528,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),18.44,24.3,22.72,1.66,0.8699,1.0,0.827,0,0,0,4.8
+17,0.561,Smooth pursuit (harmonic),200,A: Current Gaze,19.29,19.29,23.23,4.76,0.6355,1.0,1.0,0,0,0,1.2
+17,0.561,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),19.29,24.88,23.23,1.71,0.8699,1.0,0.833,0,0,0,4.6
+17,0.561,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),19.29,24.88,23.23,1.71,0.8699,1.0,0.833,0,0,0,4.4
+18,0.594,Smooth pursuit (harmonic),200,A: Current Gaze,20.09,20.09,23.68,4.52,0.6439,1.0,1.0,0,0,0,1.2
+18,0.594,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),20.09,25.39,23.68,1.77,0.8765,1.0,0.839,0,0,0,4.7
+18,0.594,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),20.09,25.39,23.68,1.77,0.8765,1.0,0.839,0,0,0,4.4
+19,0.627,Smooth pursuit (harmonic),200,A: Current Gaze,20.83,20.83,24.06,4.29,0.6522,1.0,1.0,0,0,0,1.2
+19,0.627,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),20.83,25.82,24.06,1.8,0.8689,1.0,0.846,0,0,0,4.7
+19,0.627,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),20.83,25.82,24.06,1.8,0.8689,1.0,0.846,0,0,0,4.7
+20,0.66,Smooth pursuit (harmonic),200,A: Current Gaze,21.52,21.52,24.38,4.06,0.6579,1.0,1.0,0,0,0,1.2
+20,0.66,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),21.52,26.19,24.38,1.84,0.8755,1.0,0.852,0,0,0,4.8
+20,0.66,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),21.52,26.19,24.38,1.84,0.8755,1.0,0.852,0,0,0,4.6
+21,0.693,Smooth pursuit (harmonic),200,A: Current Gaze,22.15,22.15,24.63,3.85,0.6712,1.0,1.0,0,0,0,1.2
+21,0.693,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),22.15,26.49,24.63,1.88,0.8716,1.0,0.859,0,0,0,4.7
+21,0.693,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),22.15,26.49,24.63,1.88,0.8716,1.0,0.859,0,0,0,4.7
+22,0.726,Smooth pursuit (harmonic),200,A: Current Gaze,22.72,22.72,24.82,3.65,0.6796,1.0,1.0,0,0,0,1.2
+22,0.726,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),22.72,26.72,24.82,1.92,0.8716,1.0,0.866,0,0,0,8.3
+22,0.726,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),22.72,26.72,24.82,1.92,0.8716,1.0,0.866,0,0,0,7.9
+23,0.759,Smooth pursuit (harmonic),200,A: Current Gaze,23.23,23.23,24.94,3.47,0.6932,1.0,1.0,0,0,0,1.2
+23,0.759,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),23.23,26.87,24.94,1.94,0.8782,1.0,0.873,0,0,0,8.2
+23,0.759,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),23.23,26.87,24.94,1.94,0.8782,1.0,0.873,0,0,0,6.9
+24,0.792,Smooth pursuit (harmonic),200,A: Current Gaze,23.68,23.68,25.0,3.33,0.7043,1.0,1.0,0,0,0,1.2
+24,0.792,Smooth pursuit (harmonic),200,B: Predicted (Unconstrained),23.68,26.95,25.0,1.96,0.8705,1.0,0.879,0,0,0,6.1
+24,0.792,Smooth pursuit (harmonic),200,C: Predicted (with Fallback),23.68,26.95,25.0,1.96,0.8705,1.0,0.879,0,0,0,5.3
+3,0.099,Saccade sudden turn,50,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+3,0.099,Saccade sudden turn,50,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,5.1
+3,0.099,Saccade sudden turn,50,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,5.1
+4,0.132,Saccade sudden turn,50,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+4,0.132,Saccade sudden turn,50,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,4.9
+4,0.132,Saccade sudden turn,50,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,4.4
+5,0.165,Saccade sudden turn,50,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+5,0.165,Saccade sudden turn,50,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,4.3
+5,0.165,Saccade sudden turn,50,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,4.2
+6,0.198,Saccade sudden turn,50,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+6,0.198,Saccade sudden turn,50,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,4.6
+6,0.198,Saccade sudden turn,50,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,4.3
+7,0.231,Saccade sudden turn,50,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+7,0.231,Saccade sudden turn,50,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,4.7
+7,0.231,Saccade sudden turn,50,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,4.2
+8,0.264,Saccade sudden turn,50,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+8,0.264,Saccade sudden turn,50,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,4.4
+8,0.264,Saccade sudden turn,50,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,5.3
+9,0.297,Saccade sudden turn,50,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+9,0.297,Saccade sudden turn,50,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,4.4
+9,0.297,Saccade sudden turn,50,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,4.2
+10,0.33,Saccade sudden turn,50,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+10,0.33,Saccade sudden turn,50,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,4.6
+10,0.33,Saccade sudden turn,50,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,4.7
+11,0.363,Saccade sudden turn,50,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+11,0.363,Saccade sudden turn,50,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,4.7
+11,0.363,Saccade sudden turn,50,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,5.9
+12,0.396,Saccade sudden turn,50,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+12,0.396,Saccade sudden turn,50,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,4.6
+12,0.396,Saccade sudden turn,50,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,4.7
+13,0.429,Saccade sudden turn,50,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+13,0.429,Saccade sudden turn,50,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,4.7
+13,0.429,Saccade sudden turn,50,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,5.0
+14,0.462,Saccade sudden turn,50,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+14,0.462,Saccade sudden turn,50,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,4.6
+14,0.462,Saccade sudden turn,50,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,4.5
+15,0.495,Saccade sudden turn,50,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+15,0.495,Saccade sudden turn,50,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.353,0,0,1,4.7
+15,0.495,Saccade sudden turn,50,C: Predicted (with Fallback),45.0,47.06,45.0,2.06,1.0,1.0,0.353,0,1,1,4.8
+16,0.528,Saccade sudden turn,50,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+16,0.528,Saccade sudden turn,50,B: Predicted (Unconstrained),45.0,47.61,45.0,2.61,1.0,1.0,0.71,0,0,1,4.8
+16,0.528,Saccade sudden turn,50,C: Predicted (with Fallback),45.0,47.61,45.0,2.61,1.0,1.0,0.71,0,0,1,4.5
+17,0.561,Saccade sudden turn,50,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+17,0.561,Saccade sudden turn,50,B: Predicted (Unconstrained),45.0,45.7,45.0,0.7,1.0,1.0,0.922,0,0,1,4.6
+17,0.561,Saccade sudden turn,50,C: Predicted (with Fallback),45.0,45.7,45.0,0.7,1.0,1.0,0.922,0,0,1,7.2
+18,0.594,Saccade sudden turn,50,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+18,0.594,Saccade sudden turn,50,B: Predicted (Unconstrained),45.0,44.77,45.0,0.23,1.0,1.0,0.974,0,0,1,5.5
+18,0.594,Saccade sudden turn,50,C: Predicted (with Fallback),45.0,44.77,45.0,0.23,1.0,1.0,0.974,0,0,1,4.5
+19,0.627,Saccade sudden turn,50,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+19,0.627,Saccade sudden turn,50,B: Predicted (Unconstrained),45.0,44.45,45.0,0.55,1.0,1.0,0.939,0,0,1,4.7
+19,0.627,Saccade sudden turn,50,C: Predicted (with Fallback),45.0,44.45,45.0,0.55,1.0,1.0,0.939,0,0,1,4.4
+20,0.66,Saccade sudden turn,50,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+20,0.66,Saccade sudden turn,50,B: Predicted (Unconstrained),45.0,44.46,45.0,0.54,1.0,1.0,0.94,0,0,1,9.0
+20,0.66,Saccade sudden turn,50,C: Predicted (with Fallback),45.0,44.46,45.0,0.54,1.0,1.0,0.94,0,0,1,7.6
+21,0.693,Saccade sudden turn,50,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+21,0.693,Saccade sudden turn,50,B: Predicted (Unconstrained),45.0,44.59,45.0,0.41,1.0,1.0,0.954,0,0,1,6.9
+21,0.693,Saccade sudden turn,50,C: Predicted (with Fallback),45.0,44.59,45.0,0.41,1.0,1.0,0.954,0,0,1,8.4
+22,0.726,Saccade sudden turn,50,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+22,0.726,Saccade sudden turn,50,B: Predicted (Unconstrained),45.0,44.74,45.0,0.26,1.0,1.0,0.971,0,0,1,7.2
+22,0.726,Saccade sudden turn,50,C: Predicted (with Fallback),45.0,44.74,45.0,0.26,1.0,1.0,0.971,0,0,1,7.6
+23,0.759,Saccade sudden turn,50,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+23,0.759,Saccade sudden turn,50,B: Predicted (Unconstrained),45.0,44.86,45.0,0.14,1.0,1.0,0.985,0,0,1,8.4
+23,0.759,Saccade sudden turn,50,C: Predicted (with Fallback),45.0,44.86,45.0,0.14,1.0,1.0,0.985,0,0,1,8.0
+24,0.792,Saccade sudden turn,50,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+24,0.792,Saccade sudden turn,50,B: Predicted (Unconstrained),45.0,44.95,45.0,0.05,1.0,1.0,0.994,0,0,1,7.5
+24,0.792,Saccade sudden turn,50,C: Predicted (with Fallback),45.0,44.95,45.0,0.05,1.0,1.0,0.994,0,0,1,7.7
+3,0.099,Saccade sudden turn,100,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+3,0.099,Saccade sudden turn,100,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,7.4
+3,0.099,Saccade sudden turn,100,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,7.4
+4,0.132,Saccade sudden turn,100,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+4,0.132,Saccade sudden turn,100,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,7.9
+4,0.132,Saccade sudden turn,100,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,7.5
+5,0.165,Saccade sudden turn,100,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+5,0.165,Saccade sudden turn,100,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,6.7
+5,0.165,Saccade sudden turn,100,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,6.9
+6,0.198,Saccade sudden turn,100,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+6,0.198,Saccade sudden turn,100,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,7.2
+6,0.198,Saccade sudden turn,100,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,6.7
+7,0.231,Saccade sudden turn,100,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+7,0.231,Saccade sudden turn,100,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,6.6
+7,0.231,Saccade sudden turn,100,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,8.2
+8,0.264,Saccade sudden turn,100,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+8,0.264,Saccade sudden turn,100,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,9.0
+8,0.264,Saccade sudden turn,100,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,7.3
+9,0.297,Saccade sudden turn,100,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+9,0.297,Saccade sudden turn,100,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,7.4
+9,0.297,Saccade sudden turn,100,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,6.4
+10,0.33,Saccade sudden turn,100,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+10,0.33,Saccade sudden turn,100,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,7.6
+10,0.33,Saccade sudden turn,100,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,6.8
+11,0.363,Saccade sudden turn,100,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+11,0.363,Saccade sudden turn,100,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,6.9
+11,0.363,Saccade sudden turn,100,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,7.1
+12,0.396,Saccade sudden turn,100,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+12,0.396,Saccade sudden turn,100,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,7.0
+12,0.396,Saccade sudden turn,100,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,7.1
+13,0.429,Saccade sudden turn,100,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+13,0.429,Saccade sudden turn,100,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,6.6
+13,0.429,Saccade sudden turn,100,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,6.9
+14,0.462,Saccade sudden turn,100,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+14,0.462,Saccade sudden turn,100,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,7.3
+14,0.462,Saccade sudden turn,100,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,6.9
+15,0.495,Saccade sudden turn,100,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+15,0.495,Saccade sudden turn,100,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.353,0,0,1,7.0
+15,0.495,Saccade sudden turn,100,C: Predicted (with Fallback),45.0,49.11,45.0,4.11,1.0,1.0,0.353,0,1,1,8.9
+16,0.528,Saccade sudden turn,100,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+16,0.528,Saccade sudden turn,100,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.71,0,0,1,6.8
+16,0.528,Saccade sudden turn,100,C: Predicted (with Fallback),45.0,50.0,45.0,5.0,1.0,1.0,0.71,0,0,1,6.8
+17,0.561,Saccade sudden turn,100,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+17,0.561,Saccade sudden turn,100,B: Predicted (Unconstrained),45.0,46.4,45.0,1.4,1.0,1.0,0.922,0,0,1,63.7
+17,0.561,Saccade sudden turn,100,C: Predicted (with Fallback),45.0,46.4,45.0,1.4,1.0,1.0,0.922,0,0,1,7.8
+18,0.594,Saccade sudden turn,100,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+18,0.594,Saccade sudden turn,100,B: Predicted (Unconstrained),45.0,44.54,45.0,0.46,1.0,1.0,0.974,0,0,1,7.2
+18,0.594,Saccade sudden turn,100,C: Predicted (with Fallback),45.0,44.54,45.0,0.46,1.0,1.0,0.974,0,0,1,6.8
+19,0.627,Saccade sudden turn,100,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+19,0.627,Saccade sudden turn,100,B: Predicted (Unconstrained),45.0,43.9,45.0,1.1,1.0,1.0,0.939,0,0,1,8.2
+19,0.627,Saccade sudden turn,100,C: Predicted (with Fallback),45.0,43.9,45.0,1.1,1.0,1.0,0.939,0,0,1,7.8
+20,0.66,Saccade sudden turn,100,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+20,0.66,Saccade sudden turn,100,B: Predicted (Unconstrained),45.0,43.91,45.0,1.09,1.0,1.0,0.94,0,0,1,8.0
+20,0.66,Saccade sudden turn,100,C: Predicted (with Fallback),45.0,43.91,45.0,1.09,1.0,1.0,0.94,0,0,1,7.7
+21,0.693,Saccade sudden turn,100,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+21,0.693,Saccade sudden turn,100,B: Predicted (Unconstrained),45.0,44.18,45.0,0.82,1.0,1.0,0.954,0,0,1,7.9
+21,0.693,Saccade sudden turn,100,C: Predicted (with Fallback),45.0,44.18,45.0,0.82,1.0,1.0,0.954,0,0,1,7.4
+22,0.726,Saccade sudden turn,100,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+22,0.726,Saccade sudden turn,100,B: Predicted (Unconstrained),45.0,44.48,45.0,0.52,1.0,1.0,0.971,0,0,1,7.8
+22,0.726,Saccade sudden turn,100,C: Predicted (with Fallback),45.0,44.48,45.0,0.52,1.0,1.0,0.971,0,0,1,7.4
+23,0.759,Saccade sudden turn,100,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+23,0.759,Saccade sudden turn,100,B: Predicted (Unconstrained),45.0,44.73,45.0,0.27,1.0,1.0,0.985,0,0,1,6.9
+23,0.759,Saccade sudden turn,100,C: Predicted (with Fallback),45.0,44.73,45.0,0.27,1.0,1.0,0.985,0,0,1,11.6
+24,0.792,Saccade sudden turn,100,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+24,0.792,Saccade sudden turn,100,B: Predicted (Unconstrained),45.0,44.89,45.0,0.11,1.0,1.0,0.994,0,0,1,7.4
+24,0.792,Saccade sudden turn,100,C: Predicted (with Fallback),45.0,44.89,45.0,0.11,1.0,1.0,0.994,0,0,1,7.2
+3,0.099,Saccade sudden turn,150,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+3,0.099,Saccade sudden turn,150,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,7.7
+3,0.099,Saccade sudden turn,150,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,6.1
+4,0.132,Saccade sudden turn,150,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+4,0.132,Saccade sudden turn,150,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,7.4
+4,0.132,Saccade sudden turn,150,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,7.0
+5,0.165,Saccade sudden turn,150,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+5,0.165,Saccade sudden turn,150,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,6.9
+5,0.165,Saccade sudden turn,150,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,6.3
+6,0.198,Saccade sudden turn,150,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+6,0.198,Saccade sudden turn,150,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,6.5
+6,0.198,Saccade sudden turn,150,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,6.4
+7,0.231,Saccade sudden turn,150,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+7,0.231,Saccade sudden turn,150,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,6.6
+7,0.231,Saccade sudden turn,150,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,6.5
+8,0.264,Saccade sudden turn,150,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+8,0.264,Saccade sudden turn,150,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,7.3
+8,0.264,Saccade sudden turn,150,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,5.2
+9,0.297,Saccade sudden turn,150,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+9,0.297,Saccade sudden turn,150,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,4.7
+9,0.297,Saccade sudden turn,150,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,4.6
+10,0.33,Saccade sudden turn,150,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+10,0.33,Saccade sudden turn,150,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,4.6
+10,0.33,Saccade sudden turn,150,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,4.6
+11,0.363,Saccade sudden turn,150,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+11,0.363,Saccade sudden turn,150,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,4.9
+11,0.363,Saccade sudden turn,150,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,4.7
+12,0.396,Saccade sudden turn,150,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+12,0.396,Saccade sudden turn,150,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,4.6
+12,0.396,Saccade sudden turn,150,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,4.6
+13,0.429,Saccade sudden turn,150,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+13,0.429,Saccade sudden turn,150,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,5.8
+13,0.429,Saccade sudden turn,150,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,5.9
+14,0.462,Saccade sudden turn,150,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+14,0.462,Saccade sudden turn,150,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,7.5
+14,0.462,Saccade sudden turn,150,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,8.5
+15,0.495,Saccade sudden turn,150,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+15,0.495,Saccade sudden turn,150,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.353,0,0,1,7.4
+15,0.495,Saccade sudden turn,150,C: Predicted (with Fallback),45.0,50.0,45.0,5.0,1.0,1.0,0.353,0,1,1,7.4
+16,0.528,Saccade sudden turn,150,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+16,0.528,Saccade sudden turn,150,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.71,0,0,1,7.6
+16,0.528,Saccade sudden turn,150,C: Predicted (with Fallback),45.0,50.0,45.0,5.0,1.0,1.0,0.71,0,0,1,7.9
+17,0.561,Saccade sudden turn,150,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+17,0.561,Saccade sudden turn,150,B: Predicted (Unconstrained),45.0,47.11,45.0,2.11,1.0,1.0,0.922,0,0,1,8.6
+17,0.561,Saccade sudden turn,150,C: Predicted (with Fallback),45.0,47.11,45.0,2.11,1.0,1.0,0.922,0,0,1,7.2
+18,0.594,Saccade sudden turn,150,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+18,0.594,Saccade sudden turn,150,B: Predicted (Unconstrained),45.0,44.31,45.0,0.69,1.0,1.0,0.974,0,0,1,7.6
+18,0.594,Saccade sudden turn,150,C: Predicted (with Fallback),45.0,44.31,45.0,0.69,1.0,1.0,0.974,0,0,1,7.2
+19,0.627,Saccade sudden turn,150,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+19,0.627,Saccade sudden turn,150,B: Predicted (Unconstrained),45.0,43.35,45.0,1.65,1.0,1.0,0.939,0,0,1,5.7
+19,0.627,Saccade sudden turn,150,C: Predicted (with Fallback),45.0,43.35,45.0,1.65,1.0,1.0,0.939,0,0,1,4.6
+20,0.66,Saccade sudden turn,150,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+20,0.66,Saccade sudden turn,150,B: Predicted (Unconstrained),45.0,43.37,45.0,1.63,1.0,1.0,0.94,0,0,1,4.9
+20,0.66,Saccade sudden turn,150,C: Predicted (with Fallback),45.0,43.37,45.0,1.63,1.0,1.0,0.94,0,0,1,5.9
+21,0.693,Saccade sudden turn,150,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+21,0.693,Saccade sudden turn,150,B: Predicted (Unconstrained),45.0,43.76,45.0,1.24,1.0,1.0,0.954,0,0,1,4.9
+21,0.693,Saccade sudden turn,150,C: Predicted (with Fallback),45.0,43.76,45.0,1.24,1.0,1.0,0.954,0,0,1,4.8
+22,0.726,Saccade sudden turn,150,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+22,0.726,Saccade sudden turn,150,B: Predicted (Unconstrained),45.0,44.22,45.0,0.78,1.0,1.0,0.971,0,0,1,4.6
+22,0.726,Saccade sudden turn,150,C: Predicted (with Fallback),45.0,44.22,45.0,0.78,1.0,1.0,0.971,0,0,1,4.5
+23,0.759,Saccade sudden turn,150,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+23,0.759,Saccade sudden turn,150,B: Predicted (Unconstrained),45.0,44.59,45.0,0.41,1.0,1.0,0.985,0,0,1,4.7
+23,0.759,Saccade sudden turn,150,C: Predicted (with Fallback),45.0,44.59,45.0,0.41,1.0,1.0,0.985,0,0,1,4.6
+24,0.792,Saccade sudden turn,150,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+24,0.792,Saccade sudden turn,150,B: Predicted (Unconstrained),45.0,44.84,45.0,0.16,1.0,1.0,0.994,0,0,1,4.7
+24,0.792,Saccade sudden turn,150,C: Predicted (with Fallback),45.0,44.84,45.0,0.16,1.0,1.0,0.994,0,0,1,4.5
+3,0.099,Saccade sudden turn,200,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+3,0.099,Saccade sudden turn,200,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,4.6
+3,0.099,Saccade sudden turn,200,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,4.2
+4,0.132,Saccade sudden turn,200,A: Current Gaze,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+4,0.132,Saccade sudden turn,200,B: Predicted (Unconstrained),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,4.5
+4,0.132,Saccade sudden turn,200,C: Predicted (with Fallback),0.0,0.0,0.0,0.0,1.0,1.0,1.0,0,0,0,4.3
+5,0.165,Saccade sudden turn,200,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+5,0.165,Saccade sudden turn,200,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,4.6
+5,0.165,Saccade sudden turn,200,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,4.4
+6,0.198,Saccade sudden turn,200,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+6,0.198,Saccade sudden turn,200,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,4.5
+6,0.198,Saccade sudden turn,200,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,8.8
+7,0.231,Saccade sudden turn,200,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+7,0.231,Saccade sudden turn,200,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,7.0
+7,0.231,Saccade sudden turn,200,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,6.8
+8,0.264,Saccade sudden turn,200,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+8,0.264,Saccade sudden turn,200,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,6.8
+8,0.264,Saccade sudden turn,200,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,6.6
+9,0.297,Saccade sudden turn,200,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+9,0.297,Saccade sudden turn,200,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,5.7
+9,0.297,Saccade sudden turn,200,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,4.4
+10,0.33,Saccade sudden turn,200,A: Current Gaze,0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,1.2
+10,0.33,Saccade sudden turn,200,B: Predicted (Unconstrained),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,5.3
+10,0.33,Saccade sudden turn,200,C: Predicted (with Fallback),0.0,0.0,45.0,45.0,0.037,1.0,1.0,0,0,0,4.4
+11,0.363,Saccade sudden turn,200,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+11,0.363,Saccade sudden turn,200,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,4.8
+11,0.363,Saccade sudden turn,200,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,5.1
+12,0.396,Saccade sudden turn,200,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+12,0.396,Saccade sudden turn,200,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,4.6
+12,0.396,Saccade sudden turn,200,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,4.7
+13,0.429,Saccade sudden turn,200,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+13,0.429,Saccade sudden turn,200,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,6.3
+13,0.429,Saccade sudden turn,200,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,4.6
+14,0.462,Saccade sudden turn,200,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+14,0.462,Saccade sudden turn,200,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.0,1,0,1,6.6
+14,0.462,Saccade sudden turn,200,C: Predicted (with Fallback),45.0,45.0,45.0,0.0,1.0,1.0,0.0,1,1,0,4.8
+15,0.495,Saccade sudden turn,200,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+15,0.495,Saccade sudden turn,200,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.353,0,0,1,4.9
+15,0.495,Saccade sudden turn,200,C: Predicted (with Fallback),45.0,50.0,45.0,5.0,1.0,1.0,0.353,0,1,1,4.9
+16,0.528,Saccade sudden turn,200,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+16,0.528,Saccade sudden turn,200,B: Predicted (Unconstrained),45.0,50.0,45.0,5.0,1.0,1.0,0.71,0,0,1,4.7
+16,0.528,Saccade sudden turn,200,C: Predicted (with Fallback),45.0,50.0,45.0,5.0,1.0,1.0,0.71,0,0,1,4.3
+17,0.561,Saccade sudden turn,200,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+17,0.561,Saccade sudden turn,200,B: Predicted (Unconstrained),45.0,47.81,45.0,2.81,1.0,1.0,0.922,0,0,1,8.1
+17,0.561,Saccade sudden turn,200,C: Predicted (with Fallback),45.0,47.81,45.0,2.81,1.0,1.0,0.922,0,0,1,7.3
+18,0.594,Saccade sudden turn,200,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+18,0.594,Saccade sudden turn,200,B: Predicted (Unconstrained),45.0,44.08,45.0,0.92,1.0,1.0,0.974,0,0,1,6.8
+18,0.594,Saccade sudden turn,200,C: Predicted (with Fallback),45.0,44.08,45.0,0.92,1.0,1.0,0.974,0,0,1,6.8
+19,0.627,Saccade sudden turn,200,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+19,0.627,Saccade sudden turn,200,B: Predicted (Unconstrained),45.0,42.8,45.0,2.2,1.0,1.0,0.939,0,0,1,6.7
+19,0.627,Saccade sudden turn,200,C: Predicted (with Fallback),45.0,42.8,45.0,2.2,1.0,1.0,0.939,0,0,1,6.9
+20,0.66,Saccade sudden turn,200,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+20,0.66,Saccade sudden turn,200,B: Predicted (Unconstrained),45.0,42.82,45.0,2.18,1.0,1.0,0.94,0,0,1,7.8
+20,0.66,Saccade sudden turn,200,C: Predicted (with Fallback),45.0,42.82,45.0,2.18,1.0,1.0,0.94,0,0,1,6.6
+21,0.693,Saccade sudden turn,200,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+21,0.693,Saccade sudden turn,200,B: Predicted (Unconstrained),45.0,43.35,45.0,1.65,1.0,1.0,0.954,0,0,1,8.2
+21,0.693,Saccade sudden turn,200,C: Predicted (with Fallback),45.0,43.35,45.0,1.65,1.0,1.0,0.954,0,0,1,6.8
+22,0.726,Saccade sudden turn,200,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+22,0.726,Saccade sudden turn,200,B: Predicted (Unconstrained),45.0,43.96,45.0,1.04,1.0,1.0,0.971,0,0,1,4.6
+22,0.726,Saccade sudden turn,200,C: Predicted (with Fallback),45.0,43.96,45.0,1.04,1.0,1.0,0.971,0,0,1,4.6
+23,0.759,Saccade sudden turn,200,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+23,0.759,Saccade sudden turn,200,B: Predicted (Unconstrained),45.0,44.45,45.0,0.55,1.0,1.0,0.985,0,0,1,4.7
+23,0.759,Saccade sudden turn,200,C: Predicted (with Fallback),45.0,44.45,45.0,0.55,1.0,1.0,0.985,0,0,1,4.5
+24,0.792,Saccade sudden turn,200,A: Current Gaze,45.0,45.0,45.0,0.0,1.0,1.0,1.0,0,0,0,1.2
+24,0.792,Saccade sudden turn,200,B: Predicted (Unconstrained),45.0,44.78,45.0,0.22,1.0,1.0,0.994,0,0,1,4.7
+24,0.792,Saccade sudden turn,200,C: Predicted (with Fallback),45.0,44.78,45.0,0.22,1.0,1.0,0.994,0,0,1,4.6
+3,0.099,Realistic noisy trajectory,50,A: Current Gaze,2.55,2.55,3.94,1.45,0.8882,1.0,1.0,0,0,0,1.2
+3,0.099,Realistic noisy trajectory,50,B: Predicted (Unconstrained),2.55,3.29,3.94,1.2,0.8786,1.0,0.895,0,0,0,4.6
+3,0.099,Realistic noisy trajectory,50,C: Predicted (with Fallback),2.55,3.29,3.94,1.2,0.8786,1.0,0.895,0,0,0,4.6
+4,0.132,Realistic noisy trajectory,50,A: Current Gaze,3.38,3.38,6.11,2.92,0.7825,1.0,1.0,0,0,0,1.2
+4,0.132,Realistic noisy trajectory,50,B: Predicted (Unconstrained),3.38,4.63,6.11,2.61,0.7584,1.0,0.814,0,0,0,4.8
+4,0.132,Realistic noisy trajectory,50,C: Predicted (with Fallback),3.38,4.63,6.11,2.61,0.7584,1.0,0.814,0,0,0,4.7
+5,0.165,Realistic noisy trajectory,50,A: Current Gaze,3.94,3.94,5.08,1.42,0.8697,1.0,1.0,0,0,0,1.2
+5,0.165,Realistic noisy trajectory,50,B: Predicted (Unconstrained),3.94,5.3,5.08,0.51,0.9485,1.0,0.843,0,0,0,7.0
+5,0.165,Realistic noisy trajectory,50,C: Predicted (with Fallback),3.94,5.3,5.08,0.51,0.9485,1.0,0.843,0,0,0,4.6
+6,0.198,Realistic noisy trajectory,50,A: Current Gaze,6.11,6.11,7.25,1.24,0.9039,1.0,1.0,0,0,0,1.2
+6,0.198,Realistic noisy trajectory,50,B: Predicted (Unconstrained),6.11,7.97,7.25,1.06,0.8917,1.0,0.79,0,0,0,4.6
+6,0.198,Realistic noisy trajectory,50,C: Predicted (with Fallback),6.11,7.97,7.25,1.06,0.8917,1.0,0.79,0,0,0,4.4
+7,0.231,Realistic noisy trajectory,50,A: Current Gaze,5.08,5.08,6.87,1.89,0.8558,1.0,1.0,0,0,0,1.2
+7,0.231,Realistic noisy trajectory,50,B: Predicted (Unconstrained),5.08,6.32,6.87,0.97,0.8963,1.0,0.86,0,0,0,6.6
+7,0.231,Realistic noisy trajectory,50,C: Predicted (with Fallback),5.08,6.32,6.87,0.97,0.8963,1.0,0.86,0,0,0,8.1
+8,0.264,Realistic noisy trajectory,50,A: Current Gaze,7.25,7.25,8.14,0.93,0.919,1.0,1.0,0,0,0,1.2
+8,0.264,Realistic noisy trajectory,50,B: Predicted (Unconstrained),7.25,8.73,8.14,0.62,0.9468,1.0,0.834,0,0,0,5.4
+8,0.264,Realistic noisy trajectory,50,C: Predicted (with Fallback),7.25,8.73,8.14,0.62,0.9468,1.0,0.834,0,0,0,4.6
+9,0.297,Realistic noisy trajectory,50,A: Current Gaze,6.87,6.87,8.25,1.67,0.8483,1.0,1.0,0,0,0,1.2
+9,0.297,Realistic noisy trajectory,50,B: Predicted (Unconstrained),6.87,7.96,8.25,1.17,0.8867,1.0,0.877,0,0,0,4.8
+9,0.297,Realistic noisy trajectory,50,C: Predicted (with Fallback),6.87,7.96,8.25,1.17,0.8867,1.0,0.877,0,0,0,5.2
+10,0.33,Realistic noisy trajectory,50,A: Current Gaze,8.14,8.14,9.23,2.49,0.768,1.0,1.0,0,0,0,1.2
+10,0.33,Realistic noisy trajectory,50,B: Predicted (Unconstrained),8.14,9.27,9.23,2.51,0.7936,1.0,0.871,0,0,1,4.5
+10,0.33,Realistic noisy trajectory,50,C: Predicted (with Fallback),8.14,9.27,9.23,2.51,0.7936,1.0,0.871,0,0,1,4.4
+11,0.363,Realistic noisy trajectory,50,A: Current Gaze,8.25,8.25,45.5,37.26,0.1788,1.0,1.0,0,0,0,1.2
+11,0.363,Realistic noisy trajectory,50,B: Predicted (Unconstrained),8.25,9.16,45.5,36.35,0.1957,1.0,0.896,0,0,0,5.9
+11,0.363,Realistic noisy trajectory,50,C: Predicted (with Fallback),8.25,9.16,45.5,36.35,0.1957,1.0,0.896,0,0,0,4.4
+12,0.396,Realistic noisy trajectory,50,A: Current Gaze,9.23,9.23,45.97,36.75,0.1944,1.0,1.0,0,0,0,1.2
+12,0.396,Realistic noisy trajectory,50,B: Predicted (Unconstrained),9.23,10.2,45.97,35.8,0.2038,1.0,0.866,0,0,0,4.4
+12,0.396,Realistic noisy trajectory,50,C: Predicted (with Fallback),9.23,10.2,45.97,35.8,0.2038,1.0,0.866,0,0,0,4.4
+13,0.429,Realistic noisy trajectory,50,A: Current Gaze,45.5,45.5,45.52,0.91,0.9163,1.0,1.0,0,0,0,1.2
+13,0.429,Realistic noisy trajectory,50,B: Predicted (Unconstrained),45.5,50.0,45.52,4.52,0.9459,1.0,0.0,1,0,1,4.4
+13,0.429,Realistic noisy trajectory,50,C: Predicted (with Fallback),45.5,45.5,45.52,0.91,0.9163,1.0,0.0,1,1,1,4.7
+14,0.462,Realistic noisy trajectory,50,A: Current Gaze,45.97,45.97,47.04,1.36,0.9237,1.0,1.0,0,0,0,1.2
+14,0.462,Realistic noisy trajectory,50,B: Predicted (Unconstrained),45.97,50.0,47.04,3.01,0.9459,1.0,0.0,1,0,1,4.8
+14,0.462,Realistic noisy trajectory,50,C: Predicted (with Fallback),45.97,45.97,47.04,1.36,0.9237,1.0,0.0,1,1,0,4.6
+15,0.495,Realistic noisy trajectory,50,A: Current Gaze,45.52,45.52,12.83,32.69,0.2757,1.0,1.0,0,0,0,1.2
+15,0.495,Realistic noisy trajectory,50,B: Predicted (Unconstrained),45.52,50.0,12.83,37.17,0.2701,1.0,0.0,1,0,1,4.7
+15,0.495,Realistic noisy trajectory,50,C: Predicted (with Fallback),45.52,45.52,12.83,32.69,0.2757,1.0,0.0,1,1,0,4.6
+16,0.528,Realistic noisy trajectory,50,A: Current Gaze,47.04,47.04,15.09,31.96,0.3283,1.0,1.0,0,0,0,1.2
+16,0.528,Realistic noisy trajectory,50,B: Predicted (Unconstrained),47.04,50.0,15.09,34.92,0.3195,1.0,0.0,1,0,1,4.5
+16,0.528,Realistic noisy trajectory,50,C: Predicted (with Fallback),47.04,47.04,15.09,31.95,0.3283,1.0,0.0,1,1,0,5.9
+17,0.561,Realistic noisy trajectory,50,A: Current Gaze,12.83,12.83,14.38,1.76,0.8475,1.0,1.0,0,0,0,1.2
+17,0.561,Realistic noisy trajectory,50,B: Predicted (Unconstrained),12.83,5.7,14.38,8.71,0.5691,1.0,0.208,1,0,1,4.4
+17,0.561,Realistic noisy trajectory,50,C: Predicted (with Fallback),12.83,11.35,14.38,3.14,0.7805,1.0,0.208,1,1,1,4.7
+18,0.594,Realistic noisy trajectory,50,A: Current Gaze,15.09,15.09,13.22,1.98,0.8521,1.0,1.0,0,0,0,1.2
+18,0.594,Realistic noisy trajectory,50,B: Predicted (Unconstrained),15.09,4.05,13.22,9.18,0.5614,1.0,0.0,1,0,1,4.5
+18,0.594,Realistic noisy trajectory,50,C: Predicted (with Fallback),15.09,15.09,13.22,1.98,0.8521,1.0,0.0,1,1,1,4.5
+19,0.627,Realistic noisy trajectory,50,A: Current Gaze,14.38,14.38,15.35,1.82,0.8243,1.0,1.0,0,0,0,1.2
+19,0.627,Realistic noisy trajectory,50,B: Predicted (Unconstrained),14.38,4.17,15.35,11.31,0.4564,1.0,0.0,1,0,1,4.4
+19,0.627,Realistic noisy trajectory,50,C: Predicted (with Fallback),14.38,14.38,15.35,1.82,0.8243,1.0,0.0,1,1,1,4.8
+20,0.66,Realistic noisy trajectory,50,A: Current Gaze,13.22,13.22,15.66,2.46,0.8514,1.0,1.0,0,0,0,1.2
+20,0.66,Realistic noisy trajectory,50,B: Predicted (Unconstrained),13.22,5.36,15.66,10.3,0.5448,1.0,0.127,1,0,1,4.7
+20,0.66,Realistic noisy trajectory,50,C: Predicted (with Fallback),13.22,12.22,15.66,3.45,0.8035,1.0,0.127,1,1,1,5.0
+21,0.693,Realistic noisy trajectory,50,A: Current Gaze,15.35,15.35,16.28,3.56,0.6931,1.0,1.0,0,0,0,1.2
+21,0.693,Realistic noisy trajectory,50,B: Predicted (Unconstrained),15.35,11.09,16.28,6.44,0.5368,1.0,0.526,0,0,1,4.8
+21,0.693,Realistic noisy trajectory,50,C: Predicted (with Fallback),15.35,11.09,16.28,6.44,0.5368,1.0,0.526,0,0,1,4.9
+22,0.726,Realistic noisy trajectory,50,A: Current Gaze,15.66,15.66,17.69,2.04,0.877,1.0,1.0,0,0,0,1.2
+22,0.726,Realistic noisy trajectory,50,B: Predicted (Unconstrained),15.66,13.99,17.69,3.7,0.8101,1.0,0.813,0,0,1,4.5
+22,0.726,Realistic noisy trajectory,50,C: Predicted (with Fallback),15.66,13.99,17.69,3.7,0.8101,1.0,0.813,0,0,1,4.4
+23,0.759,Realistic noisy trajectory,50,A: Current Gaze,16.28,16.28,17.85,1.6,0.8871,1.0,1.0,0,0,0,1.2
+23,0.759,Realistic noisy trajectory,50,B: Predicted (Unconstrained),16.28,16.27,17.85,1.66,0.8737,1.0,0.904,0,0,1,4.5
+23,0.759,Realistic noisy trajectory,50,C: Predicted (with Fallback),16.28,16.27,17.85,1.66,0.8737,1.0,0.904,0,0,1,4.4
+24,0.792,Realistic noisy trajectory,50,A: Current Gaze,17.69,17.69,18.74,2.52,0.7651,1.0,1.0,0,0,0,1.2
+24,0.792,Realistic noisy trajectory,50,B: Predicted (Unconstrained),17.69,18.86,18.74,1.82,0.8392,1.0,0.86,0,0,0,4.7
+24,0.792,Realistic noisy trajectory,50,C: Predicted (with Fallback),17.69,18.86,18.74,1.82,0.8392,1.0,0.86,0,0,0,4.9
+3,0.099,Realistic noisy trajectory,100,A: Current Gaze,2.55,2.55,6.11,3.57,0.7906,1.0,1.0,0,0,0,1.2
+3,0.099,Realistic noisy trajectory,100,B: Predicted (Unconstrained),2.55,4.03,6.11,2.24,0.8222,1.0,0.895,0,0,0,4.7
+3,0.099,Realistic noisy trajectory,100,C: Predicted (with Fallback),2.55,4.03,6.11,2.24,0.8222,1.0,0.895,0,0,0,4.5
+4,0.132,Realistic noisy trajectory,100,A: Current Gaze,3.38,3.38,5.08,1.96,0.8374,1.0,1.0,0,0,0,1.2
+4,0.132,Realistic noisy trajectory,100,B: Predicted (Unconstrained),3.38,5.88,5.08,3.28,0.7127,1.0,0.814,0,0,1,4.5
+4,0.132,Realistic noisy trajectory,100,C: Predicted (with Fallback),3.38,5.88,5.08,3.28,0.7127,1.0,0.814,0,0,1,4.5
+5,0.165,Realistic noisy trajectory,100,A: Current Gaze,3.94,3.94,7.25,3.32,0.8048,1.0,1.0,0,0,0,1.2
+5,0.165,Realistic noisy trajectory,100,B: Predicted (Unconstrained),3.94,6.67,7.25,0.76,0.9321,1.0,0.843,0,0,0,4.5
+5,0.165,Realistic noisy trajectory,100,C: Predicted (with Fallback),3.94,6.67,7.25,0.76,0.9321,1.0,0.843,0,0,0,4.4
+6,0.198,Realistic noisy trajectory,100,A: Current Gaze,6.11,6.11,6.87,0.92,0.9168,1.0,1.0,0,0,0,1.2
+6,0.198,Realistic noisy trajectory,100,B: Predicted (Unconstrained),6.11,9.84,6.87,3.17,0.7667,1.0,0.79,0,0,1,4.6
+6,0.198,Realistic noisy trajectory,100,C: Predicted (with Fallback),6.11,9.84,6.87,3.17,0.7667,1.0,0.79,0,0,1,5.3
+7,0.231,Realistic noisy trajectory,100,A: Current Gaze,5.08,5.08,8.14,3.17,0.7771,1.0,1.0,0,0,0,1.2
+7,0.231,Realistic noisy trajectory,100,B: Predicted (Unconstrained),5.08,7.57,8.14,1.37,0.8582,1.0,0.86,0,0,0,8.2
+7,0.231,Realistic noisy trajectory,100,C: Predicted (with Fallback),5.08,7.57,8.14,1.37,0.8582,1.0,0.86,0,0,0,5.3
+8,0.264,Realistic noisy trajectory,100,A: Current Gaze,7.25,7.25,8.25,1.35,0.8735,1.0,1.0,0,0,0,1.2
+8,0.264,Realistic noisy trajectory,100,B: Predicted (Unconstrained),7.25,10.22,8.25,2.24,0.8169,1.0,0.834,0,0,1,4.8
+8,0.264,Realistic noisy trajectory,100,C: Predicted (with Fallback),7.25,10.22,8.25,2.24,0.8169,1.0,0.834,0,0,1,4.6
+9,0.297,Realistic noisy trajectory,100,A: Current Gaze,6.87,6.87,9.23,3.1,0.7329,1.0,1.0,0,0,0,1.2
+9,0.297,Realistic noisy trajectory,100,B: Predicted (Unconstrained),6.87,9.05,9.23,2.38,0.7967,1.0,0.877,0,0,0,6.2
+9,0.297,Realistic noisy trajectory,100,C: Predicted (with Fallback),6.87,9.05,9.23,2.38,0.7967,1.0,0.877,0,0,0,8.0
+10,0.33,Realistic noisy trajectory,100,A: Current Gaze,8.14,8.14,45.5,37.38,0.169,1.0,1.0,0,0,0,1.2
+10,0.33,Realistic noisy trajectory,100,B: Predicted (Unconstrained),8.14,10.4,45.5,35.14,0.2063,1.0,0.871,0,0,0,5.3
+10,0.33,Realistic noisy trajectory,100,C: Predicted (with Fallback),8.14,10.4,45.5,35.14,0.2063,1.0,0.871,0,0,0,6.0
+11,0.363,Realistic noisy trajectory,100,A: Current Gaze,8.25,8.25,45.97,37.73,0.1763,1.0,1.0,0,0,0,1.2
+11,0.363,Realistic noisy trajectory,100,B: Predicted (Unconstrained),8.25,10.08,45.97,35.89,0.218,1.0,0.896,0,0,0,5.0
+11,0.363,Realistic noisy trajectory,100,C: Predicted (with Fallback),8.25,10.08,45.97,35.89,0.218,1.0,0.896,0,0,0,4.7
+12,0.396,Realistic noisy trajectory,100,A: Current Gaze,9.23,9.23,45.52,36.29,0.1982,1.0,1.0,0,0,0,1.2
+12,0.396,Realistic noisy trajectory,100,B: Predicted (Unconstrained),9.23,11.17,45.52,34.4,0.2177,1.0,0.866,0,0,0,5.4
+12,0.396,Realistic noisy trajectory,100,C: Predicted (with Fallback),9.23,11.17,45.52,34.4,0.2177,1.0,0.866,0,0,0,4.3
+13,0.429,Realistic noisy trajectory,100,A: Current Gaze,45.5,45.5,47.04,2.09,0.8736,1.0,1.0,0,0,0,1.2
+13,0.429,Realistic noisy trajectory,100,B: Predicted (Unconstrained),45.5,50.0,47.04,3.06,0.931,1.0,0.0,1,0,1,4.8
+13,0.429,Realistic noisy trajectory,100,C: Predicted (with Fallback),45.5,45.5,47.04,2.09,0.8736,1.0,0.0,1,1,1,4.7
+14,0.462,Realistic noisy trajectory,100,A: Current Gaze,45.97,45.97,12.83,33.14,0.2786,1.0,1.0,0,0,0,1.2
+14,0.462,Realistic noisy trajectory,100,B: Predicted (Unconstrained),45.97,50.0,12.83,37.17,0.2715,1.0,0.0,1,0,1,4.7
+14,0.462,Realistic noisy trajectory,100,C: Predicted (with Fallback),45.97,45.97,12.83,33.14,0.2786,1.0,0.0,1,1,0,4.6
+15,0.495,Realistic noisy trajectory,100,A: Current Gaze,45.52,45.52,15.09,30.43,0.3318,1.0,1.0,0,0,0,1.2
+15,0.495,Realistic noisy trajectory,100,B: Predicted (Unconstrained),45.52,50.0,15.09,34.91,0.3265,1.0,0.0,1,0,1,4.7
+15,0.495,Realistic noisy trajectory,100,C: Predicted (with Fallback),45.52,45.52,15.09,30.43,0.3318,1.0,0.0,1,1,0,13.6
+16,0.528,Realistic noisy trajectory,100,A: Current Gaze,47.04,47.04,14.38,32.66,0.316,1.0,1.0,0,0,0,1.2
+16,0.528,Realistic noisy trajectory,100,B: Predicted (Unconstrained),47.04,50.0,14.38,35.63,0.3029,1.0,0.0,1,0,1,5.4
+16,0.528,Realistic noisy trajectory,100,C: Predicted (with Fallback),47.04,47.04,14.38,32.66,0.316,1.0,0.0,1,1,1,5.1
+17,0.561,Realistic noisy trajectory,100,A: Current Gaze,12.83,12.83,13.22,1.1,0.8899,1.0,1.0,0,0,0,1.2
+17,0.561,Realistic noisy trajectory,100,B: Predicted (Unconstrained),12.83,-1.42,13.22,14.66,0.3885,1.0,0.208,1,0,1,4.9
+17,0.561,Realistic noisy trajectory,100,C: Predicted (with Fallback),12.83,9.87,13.22,3.49,0.7614,1.0,0.208,1,1,1,4.8
+18,0.594,Realistic noisy trajectory,100,A: Current Gaze,15.09,15.09,15.35,1.14,0.8905,1.0,1.0,0,0,0,1.2
+18,0.594,Realistic noisy trajectory,100,B: Predicted (Unconstrained),15.09,-6.99,15.35,22.37,0.2049,1.0,0.0,1,0,1,4.8
+18,0.594,Realistic noisy trajectory,100,C: Predicted (with Fallback),15.09,15.09,15.35,1.14,0.8905,1.0,0.0,1,1,0,4.8
+19,0.627,Realistic noisy trajectory,100,A: Current Gaze,14.38,14.38,15.66,1.36,0.896,1.0,1.0,0,0,0,1.2
+19,0.627,Realistic noisy trajectory,100,B: Predicted (Unconstrained),14.38,-6.04,15.66,21.7,0.2342,1.0,0.0,1,0,1,4.6
+19,0.627,Realistic noisy trajectory,100,C: Predicted (with Fallback),14.38,14.38,15.66,1.36,0.896,1.0,0.0,1,1,1,4.8
+20,0.66,Realistic noisy trajectory,100,A: Current Gaze,13.22,13.22,16.28,3.5,0.7249,1.0,1.0,0,0,0,1.2
+20,0.66,Realistic noisy trajectory,100,B: Predicted (Unconstrained),13.22,-2.5,16.28,18.82,0.2823,1.0,0.127,1,0,1,4.8
+20,0.66,Realistic noisy trajectory,100,C: Predicted (with Fallback),13.22,11.22,16.28,5.32,0.6535,1.0,0.127,1,1,1,4.8
+21,0.693,Realistic noisy trajectory,100,A: Current Gaze,15.35,15.35,17.69,3.19,0.7248,1.0,1.0,0,0,0,1.2
+21,0.693,Realistic noisy trajectory,100,B: Predicted (Unconstrained),15.35,6.84,17.69,11.24,0.4252,1.0,0.526,0,0,1,4.7
+21,0.693,Realistic noisy trajectory,100,C: Predicted (with Fallback),15.35,6.84,17.69,11.24,0.4252,1.0,0.526,0,0,1,4.7
+22,0.726,Realistic noisy trajectory,100,A: Current Gaze,15.66,15.66,17.85,2.82,0.7534,1.0,1.0,0,0,0,1.2
+22,0.726,Realistic noisy trajectory,100,B: Predicted (Unconstrained),15.66,12.32,17.85,5.72,0.6458,1.0,0.813,0,0,1,4.7
+22,0.726,Realistic noisy trajectory,100,C: Predicted (with Fallback),15.66,12.32,17.85,5.72,0.6458,1.0,0.813,0,0,1,4.6
+23,0.759,Realistic noisy trajectory,100,A: Current Gaze,16.28,16.28,18.74,2.67,0.7961,1.0,1.0,0,0,0,1.2
+23,0.759,Realistic noisy trajectory,100,B: Predicted (Unconstrained),16.28,16.25,18.74,2.59,0.8203,1.0,0.904,0,0,0,4.7
+23,0.759,Realistic noisy trajectory,100,C: Predicted (with Fallback),16.28,16.25,18.74,2.59,0.8203,1.0,0.904,0,0,0,4.5
+24,0.792,Realistic noisy trajectory,100,A: Current Gaze,17.69,17.69,18.47,0.83,0.9343,1.0,1.0,0,0,0,1.2
+24,0.792,Realistic noisy trajectory,100,B: Predicted (Unconstrained),17.69,20.02,18.47,1.99,0.822,1.0,0.86,0,0,1,4.6
+24,0.792,Realistic noisy trajectory,100,C: Predicted (with Fallback),17.69,20.02,18.47,1.99,0.822,1.0,0.86,0,0,1,4.4
+3,0.099,Realistic noisy trajectory,150,A: Current Gaze,2.55,2.55,7.25,4.7,0.7584,1.0,1.0,0,0,0,1.2
+3,0.099,Realistic noisy trajectory,150,B: Predicted (Unconstrained),2.55,4.77,7.25,3.13,0.7384,1.0,0.895,0,0,0,5.5
+3,0.099,Realistic noisy trajectory,150,C: Predicted (with Fallback),2.55,4.77,7.25,3.13,0.7384,1.0,0.895,0,0,0,4.6
+4,0.132,Realistic noisy trajectory,150,A: Current Gaze,3.38,3.38,6.87,3.83,0.7202,1.0,1.0,0,0,0,1.2
+4,0.132,Realistic noisy trajectory,150,B: Predicted (Unconstrained),3.38,7.13,6.87,4.9,0.6219,1.0,0.814,0,0,1,4.7
+4,0.132,Realistic noisy trajectory,150,C: Predicted (with Fallback),3.38,7.13,6.87,4.9,0.6219,1.0,0.814,0,0,1,4.5
+5,0.165,Realistic noisy trajectory,150,A: Current Gaze,3.94,3.94,8.14,4.19,0.7849,1.0,1.0,0,0,0,1.2
+5,0.165,Realistic noisy trajectory,150,B: Predicted (Unconstrained),3.94,8.03,8.14,1.16,0.8872,1.0,0.843,0,0,0,4.5
+5,0.165,Realistic noisy trajectory,150,C: Predicted (with Fallback),3.94,8.03,8.14,1.16,0.8872,1.0,0.843,0,0,0,4.4
+6,0.198,Realistic noisy trajectory,150,A: Current Gaze,6.11,6.11,8.25,2.18,0.8537,1.0,1.0,0,0,0,1.2
+6,0.198,Realistic noisy trajectory,150,B: Predicted (Unconstrained),6.11,11.71,8.25,3.49,0.7919,1.0,0.79,0,0,1,4.6
+6,0.198,Realistic noisy trajectory,150,C: Predicted (with Fallback),6.11,11.71,8.25,3.49,0.7919,1.0,0.79,0,0,1,4.8
+7,0.231,Realistic noisy trajectory,150,A: Current Gaze,5.08,5.08,9.23,4.39,0.7001,1.0,1.0,0,0,0,1.2
+7,0.231,Realistic noisy trajectory,150,B: Predicted (Unconstrained),5.08,8.82,9.23,0.88,0.9073,1.0,0.86,0,0,0,4.6
+7,0.231,Realistic noisy trajectory,150,C: Predicted (with Fallback),5.08,8.82,9.23,0.88,0.9073,1.0,0.86,0,0,0,4.4
+8,0.264,Realistic noisy trajectory,150,A: Current Gaze,7.25,7.25,45.5,38.27,0.1547,1.0,1.0,0,0,0,1.2
+8,0.264,Realistic noisy trajectory,150,B: Predicted (Unconstrained),7.25,11.71,45.5,33.81,0.2395,1.0,0.834,0,0,0,4.5
+8,0.264,Realistic noisy trajectory,150,C: Predicted (with Fallback),7.25,11.71,45.5,33.81,0.2395,1.0,0.834,0,0,0,4.4
+9,0.297,Realistic noisy trajectory,150,A: Current Gaze,6.87,6.87,45.97,39.13,0.142,1.0,1.0,0,0,0,1.2
+9,0.297,Realistic noisy trajectory,150,B: Predicted (Unconstrained),6.87,10.14,45.97,35.89,0.1962,1.0,0.877,0,0,0,4.6
+9,0.297,Realistic noisy trajectory,150,C: Predicted (with Fallback),6.87,10.14,45.97,35.89,0.1962,1.0,0.877,0,0,0,4.5
+10,0.33,Realistic noisy trajectory,150,A: Current Gaze,8.14,8.14,45.52,37.44,0.16,1.0,1.0,0,0,0,1.2
+10,0.33,Realistic noisy trajectory,150,B: Predicted (Unconstrained),8.14,11.53,45.52,34.1,0.2113,1.0,0.871,0,0,0,6.4
+10,0.33,Realistic noisy trajectory,150,C: Predicted (with Fallback),8.14,11.53,45.52,34.1,0.2113,1.0,0.871,0,0,0,5.0
+11,0.363,Realistic noisy trajectory,150,A: Current Gaze,8.25,8.25,47.04,38.82,0.168,1.0,1.0,0,0,0,1.2
+11,0.363,Realistic noisy trajectory,150,B: Predicted (Unconstrained),8.25,11.0,47.04,36.05,0.2283,1.0,0.896,0,0,0,7.5
+11,0.363,Realistic noisy trajectory,150,C: Predicted (with Fallback),8.25,11.0,47.04,36.05,0.2283,1.0,0.896,0,0,0,5.9
+12,0.396,Realistic noisy trajectory,150,A: Current Gaze,9.23,9.23,12.83,3.64,0.7793,1.0,1.0,0,0,0,1.2
+12,0.396,Realistic noisy trajectory,150,B: Predicted (Unconstrained),9.23,12.14,12.83,2.78,0.7534,1.0,0.866,0,0,0,4.8
+12,0.396,Realistic noisy trajectory,150,C: Predicted (with Fallback),9.23,12.14,12.83,2.78,0.7534,1.0,0.866,0,0,0,7.0
+13,0.429,Realistic noisy trajectory,150,A: Current Gaze,45.5,45.5,15.09,30.43,0.3126,1.0,1.0,0,0,0,1.2
+13,0.429,Realistic noisy trajectory,150,B: Predicted (Unconstrained),45.5,50.0,15.09,34.91,0.3318,1.0,0.0,1,0,1,9.7
+13,0.429,Realistic noisy trajectory,150,C: Predicted (with Fallback),45.5,45.5,15.09,30.43,0.3126,1.0,0.0,1,1,0,4.9
+14,0.462,Realistic noisy trajectory,150,A: Current Gaze,45.97,45.97,14.38,31.6,0.2996,1.0,1.0,0,0,0,1.2
+14,0.462,Realistic noisy trajectory,150,B: Predicted (Unconstrained),45.97,50.0,14.38,35.62,0.316,1.0,0.0,1,0,1,4.7
+14,0.462,Realistic noisy trajectory,150,C: Predicted (with Fallback),45.97,45.97,14.38,31.6,0.2996,1.0,0.0,1,1,0,4.7
+15,0.495,Realistic noisy trajectory,150,A: Current Gaze,45.52,45.52,13.22,32.32,0.276,1.0,1.0,0,0,0,1.2
+15,0.495,Realistic noisy trajectory,150,B: Predicted (Unconstrained),45.52,50.0,13.22,36.79,0.2863,1.0,0.0,1,0,1,4.7
+15,0.495,Realistic noisy trajectory,150,C: Predicted (with Fallback),45.52,45.52,13.22,32.31,0.276,1.0,0.0,1,1,0,4.7
+16,0.528,Realistic noisy trajectory,150,A: Current Gaze,47.04,47.04,15.35,31.73,0.3111,1.0,1.0,0,0,0,1.2
+16,0.528,Realistic noisy trajectory,150,B: Predicted (Unconstrained),47.04,50.0,15.35,34.77,0.2856,0.9928,0.0,1,0,1,5.2
+16,0.528,Realistic noisy trajectory,150,C: Predicted (with Fallback),47.04,47.04,15.35,31.73,0.3111,1.0,0.0,1,1,0,4.6
+17,0.561,Realistic noisy trajectory,150,A: Current Gaze,12.83,12.83,15.66,3.11,0.762,1.0,1.0,0,0,0,1.2
+17,0.561,Realistic noisy trajectory,150,B: Predicted (Unconstrained),12.83,-8.55,15.66,24.23,0.1727,1.0,0.208,1,0,1,4.6
+17,0.561,Realistic noisy trajectory,150,C: Predicted (with Fallback),12.83,8.38,15.66,7.38,0.5979,1.0,0.208,1,1,1,4.6
+18,0.594,Realistic noisy trajectory,150,A: Current Gaze,15.09,15.09,16.28,2.61,0.759,1.0,1.0,0,0,0,1.2
+18,0.594,Realistic noisy trajectory,150,B: Predicted (Unconstrained),15.09,-18.03,16.28,34.37,0.0092,0.75,0.0,1,0,1,5.0
+18,0.594,Realistic noisy trajectory,150,C: Predicted (with Fallback),15.09,15.09,16.28,2.61,0.759,1.0,0.0,1,1,1,4.7
+19,0.627,Realistic noisy trajectory,150,A: Current Gaze,14.38,14.38,17.69,3.37,0.7874,1.0,1.0,0,0,0,1.2
+19,0.627,Realistic noisy trajectory,150,B: Predicted (Unconstrained),14.38,-16.25,17.69,33.94,0.0147,1.0,0.0,1,0,1,4.9
+19,0.627,Realistic noisy trajectory,150,C: Predicted (with Fallback),14.38,14.38,17.69,3.37,0.7874,1.0,0.0,1,1,1,4.9
+20,0.66,Realistic noisy trajectory,150,A: Current Gaze,13.22,13.22,17.85,5.06,0.6469,1.0,1.0,0,0,0,1.2
+20,0.66,Realistic noisy trajectory,150,B: Predicted (Unconstrained),13.22,-10.35,17.85,28.22,0.101,1.0,0.127,1,0,1,4.8
+20,0.66,Realistic noisy trajectory,150,C: Predicted (with Fallback),13.22,10.22,17.85,7.87,0.5503,1.0,0.127,1,1,1,4.7
+21,0.693,Realistic noisy trajectory,150,A: Current Gaze,15.35,15.35,18.74,5.61,0.5594,1.0,1.0,0,0,0,1.2
+21,0.693,Realistic noisy trajectory,150,B: Predicted (Unconstrained),15.35,2.59,18.74,17.1,0.2507,1.0,0.526,0,0,1,4.5
+21,0.693,Realistic noisy trajectory,150,C: Predicted (with Fallback),15.35,2.59,18.74,17.1,0.2507,1.0,0.526,0,0,1,4.6
+22,0.726,Realistic noisy trajectory,150,A: Current Gaze,15.66,15.66,18.47,2.81,0.845,1.0,1.0,0,0,0,1.2
+22,0.726,Realistic noisy trajectory,150,B: Predicted (Unconstrained),15.66,10.64,18.47,7.85,0.6067,1.0,0.813,0,0,1,4.7
+22,0.726,Realistic noisy trajectory,150,C: Predicted (with Fallback),15.66,10.64,18.47,7.85,0.6067,1.0,0.813,0,0,1,4.7
+23,0.759,Realistic noisy trajectory,150,A: Current Gaze,16.28,16.28,17.55,1.59,0.8556,1.0,1.0,0,0,0,1.2
+23,0.759,Realistic noisy trajectory,150,B: Predicted (Unconstrained),16.28,16.24,17.55,2.1,0.801,1.0,0.904,0,0,1,4.5
+23,0.759,Realistic noisy trajectory,150,C: Predicted (with Fallback),16.28,16.24,17.55,2.1,0.801,1.0,0.904,0,0,1,4.6
+24,0.792,Realistic noisy trajectory,150,A: Current Gaze,17.69,17.69,18.74,2.69,0.7532,1.0,1.0,0,0,0,1.2
+24,0.792,Realistic noisy trajectory,150,B: Predicted (Unconstrained),17.69,21.18,18.74,2.65,0.7927,1.0,0.86,0,0,0,4.5
+24,0.792,Realistic noisy trajectory,150,C: Predicted (with Fallback),17.69,21.18,18.74,2.65,0.7927,1.0,0.86,0,0,0,4.4
+3,0.099,Realistic noisy trajectory,200,A: Current Gaze,2.55,2.55,6.87,4.32,0.7703,1.0,1.0,0,0,0,1.2
+3,0.099,Realistic noisy trajectory,200,B: Predicted (Unconstrained),2.55,5.51,6.87,2.87,0.7354,1.0,0.895,0,0,0,4.8
+3,0.099,Realistic noisy trajectory,200,C: Predicted (with Fallback),2.55,5.51,6.87,2.87,0.7354,1.0,0.895,0,0,0,4.7
+4,0.132,Realistic noisy trajectory,200,A: Current Gaze,3.38,3.38,8.14,5.09,0.6554,1.0,1.0,0,0,0,1.2
+4,0.132,Realistic noisy trajectory,200,B: Predicted (Unconstrained),3.38,8.39,8.14,6.24,0.5451,1.0,0.814,0,0,1,4.5
+4,0.132,Realistic noisy trajectory,200,C: Predicted (with Fallback),3.38,8.39,8.14,6.24,0.5451,1.0,0.814,0,0,1,4.5
+5,0.165,Realistic noisy trajectory,200,A: Current Gaze,3.94,3.94,8.25,4.47,0.7072,1.0,1.0,0,0,0,1.2
+5,0.165,Realistic noisy trajectory,200,B: Predicted (Unconstrained),3.94,9.39,8.25,1.2,0.9069,1.0,0.843,0,0,0,4.5
+5,0.165,Realistic noisy trajectory,200,C: Predicted (with Fallback),3.94,9.39,8.25,1.2,0.9069,1.0,0.843,0,0,0,4.4
+6,0.198,Realistic noisy trajectory,200,A: Current Gaze,6.11,6.11,9.23,3.46,0.738,1.0,1.0,0,0,0,1.2
+6,0.198,Realistic noisy trajectory,200,B: Predicted (Unconstrained),6.11,13.58,9.23,4.36,0.7649,1.0,0.79,0,0,1,5.6
+6,0.198,Realistic noisy trajectory,200,C: Predicted (with Fallback),6.11,13.58,9.23,4.36,0.7649,1.0,0.79,0,0,1,4.6
+7,0.231,Realistic noisy trajectory,200,A: Current Gaze,5.08,5.08,45.5,40.43,0.1189,1.0,1.0,0,0,0,1.2
+7,0.231,Realistic noisy trajectory,200,B: Predicted (Unconstrained),5.08,10.06,45.5,35.45,0.209,1.0,0.86,0,0,0,4.7
+7,0.231,Realistic noisy trajectory,200,C: Predicted (with Fallback),5.08,10.06,45.5,35.45,0.209,1.0,0.86,0,0,0,4.4
+8,0.264,Realistic noisy trajectory,200,A: Current Gaze,7.25,7.25,45.97,38.75,0.1496,1.0,1.0,0,0,0,1.2
+8,0.264,Realistic noisy trajectory,200,B: Predicted (Unconstrained),7.25,13.2,45.97,32.81,0.2601,1.0,0.834,0,0,0,4.4
+8,0.264,Realistic noisy trajectory,200,C: Predicted (with Fallback),7.25,13.2,45.97,32.81,0.2601,1.0,0.834,0,0,0,4.4
+9,0.297,Realistic noisy trajectory,200,A: Current Gaze,6.87,6.87,45.52,38.69,0.1393,1.0,1.0,0,0,0,1.2
+9,0.297,Realistic noisy trajectory,200,B: Predicted (Unconstrained),6.87,11.23,45.52,34.38,0.2101,1.0,0.877,0,0,0,4.6
+9,0.297,Realistic noisy trajectory,200,C: Predicted (with Fallback),6.87,11.23,45.52,34.38,0.2101,1.0,0.877,0,0,0,4.4
+10,0.33,Realistic noisy trajectory,200,A: Current Gaze,8.14,8.14,47.04,38.98,0.1552,1.0,1.0,0,0,0,1.2
+10,0.33,Realistic noisy trajectory,200,B: Predicted (Unconstrained),8.14,12.65,47.04,34.57,0.22,1.0,0.871,0,0,0,4.7
+10,0.33,Realistic noisy trajectory,200,C: Predicted (with Fallback),8.14,12.65,47.04,34.57,0.22,1.0,0.871,0,0,0,4.4
+11,0.363,Realistic noisy trajectory,200,A: Current Gaze,8.25,8.25,12.83,4.61,0.7356,1.0,1.0,0,0,0,1.2
+11,0.363,Realistic noisy trajectory,200,B: Predicted (Unconstrained),8.25,11.91,12.83,0.95,0.9261,1.0,0.896,0,0,0,4.6
+11,0.363,Realistic noisy trajectory,200,C: Predicted (with Fallback),8.25,11.91,12.83,0.95,0.9261,1.0,0.896,0,0,0,4.5
+12,0.396,Realistic noisy trajectory,200,A: Current Gaze,9.23,9.23,15.09,5.86,0.7084,1.0,1.0,0,0,0,1.2
+12,0.396,Realistic noisy trajectory,200,B: Predicted (Unconstrained),9.23,13.11,15.09,3.6,0.6823,1.0,0.866,0,0,0,4.6
+12,0.396,Realistic noisy trajectory,200,C: Predicted (with Fallback),9.23,13.11,15.09,3.6,0.6823,1.0,0.866,0,0,0,4.6
+13,0.429,Realistic noisy trajectory,200,A: Current Gaze,45.5,45.5,14.38,31.16,0.2884,1.0,1.0,0,0,0,1.2
+13,0.429,Realistic noisy trajectory,200,B: Predicted (Unconstrained),45.5,50.0,14.38,35.62,0.3127,1.0,0.0,1,0,1,5.0
+13,0.429,Realistic noisy trajectory,200,C: Predicted (with Fallback),45.5,45.5,14.38,31.15,0.2884,1.0,0.0,1,1,0,4.7
+14,0.462,Realistic noisy trajectory,200,A: Current Gaze,45.97,45.97,13.22,32.78,0.2703,1.0,1.0,0,0,0,1.2
+14,0.462,Realistic noisy trajectory,200,B: Predicted (Unconstrained),45.97,50.0,13.22,36.78,0.2892,1.0,0.0,1,0,1,4.6
+14,0.462,Realistic noisy trajectory,200,C: Predicted (with Fallback),45.97,45.97,13.22,32.77,0.2703,1.0,0.0,1,1,0,4.6
+15,0.495,Realistic noisy trajectory,200,A: Current Gaze,45.52,45.52,15.35,30.19,0.3216,1.0,1.0,0,0,0,1.2
+15,0.495,Realistic noisy trajectory,200,B: Predicted (Unconstrained),45.52,50.0,15.35,34.73,0.2957,1.0,0.0,1,0,1,4.5
+15,0.495,Realistic noisy trajectory,200,C: Predicted (with Fallback),45.52,45.52,15.35,30.19,0.3216,1.0,0.0,1,1,0,4.8
+16,0.528,Realistic noisy trajectory,200,A: Current Gaze,47.04,47.04,15.66,31.38,0.3383,1.0,1.0,0,0,0,1.2
+16,0.528,Realistic noisy trajectory,200,B: Predicted (Unconstrained),47.04,50.0,15.66,34.36,0.3219,0.9987,0.0,1,0,1,5.0
+16,0.528,Realistic noisy trajectory,200,C: Predicted (with Fallback),47.04,47.04,15.66,31.38,0.3383,1.0,0.0,1,1,0,4.7
+17,0.561,Realistic noisy trajectory,200,A: Current Gaze,12.83,12.83,16.28,4.4,0.6492,1.0,1.0,0,0,0,1.2
+17,0.561,Realistic noisy trajectory,200,B: Predicted (Unconstrained),12.83,-15.68,16.28,32.04,0.0404,1.0,0.208,1,0,1,4.5
+17,0.561,Realistic noisy trajectory,200,C: Predicted (with Fallback),12.83,6.9,16.28,9.75,0.4728,1.0,0.208,1,1,1,4.7
+18,0.594,Realistic noisy trajectory,200,A: Current Gaze,15.09,15.09,17.69,2.81,0.7893,1.0,1.0,0,0,0,1.2
+18,0.594,Realistic noisy trajectory,200,B: Predicted (Unconstrained),15.09,-29.07,17.69,46.77,0.0,0.7098,0.0,1,0,1,4.5
+18,0.594,Realistic noisy trajectory,200,C: Predicted (with Fallback),15.09,15.09,17.69,2.81,0.7893,1.0,0.0,1,1,1,4.7
+19,0.627,Realistic noisy trajectory,200,A: Current Gaze,14.38,14.38,17.85,4.12,0.6789,1.0,1.0,0,0,0,1.2
+19,0.627,Realistic noisy trajectory,200,B: Predicted (Unconstrained),14.38,-26.47,17.85,44.34,0.0,0.7054,0.0,1,0,1,4.7
+19,0.627,Realistic noisy trajectory,200,C: Predicted (with Fallback),14.38,14.38,17.85,4.13,0.6789,1.0,0.0,1,1,1,4.9
+20,0.66,Realistic noisy trajectory,200,A: Current Gaze,13.22,13.22,18.74,6.16,0.583,1.0,1.0,0,0,0,1.2
+20,0.66,Realistic noisy trajectory,200,B: Predicted (Unconstrained),13.22,-18.21,18.74,36.99,0.0,0.6808,0.127,1,0,1,4.6
+20,0.66,Realistic noisy trajectory,200,C: Predicted (with Fallback),13.22,9.22,18.74,9.86,0.4739,1.0,0.127,1,1,1,4.8
+21,0.693,Realistic noisy trajectory,200,A: Current Gaze,15.35,15.35,18.47,3.65,0.7112,1.0,1.0,0,0,0,1.2
+21,0.693,Realistic noisy trajectory,200,B: Predicted (Unconstrained),15.35,-1.66,18.47,20.42,0.2171,1.0,0.526,0,0,1,4.5
+21,0.693,Realistic noisy trajectory,200,C: Predicted (with Fallback),15.35,-1.66,18.47,20.42,0.2171,1.0,0.526,0,0,1,4.5
+22,0.726,Realistic noisy trajectory,200,A: Current Gaze,15.66,15.66,17.55,3.06,0.726,1.0,1.0,0,0,0,1.2
+22,0.726,Realistic noisy trajectory,200,B: Predicted (Unconstrained),15.66,8.97,17.55,8.76,0.5286,1.0,0.813,0,0,1,4.7
+22,0.726,Realistic noisy trajectory,200,C: Predicted (with Fallback),15.66,8.97,17.55,8.76,0.5286,1.0,0.813,0,0,1,4.9
+23,0.759,Realistic noisy trajectory,200,A: Current Gaze,16.28,16.28,18.74,2.74,0.7843,1.0,1.0,0,0,0,1.2
+23,0.759,Realistic noisy trajectory,200,B: Predicted (Unconstrained),16.28,16.22,18.74,3.38,0.7135,1.0,0.904,0,0,1,4.6
+23,0.759,Realistic noisy trajectory,200,C: Predicted (with Fallback),16.28,16.22,18.74,3.38,0.7135,1.0,0.904,0,0,1,4.4
+24,0.792,Realistic noisy trajectory,200,A: Current Gaze,17.69,17.69,17.7,2.33,0.8065,1.0,1.0,0,0,0,1.2
+24,0.792,Realistic noisy trajectory,200,B: Predicted (Unconstrained),17.69,22.34,17.7,4.66,0.7374,1.0,0.86,0,0,1,4.5
+24,0.792,Realistic noisy trajectory,200,C: Predicted (with Fallback),17.69,22.34,17.7,4.66,0.7374,1.0,0.86,0,0,1,4.5

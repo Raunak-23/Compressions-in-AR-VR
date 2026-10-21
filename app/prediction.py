@@ -111,6 +111,7 @@ class ViewportPredictor:
         height: int = config.FRAME_HEIGHT,
         horizon_s: Optional[float] = None,
         roi_frac: float = 0.35,
+        apply_fallback: bool = True,
     ) -> PredictedViewport:
         """Predict the likely viewport at t_now + horizon_s."""
         t_start = time.perf_counter()
@@ -145,7 +146,6 @@ class ViewportPredictor:
         raw_pred_pitch = cur_pitch + (self._trend_pitch * h_sec)
 
         # Compute confidence:
-        # Confidence drops when speed is high (saccade) or history is too brief
         history_len = len(self.history)
         history_factor = min(1.0, history_len / 4.0)
 
@@ -154,7 +154,11 @@ class ViewportPredictor:
         confidence = round(history_factor * speed_factor, 3)
 
         fallback = False
-        if confidence < self.confidence_threshold or is_saccade:
+        if not apply_fallback:
+            fallback = False
+            final_yaw = raw_pred_yaw
+            final_pitch = raw_pred_pitch
+        elif confidence < self.confidence_threshold or is_saccade:
             # Fall back to current viewport or conservative blend
             fallback = True
             blend_w = max(0.0, confidence)
@@ -212,6 +216,28 @@ def compute_viewport_iou(
     return round(inter_area / float(union_area), 4)
 
 
+def compute_viewport_coverage(
+    actual_roi: Tuple[int, int, int, int],
+    tile_records: List[Any],
+) -> float:
+    """Compute fraction of actual gaze ROI covered by high- or medium-tier tiles."""
+    rx0, ry0, rx1, ry1 = actual_roi
+    roi_area = max(1, (rx1 - rx0) * (ry1 - ry0))
+    covered_pixels = 0
+
+    for tile in tile_records:
+        if tile.tier in ("high", "medium"):
+            tx0, ty0, tx1, ty1 = tile.bbox
+            ix0 = max(rx0, tx0)
+            iy0 = max(ry0, ty0)
+            ix1 = min(rx1, tx1)
+            iy1 = min(ry1, ty1)
+            if ix1 > ix0 and iy1 > iy0:
+                covered_pixels += (ix1 - ix0) * (iy1 - iy0)
+
+    return round(min(1.0, covered_pixels / float(roi_area)), 4)
+
+
 def evaluate_prediction(
     actual_yaw: float,
     actual_pitch: float,
@@ -231,4 +257,101 @@ def evaluate_prediction(
         "is_saccade": float(pred.is_saccade),
         "fallback_used": float(pred.fallback_used),
         "processing_overhead_us": round(pred.processing_time_s * 1_000_000, 2),
+    }
+
+
+def compare_prediction_strategies(
+    frame_img,
+    predictor: ViewportPredictor,
+    actual_yaw: float,
+    actual_pitch: float,
+    horizon_s: float = 0.100,
+    budget_bytes: Optional[int] = None,
+) -> Dict[str, Dict[str, Any]]:
+    """Compare Strategies A (Current Gaze), B (Predicted), C (Predicted + Fallback).
+
+    Measures angular error, IoU, ROI coverage, viewport PSNR/SSIM, bytes, and overhead.
+    """
+    from app.viewport_tiles import encode_and_reconstruct_tiles
+
+    w, h = frame_img.size
+    actual_roi = gaze_roi(w, h, actual_yaw, actual_pitch)
+    latest_obs = predictor.history[-1] if predictor.history else GazeObservation(0.0, 0.0, 0.0)
+
+    # Strategy A: Current-gaze allocation
+    t_start_a = time.perf_counter()
+    res_a = encode_and_reconstruct_tiles(
+        frame_img,
+        yaw_deg=latest_obs.yaw_deg,
+        pitch_deg=latest_obs.pitch_deg,
+        codec="jpeg",
+        budget_bytes=budget_bytes,
+        allocation_strategy="intelligent_allocator",
+    )
+    time_a = time.perf_counter() - t_start_a
+    err_a = math.sqrt((actual_yaw - latest_obs.yaw_deg) ** 2 + (actual_pitch - latest_obs.pitch_deg) ** 2)
+    cur_roi = gaze_roi(w, h, latest_obs.yaw_deg, latest_obs.pitch_deg)
+    iou_a = compute_viewport_iou(actual_roi, cur_roi)
+    cov_a = compute_viewport_coverage(actual_roi, res_a.tiles)
+
+    # Strategy B: Predicted-gaze allocation (unconstrained, apply_fallback=False)
+    pred_b = predictor.predict(width=w, height=h, horizon_s=horizon_s, apply_fallback=False)
+    res_b = encode_and_reconstruct_tiles(
+        frame_img,
+        yaw_deg=pred_b.predicted_yaw_deg,
+        pitch_deg=pred_b.predicted_pitch_deg,
+        codec="jpeg",
+        budget_bytes=budget_bytes,
+        allocation_strategy="intelligent_allocator",
+    )
+    ev_b = evaluate_prediction(actual_yaw, actual_pitch, pred_b, w, h)
+    cov_b = compute_viewport_coverage(actual_roi, res_b.tiles)
+
+    # Strategy C: Predicted allocation with confidence-based fallback (apply_fallback=True)
+    pred_c = predictor.predict(width=w, height=h, horizon_s=horizon_s, apply_fallback=True)
+    res_c = encode_and_reconstruct_tiles(
+        frame_img,
+        yaw_deg=pred_c.predicted_yaw_deg,
+        pitch_deg=pred_c.predicted_pitch_deg,
+        codec="jpeg",
+        budget_bytes=budget_bytes,
+        allocation_strategy="intelligent_allocator",
+    )
+    ev_c = evaluate_prediction(actual_yaw, actual_pitch, pred_c, w, h)
+    cov_c = compute_viewport_coverage(actual_roi, res_c.tiles)
+
+    return {
+        "A_current_gaze": {
+            "strategy": "A: Current Gaze",
+            "angular_error_deg": round(err_a, 2),
+            "viewport_iou": iou_a,
+            "viewport_coverage": cov_a,
+            "viewport_psnr_db": res_a.viewport_psnr_db,
+            "viewport_ssim": res_a.viewport_ssim,
+            "total_bytes": res_a.total_bytes,
+            "processing_us": round(time_a * 1e6, 1),
+            "worse_than_current": False,
+        },
+        "B_predicted_unconstrained": {
+            "strategy": "B: Predicted Gaze (Unconstrained)",
+            "angular_error_deg": ev_b["angular_error_deg"],
+            "viewport_iou": ev_b["viewport_iou"],
+            "viewport_coverage": cov_b,
+            "viewport_psnr_db": res_b.viewport_psnr_db,
+            "viewport_ssim": res_b.viewport_ssim,
+            "total_bytes": res_b.total_bytes,
+            "processing_us": ev_b["processing_overhead_us"],
+            "worse_than_current": bool(ev_b["angular_error_deg"] > err_a),
+        },
+        "C_predicted_fallback": {
+            "strategy": "C: Predicted Gaze (with Confidence Fallback)",
+            "angular_error_deg": ev_c["angular_error_deg"],
+            "viewport_iou": ev_c["viewport_iou"],
+            "viewport_coverage": cov_c,
+            "viewport_psnr_db": res_c.viewport_psnr_db,
+            "viewport_ssim": res_c.viewport_ssim,
+            "total_bytes": res_c.total_bytes,
+            "processing_us": ev_c["processing_overhead_us"],
+            "worse_than_current": bool(ev_c["angular_error_deg"] > err_a),
+        },
     }

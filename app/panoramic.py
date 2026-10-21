@@ -18,8 +18,9 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, Iterator, List, Literal, Optional, Tuple, Union
 
+import av
 import numpy as np
 from PIL import Image, ImageDraw
 
@@ -27,6 +28,7 @@ from app import config
 from app.codecs import lossy
 from app.codecs.video_codec import compute_ssim
 from app.viewport_tiles import (
+    METRIC_UNAVAILABLE,
     _measure_boundary_artifacts,
     compute_grid_boundaries,
     encode_and_reconstruct_tiles,
@@ -178,6 +180,110 @@ class ProceduralPanoramicSource:
         return img
 
 
+class PanoramicVideoSource:
+    """Loads and streams real equirectangular video files using PyAV.
+
+    Validates format, aspect ratio, frame rate, and supports frame random access
+    and sequential iteration.
+    """
+
+    def __init__(self, file_path: Union[str, Path]):
+        self.path = Path(file_path)
+        if not self.path.exists():
+            raise FileNotFoundError(f"Video file not found: {self.path}")
+
+        self._container = av.open(str(self.path))
+        video_streams = [s for s in self._container.streams if s.type == "video"]
+        if not video_streams:
+            raise ValueError(f"No video streams found in {self.path}")
+
+        self._stream = video_streams[0]
+        self.width = self._stream.width
+        self.height = self._stream.height
+        self.fps = float(self._stream.average_rate or 30.0)
+
+        # Approximate duration and frame count
+        if self._stream.duration and self._stream.time_base:
+            self.duration_s = float(self._stream.duration * self._stream.time_base)
+        else:
+            self.duration_s = 0.0
+        self.frame_count = int(self._stream.frames or 0)
+
+        self.metadata = validate_panoramic_dimensions(self.width, self.height)
+        self.metadata.fps = self.fps
+        self.metadata.duration_s = self.duration_s
+        self.metadata.frame_count = self.frame_count
+
+        # Pre-cache frames for fast random access if video is reasonably short
+        self._cached_frames: List[Image.Image] = []
+        self._load_cache()
+
+    def _load_cache(self, max_cache: int = 120) -> None:
+        """Cache first max_cache frames for fast repeatable trajectory evaluation."""
+        self._container.seek(0)
+        for packet in self._container.demux(self._stream):
+            for frame in packet.decode():
+                self._cached_frames.append(frame.to_image().convert("RGB"))
+                if len(self._cached_frames) >= max_cache:
+                    return
+
+    def frame(self, t: float = 0.0) -> Image.Image:
+        """Fetch frame at time t (in seconds)."""
+        if not self._cached_frames:
+            raise RuntimeError("No frames available in video source")
+        idx = int(round(t * self.fps)) % len(self._cached_frames)
+        return self._cached_frames[idx]
+
+    def frame_at(self, index: int) -> Image.Image:
+        """Fetch frame at discrete index."""
+        if not self._cached_frames:
+            raise RuntimeError("No frames available in video source")
+        return self._cached_frames[index % len(self._cached_frames)]
+
+    def close(self) -> None:
+        """Close video container."""
+        if self._container:
+            self._container.close()
+
+    def __enter__(self) -> PanoramicVideoSource:
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()
+
+
+def create_test_panoramic_video(
+    output_path: Union[str, Path],
+    width: int = 1920,
+    height: int = 960,
+    fps: int = 30,
+    duration_s: float = 1.0,
+) -> Path:
+    """Create an authentic 2:1 equirectangular MP4 video file on disk for end-to-end testing."""
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    source = ProceduralPanoramicSource(width=width, height=height)
+    num_frames = max(1, int(fps * duration_s))
+
+    container = av.open(str(path), mode="w", format="mp4")
+    stream = container.add_stream("libx264", rate=fps)
+    stream.width = width
+    stream.height = height
+    stream.pix_fmt = "yuv420p"
+
+    for i in range(num_frames):
+        t = i / float(fps)
+        img = source.frame(t)
+        frame = av.VideoFrame.from_image(img)
+        for packet in stream.encode(frame):
+            container.mux(packet)
+
+    for packet in stream.encode():
+        container.mux(packet)
+    container.close()
+    return path
+
+
 # Repeatable Viewport Trajectories
 def trajectory_central(t: float) -> Tuple[float, float]:
     """Central fixation: constant centre gaze (0°, 0°)."""
@@ -204,7 +310,7 @@ def trajectory_sudden_turn(t: float, saccade_time_s: float = 1.0) -> Tuple[float
 
 
 def evaluate_panoramic_tiles(
-    panoramic_source: ProceduralPanoramicSource,
+    panoramic_source: Union[ProceduralPanoramicSource, PanoramicVideoSource],
     trajectory_fn,
     duration_s: float = 2.0,
     fps: int = 15,
@@ -213,12 +319,19 @@ def evaluate_panoramic_tiles(
     budget_bytes: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Evaluate panoramic compression over a repeatable viewport trajectory."""
-    frames = int(duration_s * fps)
+    frames = max(1, int(duration_s * fps))
     viewport_psnrs = []
     viewport_ssims = []
+    guard_psnrs = []
+    guard_ssims = []
+    periph_psnrs = []
+    periph_ssims = []
+    full_psnrs = []
+    full_ssims = []
     boundary_mses = []
     total_bytes_list = []
     enc_times = []
+    dec_times = []
 
     for i in range(frames):
         t = i / float(fps)
@@ -236,18 +349,34 @@ def evaluate_panoramic_tiles(
 
         viewport_psnrs.append(res.viewport_psnr_db)
         viewport_ssims.append(res.viewport_ssim)
+        if res.guard_band_psnr_db >= 0:
+            guard_psnrs.append(res.guard_band_psnr_db)
+            guard_ssims.append(res.guard_band_ssim)
+        if res.peripheral_psnr_db >= 0:
+            periph_psnrs.append(res.peripheral_psnr_db)
+            periph_ssims.append(res.peripheral_ssim)
+        full_psnrs.append(res.full_psnr_db)
+        full_ssims.append(res.full_ssim)
         boundary_mses.append(res.boundary_artifact_mse)
         total_bytes_list.append(res.total_bytes)
         enc_times.append(res.encode_time_s)
+        dec_times.append(res.decode_time_s)
 
     return {
         "frames_evaluated": frames,
-        "mean_viewport_psnr_db": round(float(np.mean(viewport_psnrs)), 2),
-        "mean_viewport_ssim": round(float(np.mean(viewport_ssims)), 4),
-        "mean_boundary_mse": round(float(np.mean(boundary_mses)), 2),
-        "mean_bytes_per_frame": int(np.mean(total_bytes_list)),
-        "mean_bitrate_kbps": round(float(np.mean(total_bytes_list)) * 8 * fps / 1000, 1),
-        "mean_encode_time_ms": round(float(np.mean(enc_times)) * 1000, 2),
+        "mean_viewport_psnr_db": round(float(np.mean(viewport_psnrs)), 2) if viewport_psnrs else 0.0,
+        "mean_viewport_ssim": round(float(np.mean(viewport_ssims)), 4) if viewport_ssims else 0.0,
+        "mean_guard_band_psnr_db": round(float(np.mean(guard_psnrs)), 2) if guard_psnrs else -1.0,
+        "mean_guard_band_ssim": round(float(np.mean(guard_ssims)), 4) if guard_ssims else -1.0,
+        "mean_peripheral_psnr_db": round(float(np.mean(periph_psnrs)), 2) if periph_psnrs else -1.0,
+        "mean_peripheral_ssim": round(float(np.mean(periph_ssims)), 4) if periph_ssims else -1.0,
+        "mean_full_psnr_db": round(float(np.mean(full_psnrs)), 2) if full_psnrs else 0.0,
+        "mean_full_ssim": round(float(np.mean(full_ssims)), 4) if full_ssims else 0.0,
+        "mean_boundary_mse": round(float(np.mean(boundary_mses)), 2) if boundary_mses else 0.0,
+        "mean_bytes_per_frame": int(np.mean(total_bytes_list)) if total_bytes_list else 0,
+        "mean_bitrate_kbps": round(float(np.mean(total_bytes_list)) * 8 * fps / 1000, 1) if total_bytes_list else 0.0,
+        "mean_encode_time_ms": round(float(np.mean(enc_times)) * 1000, 2) if enc_times else 0.0,
+        "mean_decode_time_ms": round(float(np.mean(dec_times)) * 1000, 2) if dec_times else 0.0,
         "codec": codec,
         "allocation_strategy": allocation_strategy,
     }

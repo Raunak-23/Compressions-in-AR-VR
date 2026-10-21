@@ -97,4 +97,43 @@ def test_evaluate_panoramic_tiles_run():
     assert metrics["frames_evaluated"] == 3
     assert metrics["mean_viewport_psnr_db"] > 0.0
     assert metrics["mean_viewport_ssim"] > 0.0
+    assert metrics["mean_full_psnr_db"] > 0.0
     assert metrics["mean_boundary_mse"] >= 0.0
+    assert metrics["mean_encode_time_ms"] > 0.0
+    assert metrics["mean_decode_time_ms"] > 0.0
+
+
+def test_panoramic_video_source_roundtrip(tmp_path):
+    """Test generating a real 2:1 equirectangular MP4 video and streaming it."""
+    from app.panoramic import PanoramicVideoSource, create_test_panoramic_video
+
+    video_file = tmp_path / "test_360_stream.mp4"
+    create_test_panoramic_video(video_file, width=640, height=320, fps=15, duration_s=0.5)
+    assert video_file.exists()
+    assert video_file.stat().st_size > 0
+
+    with PanoramicVideoSource(video_file) as vsrc:
+        assert vsrc.metadata.is_valid_equirectangular is True
+        assert vsrc.metadata.layout == "mono"
+        assert vsrc.metadata.aspect_ratio == 2.0
+        assert vsrc.width == 640
+        assert vsrc.height == 320
+
+        # Frame extraction
+        f0 = vsrc.frame(0.0)
+        assert isinstance(f0, Image.Image)
+        assert f0.size == (640, 320)
+
+        # Run evaluation on real video source
+        m = evaluate_panoramic_tiles(
+            panoramic_source=vsrc,
+            trajectory_fn=trajectory_smooth_panning,
+            duration_s=0.3,
+            fps=15,
+            codec="jpeg",
+            allocation_strategy="intelligent_allocator",
+        )
+        assert m["frames_evaluated"] > 0
+        assert m["mean_viewport_psnr_db"] > 0.0
+        assert m["mean_full_psnr_db"] > 0.0
+

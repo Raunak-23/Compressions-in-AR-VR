@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XR Lab — Video Compression Playground</title>
+<meta name="description" content="Upload, compress, compare and download video files with real codecs (H.264, M-JPEG) and measured quality metrics.">
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    color-scheme: light dark;
+    --surface-1: #0f1117; --surface-2: #181b24; --surface-3: #222634;
+    --ink: #f3f4f6; --ink-2: #9ca3af; --muted: #6b7280;
+    --grid: #2d3345; --baseline: #3f475f; --accent: #3b82f6; --accent-glow: rgba(59,130,246,0.18);
+    --good: #10b981; --good-glow: rgba(16,185,129,0.15);
+    --warning: #f59e0b; --critical: #ef4444;
+    --radius: 12px; --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --surface-1: #f8fafc; --surface-2: #f1f5f9; --surface-3: #e2e8f0;
+      --ink: #0f172a; --ink-2: #475569; --muted: #64748b;
+      --grid: #cbd5e1; --baseline: #94a3b8; --accent: #2563eb; --accent-glow: rgba(37,99,235,0.12);
+      --good: #059669; --good-glow: rgba(5,150,105,0.12);
+      --warning: #d97706; --critical: #dc2626;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  [hidden] { display: none !important; }
+  body { font: 15px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--surface-1); color: var(--ink); }
+
+  /* Navigation */
+  nav.top-nav { display: flex; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid var(--grid);
+                max-width: 1300px; margin: 0 auto; flex-wrap: wrap; }
+  nav.top-nav h1 { font-size: 17px; font-weight: 700; }
+  nav.top-nav .links { display: flex; gap: 8px; margin-left: auto; }
+  nav.top-nav .links a { font-size: 13px; font-weight: 500; padding: 6px 12px; border-radius: var(--radius-sm);
+                         text-decoration: none; color: var(--ink-2); border: 1px solid var(--grid); transition: all 0.2s; }
+  nav.top-nav .links a:hover, nav.top-nav .links a.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .container { max-width: 1300px; margin: 0 auto; padding: 24px 24px 48px; }
+  .header-group { margin-bottom: 20px; }
+  .section-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .section-desc { color: var(--ink-2); font-size: 14px; }
+
+  /* Stepper */
+  .stepper { display: flex; gap: 6px; margin-bottom: 24px; }
+  .step { flex: 1; padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--grid);
+          background: var(--surface-2); text-align: center; font-size: 13px; font-weight: 600;
+          color: var(--muted); transition: all 0.3s; position: relative; }
+  .step.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .step.done { background: var(--good-glow); color: var(--good); border-color: var(--good); }
+  .step .step-num { font-size: 11px; font-weight: 700; display: block; opacity: 0.8; }
+  @media (max-width: 600px) { .step { font-size: 11px; padding: 8px 4px; } }
+
+  /* Upload Dropzone */
+  .upload-zone { border: 2px dashed var(--grid); border-radius: var(--radius); padding: 50px 24px;
+                 text-align: center; cursor: pointer; transition: all 0.3s; background: var(--surface-2); }
+  .upload-zone:hover, .upload-zone.dragover { border-color: var(--accent); background: var(--accent-glow); }
+  .upload-zone svg { width: 50px; height: 50px; color: var(--accent); margin-bottom: 12px; opacity: 0.85; }
+  .upload-zone .uz-title { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+  .upload-zone .uz-sub { font-size: 13px; color: var(--muted); }
+  .upload-zone input[type="file"] { display: none; }
+
+  /* File info */
+  .file-info { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px;
+               padding: 14px 18px; border-radius: var(--radius); border: 1px solid var(--grid);
+               background: var(--surface-2); margin-bottom: 20px; }
+  .file-info .fi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .file-info .fi-val { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
+
+  /* Configuration Panel */
+  .config-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  @media (max-width: 768px) { .config-panel { grid-template-columns: 1fr; } }
+  .config-card { padding: 18px; border-radius: var(--radius); border: 1px solid var(--grid); background: var(--surface-2); }
+  .config-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--ink); text-transform: uppercase; letter-spacing: 0.4px; }
+  .config-card .cfg-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .config-card .cfg-label { font-size: 13px; color: var(--ink-2); font-weight: 600; min-width: 120px; }
+  .config-card select, .config-card input[type="number"] {
+    font: inherit; padding: 7px 10px; border-radius: var(--radius-sm);
+    border: 1px solid var(--grid); background: var(--surface-1); color: var(--ink); font-size: 13px; flex: 1;
+  }
+  .config-card input[type="range"] { flex: 1; accent-color: var(--accent); }
+  .config-card .cfg-val { font-size: 13px; font-weight: 700; min-width: 60px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  .note-box { padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px;
+              background: var(--surface-2); border: 1px solid var(--grid); color: var(--ink-2);
+              margin-bottom: 20px; line-height: 1.5; }
+  .note-box strong { color: var(--ink); }
+
+  /* Buttons */
+  .action-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+  .btn { padding: 9px 20px; border-radius: var(--radius-sm); border: 1px solid var(--grid);
+         font: inherit; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 13.5px;
+         display: inline-flex; align-items: center; gap: 6px; }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-success { background: var(--good); color: #fff; border-color: var(--good); }
+  .btn-success:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-outline { background: var(--surface-1); color: var(--ink); }
+  .btn-outline:hover { background: var(--surface-3); }
+
+  /* Status and Progress */
+  .status-msg { padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 16px; display: none; }
+  .status-msg.error { display: block; background: rgba(239,68,68,0.12); border: 1px solid var(--critical); color: var(--critical); }
+  .status-msg.info { display: block; background: var(--accent-glow); border: 1px solid var(--accent); color: var(--accent); }
+  .status-msg.loading { display: flex; align-items: center; background: var(--accent-glow); border: 1px solid var(--accent); color: var(--accent); }
+  .loading-spinner { display: inline-block; width: 18px; height: 18px; border: 2.5px solid var(--grid);
+                     border-top-color: var(--accent); border-radius: 50%;
+                     animation: spin 0.8s linear infinite; margin-right: 10px; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .progress-bar { width: 100%; height: 10px; border-radius: 5px; background: var(--surface-3); overflow: hidden; margin-bottom: 10px; border: 1px solid var(--grid); }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 5px; transition: width 0.3s ease; }
+  .progress-text { font-size: 13px; color: var(--ink-2); margin-bottom: 20px; font-weight: 500; }
+
+  /* Results Dashboard */
+  .results-header { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .result-card { padding: 14px; border-radius: var(--radius); border: 1px solid var(--grid);
+                 background: var(--surface-2); text-align: center; }
+  .result-card .r-label { font-size: 11px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .result-card .r-value { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; margin: 4px 0; }
+  .result-card .r-sub { font-size: 11px; color: var(--muted); }
+  .result-card.good .r-value { color: var(--good); }
+  .result-card.warn .r-value { color: var(--warning); }
+
+  /* Video Players */
+  .playback-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+                  padding: 10px 16px; border-radius: var(--radius); background: var(--surface-2);
+                  border: 1px solid var(--grid); margin-bottom: 16px; flex-wrap: wrap; }
+  .playback-bar label { font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+  .players-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 24px; }
+  @media (max-width: 820px) { .players-wrap { grid-template-columns: 1fr; } }
+  .player-box { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--grid); background: #000; box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
+  .player-box .player-label {
+    padding: 10px 14px; background: var(--surface-2); font-size: 13px; font-weight: 700;
+    border-bottom: 1px solid var(--grid); display: flex; justify-content: space-between; align-items: center;
+  }
+  .player-box video { width: 100%; display: block; aspect-ratio: 16/9; background: #000; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
+  .badge-blue { background: var(--accent); color: #fff; }
+  .badge-red { background: var(--critical); color: #fff; }
+  .badge-target { background: var(--good); color: #fff; }
+
+  /* Frame comparison slider */
+  .frame-slider-container {
+    position: relative; border-radius: var(--radius); overflow: hidden;
+    background: #000; cursor: ew-resize; touch-action: none;
+    margin-top: 14px; margin-bottom: 20px; border: 1px solid var(--grid);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3); user-select: none;
+  }
+  .frame-slider-container img { display: block; width: 100%; height: auto; pointer-events: none; user-select: none; }
+  .frame-slider-overlay { position: absolute; top: 0; left: 0; height: 100%; width: 50%; overflow: hidden; pointer-events: none; }
+  .frame-slider-overlay img { position: absolute; top: 0; left: 0; height: 100%; max-width: none; pointer-events: none; user-select: none; }
+  .frame-slider-line { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; box-shadow: 0 0 8px rgba(0,0,0,0.6); z-index: 10; pointer-events: none; }
+  .frame-slider-handle {
+    position: absolute; top: 50%; width: 34px; height: 34px; border-radius: 50%;
+    background: #fff; border: 2px solid var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    z-index: 11; transform: translate(-50%, -50%); pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .frame-slider-handle svg { width: 16px; height: 16px; color: var(--accent); }
+  .frame-slider-label { position: absolute; top: 10px; padding: 3px 10px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; z-index: 12; pointer-events: none; text-transform: uppercase; }
+  .frame-slider-label.left { left: 10px; background: rgba(59,130,246,0.9); color: #fff; }
+  .frame-slider-label.right { right: 10px; background: rgba(239,68,68,0.9); color: #fff; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <h1>XR Compression Lab</h1>
+  <div class="links">
+    <a href="/viewer">Live Viewer</a>
+    <a href="/compare">Quality Comparison</a>
+    <a href="/playground" class="active">Video Playground</a>
+    <a href="/phone">Phone Source</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="header-group">
+    <h2 class="section-title">Video Compression Playground</h2>
+    <p class="section-desc">Upload arbitrary video files, execute genuine offline compression (H.264 / M-JPEG) via PyAV, inspect rate–distortion metrics, and compare playback.</p>
+  </div>
+
+  <!-- 5-Step Progress Stepper -->
+  <div class="stepper" id="stepper">
+    <div class="step active" data-step="1"><span class="step-num">①</span> Upload</div>
+    <div class="step" data-step="2"><span class="step-num">②</span> Configure</div>
+    <div class="step" data-step="3"><span class="step-num">③</span> Process</div>
+    <div class="step" data-step="4"><span class="step-num">④</span> Results</div>
+    <div class="step" data-step="5"><span class="step-num">⑤</span> Compare & Download</div>
+  </div>
+
+  <div class="status-msg" id="statusMsg"></div>
+
+  <!-- Stage 1: Upload Video -->
+  <div id="stage1">
+    <div class="upload-zone" id="uploadZone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <div class="uz-title">Drop your video file here or click to browse</div>
+      <div class="uz-sub">Supported formats: MP4, WebM, MKV, AVI, MOV · Max file size: 100 MB</div>
+      <input type="file" id="fileInput" accept="video/*,.mp4,.webm,.mkv,.avi,.mov">
+    </div>
+  </div>
+
+  <!-- Stage 2: Configure Compression -->
+  <div id="stage2" hidden>
+    <div class="file-info" id="fileInfo"></div>
+
+    <div class="config-panel">
+      <div class="config-card">
+        <h3>Compression Algorithm</h3>
+        <div class="cfg-row">
+          <span class="cfg-label">Method</span>
+          <select id="methodSelect">
+            <option value="h264" selected>H.264 / AVC (libx264)</option>
+            <option value="jpeg_frames">M-JPEG (Independent Frames)</option>
+          </select>
+        </div>
+
+        <div id="h264Controls">
+          <div class="cfg-row">
+            <span class="cfg-label">Bitrate (kbps)</span>
+            <input type="range" id="bitrateRange" min="100" max="8000" value="2000" step="100">
+            <span class="cfg-val" id="bitrateVal">2000 kbps</span>
+          </div>
+        </div>
+
+        <div id="mjpegControls" hidden>
+          <div class="cfg-row">
+            <span class="cfg-label">JPEG Quality</span>
+            <input type="range" id="jpegQualRange" min="1" max="100" value="75" step="1">
+            <span class="cfg-val" id="jpegQualVal">75</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-card">
+        <h3>Output Parameters</h3>
+        <div class="cfg-row">
+          <span class="cfg-label">Target FPS</span>
+          <input type="range" id="fpsRange" min="5" max="60" value="30" step="1">
+          <span class="cfg-val" id="fpsVal">30 fps</span>
+        </div>
+        <div class="cfg-row">
+          <span class="cfg-label">Resolution</span>
+          <select id="resolutionSelect">
+            <option value="original" selected>Original Geometry</option>
+            <option value="720p">1280×720 (720p)</option>
+            <option value="480p">854×480 (480p)</option>
+            <option value="360p">640×360 (360p)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="note-box">
+      <strong>H.264 / AVC:</strong> High-efficiency inter-frame video compression with spatial prediction and temporal motion compensation.
+      <br><strong>M-JPEG:</strong> Intra-frame transform coding without motion estimation — larger file footprint, lower compute overhead.
+    </div>
+
+    <div class="action-bar">
+      <button class="btn btn-primary" id="compressBtn">🚀 Execute Compression</button>
+      <button class="btn btn-outline" id="resetBtn">↩ Change Video</button>
+    </div>
+  </div>
+
+  <!-- Stage 3: Processing -->
+  <div id="stage3" hidden>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-text" id="progressText">Initializing video encoding pipeline...</div>
+  </div>
+
+  <!-- Stage 4 & 5: Results, Playback & Download -->
+  <div id="stage4" hidden>
+    <div class="results-header">Compression Performance & Distortion Metrics</div>
+    <div class="results-grid" id="resultsGrid"></div>
+
+    <!-- Playback sync controls -->
+    <div class="playback-bar">
+      <label>
+        <input type="checkbox" id="syncPlaybackChk" checked>
+        Synchronize Video Playback (Play, Pause & Seek together)
+      </label>
+      <button class="btn btn-outline" id="syncNowBtn" style="padding:4px 10px; font-size:12px;">Sync Positions Now</button>
+    </div>
+
+    <div class="players-wrap">
+      <div class="player-box">
+        <div class="player-label">
+          <span>Original Video</span>
+          <span class="badge badge-blue" id="origSizeBadge"></span>
+        </div>
+        <video id="origVideo" controls preload="metadata"></video>
+      </div>
+      <div class="player-box">
+        <div class="player-label">
+          <span>Compressed Output</span>
+          <span class="badge badge-red" id="compSizeBadge"></span>
+        </div>
+        <video id="compVideo" controls preload="metadata"></video>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-bar">
+      <button class="btn btn-success" id="downloadBtn">⬇ Download Compressed Video</button>
+      <button class="btn btn-primary" id="openComparePageBtn">🔍 Open in Quality Comparison Slider →</button>
+      <button class="btn btn-outline" id="toggleInlineFrameBtn">⇄ Toggle Inline Frame Slider</button>
+      <button class="btn btn-outline" id="newJobBtn">📁 Process Another Video</button>
+    </div>
+
+    <!-- Inline Frame Comparison Section -->
+    <div id="frameCompareSection" hidden style="margin-top:20px; border-top:1px solid var(--grid); padding-top:20px;">
+      <h3 style="font-size:16px; margin-bottom:10px;">Inline Frame-by-Frame Comparison</h3>
+      <div class="cfg-row" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+        <span style="font-size:13px; color:var(--ink-2); font-weight:600;">Extract Frame at:</span>
+        <input type="range" id="frameTimeRange" min="0" max="10" value="0" step="0.1" style="flex:1; max-width:300px; accent-color:var(--accent);">
+        <span style="font-size:13px; font-weight:700; min-width:45px;" id="frameTimeVal">0.0s</span>
+        <button class="btn btn-outline" id="fetchFrameBtn" style="padding:6px 14px; font-size:13px;">Extract Frame</button>
+      </div>
+
+      <div class="frame-slider-container" id="frameSliderContainer" style="display:none;" tabindex="0" role="slider">
+        <img id="fCompressedImg" alt="Compressed frame" draggable="false">
+        <div class="frame-slider-overlay" id="fSliderOverlay">
+          <img id="fOriginalImg" alt="Original frame" draggable="false">
+        </div>
+        <div class="frame-slider-line" id="fSliderLine"></div>
+        <div class="frame-slider-handle" id="fSliderHandle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/><polyline points="9 18 3 12 9 6" transform="translate(12,0) scale(-1,1)"/></svg>
+        </div>
+        <span class="frame-slider-label left">Original</span>
+        <span class="frame-slider-label right">Compressed</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const fmtB = (v) => {
+    if (v == null || isNaN(v)) return "N/A";
+    return v >= 1e6 ? (v/1e6).toFixed(2)+" MB" : v >= 1e3 ? (v/1e3).toFixed(1)+" KB" : v+" B";
+  };
+
+  let currentJobId = null;
+  let currentFile = null;
+  let uploadMetadata = null;
+  let compressionResult = null;
+  let fSliderPos = 0.5;
+  let fDragging = false;
+  let isSyncing = false;
+
+  function setStep(n) {
+    document.querySelectorAll(".step").forEach(el => {
+      const s = parseInt(el.dataset.step);
+      el.classList.toggle("active", s === n);
+      el.classList.toggle("done", s < n);
+    });
+    for (let i = 1; i <= 5; i++) {
+      const stage = $("stage" + i);
+      if (stage) stage.hidden = (i === 5 ? n < 4 : i !== n);
+    }
+    if (n >= 4) { $("stage4").hidden = false; }
+  }
+
+  function showStatus(type, msg) {
+    const el = $("statusMsg");
+    el.className = "status-msg " + type;
+    el.innerHTML = type === "loading" ? `<span class="loading-spinner"></span>${msg}` : msg;
+  }
+  function hideStatus() { $("statusMsg").className = "status-msg"; }
+
+  // Upload Handling
+  const uz = $("uploadZone");
+  const fi = $("fileInput");
+
+  uz.addEventListener("click", () => fi.click());
+  uz.addEventListener("dragover", (e) => { e.preventDefault(); uz.classList.add("dragover"); });
+  uz.addEventListener("dragleave", () => uz.classList.remove("dragover"));
+  uz.addEventListener("drop", (e) => {
+    e.preventDefault();
+    uz.classList.remove("dragover");
+    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  });
+  fi.addEventListener("change", () => { if (fi.files[0]) handleFile(fi.files[0]); });
+
+  async function handleFile(file) {
+    currentFile = file;
+    showStatus("loading", `Uploading ${file.name} (${fmtB(file.size)})...`);
+
+    const fd = new FormData();
+    fd.append("file", file);
+
+    try {
+      const resp = await fetch("/api/upload-video", { method: "POST", body: fd });
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        showStatus("error", data.error || "Upload validation failed");
+        return;
+      }
+
+      hideStatus();
+      currentJobId = data.job_id;
+      uploadMetadata = data;
+      showFileInfo(data);
+      setStep(2);
+    } catch(e) {
+      showStatus("error", "Upload connection failed: " + e.message);
+    }
+  }
+
+  function showFileInfo(meta) {
+    const items = [
+      { label: "Filename", val: meta.filename || "—" },
+      { label: "File Size", val: fmtB(meta.file_size) },
+      { label: "Geometry", val: meta.width && meta.height ? `${meta.width}×${meta.height}` : "—" },
+      { label: "FPS", val: meta.fps ? meta.fps.toFixed(1) + " fps" : "—" },
+      { label: "Duration", val: meta.duration_s ? meta.duration_s.toFixed(1) + " s" : "—" },
+      { label: "Source Codec", val: meta.codec || "—" },
+    ];
+    $("fileInfo").innerHTML = items.map(i => `<div class="fi-item"><div class="fi-label">${i.label}</div><div class="fi-val">${i.val}</div></div>`).join("");
+
+    if (meta.duration_s) {
+      $("frameTimeRange").max = meta.duration_s;
+    }
+  }
+
+  // Codec Controls Toggles
+  $("methodSelect").addEventListener("change", () => {
+    const m = $("methodSelect").value;
+    $("h264Controls").hidden = m !== "h264";
+    $("mjpegControls").hidden = m !== "jpeg_frames";
+  });
+
+  $("bitrateRange").addEventListener("input", () => $("bitrateVal").textContent = $("bitrateRange").value + " kbps");
+  $("fpsRange").addEventListener("input", () => $("fpsVal").textContent = $("fpsRange").value + " fps");
+  $("jpegQualRange").addEventListener("input", () => $("jpegQualVal").textContent = $("jpegQualRange").value);
+  $("frameTimeRange").addEventListener("input", () => $("frameTimeVal").textContent = parseFloat($("frameTimeRange").value).toFixed(1) + "s");
+
+  $("compressBtn").addEventListener("click", doCompress);
+  $("resetBtn").addEventListener("click", resetAll);
+  $("downloadBtn").addEventListener("click", doDownload);
+  $("openComparePageBtn").addEventListener("click", () => {
+    if (currentJobId) window.location.href = `/compare?job_id=${currentJobId}`;
+  });
+  $("toggleInlineFrameBtn").addEventListener("click", () => {
+    const sec = $("frameCompareSection");
+    sec.hidden = !sec.hidden;
+    if (!sec.hidden && $("frameSliderContainer").style.display === "none") {
+      fetchFrames();
+    }
+  });
+  $("newJobBtn").addEventListener("click", resetAll);
+  $("fetchFrameBtn").addEventListener("click", fetchFrames);
+
+  async function doCompress() {
+    if (!currentJobId) { showStatus("error", "No active upload."); return; }
+
+    setStep(3);
+    $("progressFill").style.width = "10%";
+    $("progressText").textContent = "Encoding video with PyAV...";
+    showStatus("loading", "Processing offline video compression — please wait.");
+
+    const fd = new FormData();
+    fd.append("job_id", currentJobId);
+    fd.append("method", $("methodSelect").value);
+    fd.append("bitrate_kbps", $("bitrateRange").value);
+    fd.append("quality", $("jpegQualRange").value);
+    fd.append("fps", $("fpsRange").value);
+    fd.append("resolution", $("resolutionSelect").value);
+
+    let progressVal = 10;
+    const progTimer = setInterval(() => {
+      if (progressVal < 92) {
+        progressVal += 1;
+        $("progressFill").style.width = progressVal + "%";
+        $("progressText").textContent = `Encoding frames... ${progressVal}%`;
+      }
+    }, 150);
+
+    try {
+      const resp = await fetch("/api/compress-video", { method: "POST", body: fd });
+      clearInterval(progTimer);
+      const data = await resp.json();
+
+      if (!resp.ok || data.status === "failed") {
+        showStatus("error", data.error || "Video compression failed.");
+        setStep(2);
+        return;
+      }
+
+      hideStatus();
+      compressionResult = data;
+      $("progressFill").style.width = "100%";
+      $("progressText").textContent = "Encoding complete!";
+      setTimeout(() => showResults(data), 400);
+    } catch(e) {
+      clearInterval(progTimer);
+      showStatus("error", "Compression request error: " + e.message);
+      setStep(2);
+    }
+  }
+
+  function showResults(data) {
+    setStep(4);
+
+    const cards = [
+      rCard("Original File Size", fmtB(data.original_bytes), `${data.original_width}×${data.original_height}`),
+      rCard("Compressed File Size", fmtB(data.compressed_bytes), data.method),
+      rCard("Size Reduction", (data.size_reduction_pct != null ? data.size_reduction_pct.toFixed(1) + "%" : "N/A"),
+        fmtB(data.original_bytes - data.compressed_bytes) + " saved",
+        data.size_reduction_pct > 50 ? "good" : "warn"),
+      rCard("Compression Ratio", (data.compression_ratio != null ? data.compression_ratio.toFixed(1) + ":1" : "N/A"), "S_orig / S_comp"),
+      rCard("Output Geometry", `${data.output_width}×${data.output_height}`, `${data.output_fps || 30} fps`),
+      rCard("Output Duration", (data.output_duration_s || 0).toFixed(1) + " s", "Container length"),
+      rCard("Encoding Time", (data.processing_time_s || 0).toFixed(1) + " s", "Server PyAV time"),
+      rCard("Measured Bitrate", data.avg_bitrate_kbps ? data.avg_bitrate_kbps.toFixed(0) + " kbps" : "N/A",
+        data.target_met != null ? (data.target_met ? "Target met (" + data.target_bitrate_kbps + " kbps)" : "Target exceeded") : "Average bitrate",
+        data.target_met ? "good" : ""),
+      rCard("Avg Video PSNR", data.avg_psnr_db != null ? data.avg_psnr_db.toFixed(1) + " dB" : "N/A",
+        data.avg_psnr_db != null ? (data.avg_psnr_db > 35 ? "Excellent" : data.avg_psnr_db > 28 ? "Good" : "Fair") : "Unavailable",
+        data.avg_psnr_db != null ? (data.avg_psnr_db > 35 ? "good" : "") : ""),
+      rCard("Avg Video SSIM", data.avg_ssim != null ? data.avg_ssim.toFixed(4) : "N/A",
+        data.avg_ssim != null ? (data.avg_ssim > 0.95 ? "Near-perfect" : data.avg_ssim > 0.85 ? "Good" : "Degraded") : "Unavailable",
+        data.avg_ssim != null ? (data.avg_ssim > 0.95 ? "good" : "") : ""),
+    ];
+
+    $("resultsGrid").innerHTML = cards.join("");
+    $("origSizeBadge").textContent = fmtB(data.original_bytes);
+    $("compSizeBadge").textContent = fmtB(data.compressed_bytes);
+
+    // Setup Video Players
+    const origV = $("origVideo");
+    const compV = $("compVideo");
+
+    origV.src = `/api/serve-video/${currentJobId}?which=original`;
+    compV.src = `/api/serve-video/${currentJobId}?which=compressed`;
+
+    setupSynchronizedPlayback(origV, compV);
+  }
+
+  function rCard(label, value, sub, cls) {
+    return `<div class="result-card ${cls||""}">
+      <div class="r-label">${label}</div>
+      <div class="r-value">${value}</div>
+      <div class="r-sub">${sub}</div>
+    </div>`;
+  }
+
+  // Dual Player Synchronization
+  function setupSynchronizedPlayback(v1, v2) {
+    function sync(source, target) {
+      if (!$("syncPlaybackChk").checked || isSyncing) return;
+      isSyncing = true;
+      if (Math.abs(target.currentTime - source.currentTime) > 0.15) {
+        target.currentTime = source.currentTime;
+      }
+      setTimeout(() => { isSyncing = false; }, 40);
+    }
+
+    v1.addEventListener("play", () => {
+      if ($("syncPlaybackChk").checked && !isSyncing && v2.paused) {
+        isSyncing = true;
+        v2.play().catch(() => {}).finally(() => { setTimeout(() => { isSyncing = false; }, 50); });
+      }
+    });
+
+    v2.addEventListener("play", () => {
+      if ($("syncPlaybackChk").checked && !isSyncing && v1.paused) {
+        isSyncing = true;
+        v1.play().catch(() => {}).finally(() => { setTimeout(() => { isSyncing = false; }, 50); });
+      }
+    });
+
+    v1.addEventListener("pause", () => {
+      if ($("syncPlaybackChk").checked && !isSyncing && !v2.paused) {
+        isSyncing = true;
+        v2.pause();
+        setTimeout(() => { isSyncing = false; }, 50);
+      }
+    });
+
+    v2.addEventListener("pause", () => {
+      if ($("syncPlaybackChk").checked && !isSyncing && !v1.paused) {
+        isSyncing = true;
+        v1.pause();
+        setTimeout(() => { isSyncing = false; }, 50);
+      }
+    });
+
+    v1.addEventListener("seeking", () => sync(v1, v2));
+    v2.addEventListener("seeking", () => sync(v2, v1));
+
+    $("syncNowBtn").onclick = () => {
+      v2.currentTime = v1.currentTime;
+    };
+  }
+
+  function doDownload() {
+    if (!currentJobId) return;
+    window.open(`/api/download/${currentJobId}`, "_blank");
+  }
+
+  // Inline Frame Extraction & Slider
+  async function fetchFrames() {
+    if (!currentJobId) return;
+    const timeS = parseFloat($("frameTimeRange").value) || 0.0;
+    showStatus("loading", `Extracting frame at t=${timeS.toFixed(1)}s...`);
+
+    try {
+      const resp = await fetch(`/api/compare-video-frames/${currentJobId}?time_s=${timeS}`);
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        showStatus("error", data.error || "Frame extraction failed.");
+        return;
+      }
+
+      hideStatus();
+      $("frameSliderContainer").style.display = "block";
+      $("fOriginalImg").src = "data:image/jpeg;base64," + data.original_image_b64;
+      $("fCompressedImg").src = "data:image/jpeg;base64," + data.compressed_image_b64;
+
+      $("fCompressedImg").onload = () => {
+        fSliderPos = 0.5;
+        updateFrameSlider();
+      };
+    } catch(e) {
+      showStatus("error", "Failed to extract frame: " + e.message);
+    }
+  }
+
+  const fsc = $("frameSliderContainer");
+  fsc.addEventListener("mousedown", startFDrag);
+  fsc.addEventListener("touchstart", startFDrag, {passive: false});
+  window.addEventListener("mousemove", onFDrag);
+  window.addEventListener("touchmove", onFDrag, {passive: false});
+  window.addEventListener("mouseup", endFDrag);
+  window.addEventListener("touchend", endFDrag);
+
+  function startFDrag(e) { fDragging = true; updateFSliderFromEvent(e); if (e.type === "touchstart") e.preventDefault(); }
+  function onFDrag(e) { if (!fDragging) return; updateFSliderFromEvent(e); if (e.type === "touchmove") e.preventDefault(); }
+  function endFDrag() { fDragging = false; }
+
+  function updateFSliderFromEvent(e) {
+    const rect = fsc.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    fSliderPos = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    updateFrameSlider();
+  }
+
+  function updateFrameSlider() {
+    const w = fsc.offsetWidth;
+    const h = fsc.offsetHeight;
+    const pos = Math.round(fSliderPos * w);
+    $("fSliderOverlay").style.width = pos + "px";
+    $("fSliderLine").style.left = pos + "px";
+    $("fSliderHandle").style.left = pos + "px";
+
+    const fOrig = $("fOriginalImg");
+    fOrig.style.width = w + "px";
+    if (h > 0) fOrig.style.height = h + "px";
+  }
+
+  function resetAll() {
+    if (currentJobId) {
+      fetch(`/api/cleanup/${currentJobId}`, { method: "DELETE" }).catch(() => {});
+    }
+    currentJobId = null;
+    currentFile = null;
+    uploadMetadata = null;
+    compressionResult = null;
+    hideStatus();
+    setStep(1);
+    $("fileInput").value = "";
+    $("frameSliderContainer").style.display = "none";
+    $("frameCompareSection").hidden = true;
+    $("origVideo").removeAttribute("src");
+    $("compVideo").removeAttribute("src");
+  }
+
+  window.addEventListener("resize", () => {
+    if ($("frameSliderContainer").style.display !== "none") {
+      updateFrameSlider();
+    }
+  });
+
+  setStep(1);
+})();
+</script>
+</body>
+</html>

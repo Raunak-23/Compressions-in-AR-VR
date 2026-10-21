@@ -66,27 +66,30 @@ npx localtunnel --port 8200
 Open **http://localhost:8200/viewer** (no tunnel needed — it reaches the
 server directly). Within a couple of seconds:
 
-- The phone's video appears, adaptively encoded.
-- The tiles start moving: measured downlink, JPEG shadow bytes, profile badge,
-  gaze RoI minimap, and the phone-link throughput in the table.
+- The phone's video appears, adaptively encoded in real-time.
+- **4×4 Dynamic Spatial Tile Quality Matrix**: Live 16-cell interactive grid displaying the exact quality tier (`HIGH`, `MED`, `LOW`) and quantization value allocated to each spatial block.
+- **Dual-Box Minimap**: Compares current gaze position (solid cyan rectangle) with the lookahead predicted gaze (dashed gold rectangle) alongside real-time velocity and confidence readings.
+- **Experimental Telemetry Table**: Clear operational separation between actual WebRTC wire payload (VP8/Opus over SRTP) and parallel shadow tile pipeline (JPEG/H.264 byte budgets, retry iterations, and region PSNR/SSIM).
 
 ## 5. Show the adaptation (the actual study)
 
-The viewer's real WebRTC receiver stats drive the EWMA, which walks the
+The viewer's real WebRTC receiver stats drive the EWMA bandwidth estimator, which walks the
 ladder (`ultra → high → medium → low` at 3500/1800/800 kbps). On a loopback
-laptop viewer the measured bandwidth is huge, so two demo levers exist in the
-dashboard:
+laptop viewer the measured bandwidth is high, so several interactive controls exist in the dashboard:
 
-1. **Simulated link cap** — drag the cap slider to ~600 kbps: the profile
-   badge drops to *low*, the encode resolution drops to 480×270, foveation
-   switches on (watch the minimap: sharp box = gaze RoI, blurred periphery),
-   audio folds to mono (in FOA mode), and the JPEG shadow curve collapses.
-   Drag it back up: the ladder walks back to *ultra*.
-2. **Profile dropdown** — force any single rung to show its knobs directly.
-
-A genuinely degraded network works too: open the *viewer* on a second phone
-(or any remote browser) over cellular — its measured receiver stats are
-low and the ladder downshifts on its own, no slider needed.
+1. **Bandwidth Injection Buttons**:
+   - `Drop 300k`: Instantly clamps simulated link bandwidth to 300 kbps, forcing immediate downswitch to the *low* profile ladder rung, activating peripheral downscaling and spatial foveation.
+   - `Drop 1000k`: Clamps bandwidth to 1000 kbps (*medium* profile).
+   - `Recover`: Restores full unthrottled link capacity, allowing the EWMA filter to safely walk back up through hysteresis.
+2. **Adaptation Strategy Selector**:
+   - `intelligent_allocator`: Knapsack rate–distortion optimization with importance weighting and measurement-driven budget retry convergence.
+   - `fixed_tiers`: Classical 3-tier static allocation (85/55/25).
+   - `bandwidth_only`: Uniform spatial quality matching available throughput.
+   - `viewport_only`: Spatial foveation with fixed budget.
+   - `uniform`: Baseline uniform encoding without adaptation.
+3. **Lookahead Viewport Prediction**:
+   - Toggle **Enable Lookahead Prediction**: Observes gaze velocity vector and extrapolates 100 ms ahead. Watch the dashed gold box lead the solid cyan gaze box during smooth movement, and fall back conservatively during rapid saccades (> 180°/s).
+4. **Simulated Link Slider**: Fine-grained continuous bandwidth adjustment from 200 kbps to 4000 kbps.
 
 ## Troubleshooting
 
@@ -100,6 +103,29 @@ low and the ladder downshifts on its own, no slider needed.
 | Phone on **cellular** fails to connect | Symmetric NAT needs TURN: `set XR_ICE_SERVERS=turn:user@turn-host:3478?transport=udp` before starting uvicorn (aiortc reads username/credential form the same env var format shown in `app/config.py`). Same-WiFi demos don't need this. |
 | Choppy video on a weak laptop | Lower the phone's capture resolution in `/phone` (the stage rescales anyway), or keep the cap at *high* instead of *ultra*. |
 | localtunnel password page | That's localtunnel's anti-abuse page — type your public IP once, then the app loads. |
+
+## 5. Demonstrating the Comparison Slider & Video Playground
+
+In addition to the live WebRTC demo, show the two interactive exploration features:
+
+### A. Quality Comparison Slider (`/compare`)
+1. Open `http://localhost:8200/compare` in your browser.
+2. Select **Synthetic XR Frame** or click **Browse File** to upload an image or video.
+3. Switch between **JPEG**, **H.264**, and **Viewport Tiles (4×4)**.
+4. Drag the vertical slider back and forth to reveal the original frame on the left and the compressed output on the right with zero pixel shift.
+5. Tap **Center** to snap back to 50/50 split.
+6. Review the live metrics card grid: Original Size, Compressed Size, Size Reduction (%), Compression Ratio, PSNR (dB), SSIM, and processing time.
+
+### B. Video Compression Playground (`/playground`)
+1. Open `http://localhost:8200/playground`.
+2. Drag and drop any video file (MP4, WebM, MKV, AVI, MOV up to 100 MB).
+3. The platform validates the container and displays duration, geometry, FPS, and original size.
+4. Select codec (**H.264 / AVC** or **M-JPEG**), adjust target bitrate / quality and resolution.
+5. Tap **Execute Compression** — watch the progress indicator as PyAV processes the frames in the background.
+6. Inspect the results dashboard: measured bitrate, sampled PSNR, sampled SSIM, and target bitrate compliance.
+7. Play both videos with **Synchronized Playback** checked to see side-by-side video playback.
+8. Click **Open in Quality Comparison Slider →** or **Toggle Inline Frame Slider** to inspect frame-by-frame quality at any point in the video timeline.
+9. Click **Download Compressed Video** to retrieve the compressed file.
 
 ## Architecture note (for the report)
 
@@ -117,5 +143,8 @@ low and the ladder downshifts on its own, no slider needed.
   skips are counted as `frames_dropped` for that viewer.
 - `app/rtc/bridge.py` — the shared frame slots + per-viewer adaptation state
   (EWMA → `pick_profile`, with the demo overrides), unit-tested headlessly.
+- `app/comparison.py` — single-image and video file compression engine with PyAV
+  libx264 and M-JPEG encoding, exact timestamp frame extraction, measured rate-distortion
+  metrics (PSNR, SSIM, bitrate), and asynchronous job tracking.
 - The offline study plane (`/metrics`, `/stream`, `/audio`, `experiments.py`)
   is unchanged; the live plane reuses the same codecs and ladder.

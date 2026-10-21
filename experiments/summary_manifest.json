@@ -1,0 +1,59 @@
+{
+  "project": "Compressions-in-AR-VR",
+  "timestamp": "2026-10-21T16:21:33Z",
+  "environment": {
+    "python_version": "3.11.9",
+    "platform": "win32",
+    "architecture": "AMD64"
+  },
+  "evaluation_summary": {
+    "conditions_evaluated": 5,
+    "bandwidth_levels_kbps": [
+      250,
+      500,
+      1000,
+      2000,
+      4000
+    ],
+    "video_codecs_compared": [
+      "JPEG",
+      "Foveated JPEG",
+      "4x4 Tiled JPEG",
+      "H.264",
+      "Intelligent RDO Knapsack"
+    ],
+    "audio_codecs_compared": [
+      "Raw float32 (4ch FOA)",
+      "Scalar quant int16 (4ch FOA)",
+      "DPCM delta + zlib (4ch FOA)",
+      "Fold to stereo + DPCM + zlib",
+      "Opus 24 kbps (folded stereo)",
+      "Opus 64 kbps (folded stereo)",
+      "Opus 96 kbps (folded stereo)",
+      "Opus 128 kbps (folded stereo)"
+    ],
+    "prediction_samples_evaluated": 1056,
+    "panoramic_trajectories_evaluated": 9
+  },
+  "artifacts_generated": [
+    "video_conditions_evaluation.csv",
+    "codecs_rate_distortion_comparison.csv",
+    "bandwidth_adaptation_timeline.csv",
+    "audio_codecs_evaluation.csv",
+    "sequence_comparison.csv",
+    "tile_quality_multi_gaze.csv",
+    "prediction_evaluation.csv",
+    "panoramic_evaluation.csv",
+    "plot_bitrate_vs_psnr_ssim.png",
+    "plot_compressed_size_comparison.png",
+    "plot_viewport_vs_peripheral_quality.png",
+    "plot_bandwidth_adaptation_drop_recovery.png",
+    "plot_four_conditions_comparison.png",
+    "plot_five_conditions_comparison.png",
+    "plot_audio_bitrate_vs_snr.png",
+    "plot_sequence_comparison.png",
+    "plot_prediction_error_vs_horizon.png",
+    "plot_prediction_strategies_comparison.png",
+    "EXPERIMENT_REPORT.md"
+  ]
+}

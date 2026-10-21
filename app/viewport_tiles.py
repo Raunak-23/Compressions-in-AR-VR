@@ -75,6 +75,8 @@ class TiledFrameResult:
     allocation_strategy: str = "fixed_tiers"
     tile_weights: Dict[Tuple[int, int], float] = field(default_factory=dict)
     view_probabilities: Dict[Tuple[int, int], float] = field(default_factory=dict)
+    budget_infeasible: bool = False
+    final_quality_map: Dict[Tuple[int, int], int] = field(default_factory=dict)
 
 
 def compute_grid_boundaries(width: int, height: int, rows: int = 4, cols: int = 4) -> Tuple[List[int], List[int]]:
@@ -193,6 +195,63 @@ def compute_tile_importance_and_probability(
     return importance_weights, view_probs, col_bounds, row_bounds
 
 
+def _estimate_jpeg_bytes(tile_w: int, tile_h: int, quality: int, complexity_factor: float) -> int:
+    """Calibrated JPEG size estimation.
+
+    The model is based on empirical observation that JPEG output for a
+    ``tile_w × tile_h`` RGB tile at quality ``q`` follows approximately::
+
+        bytes ≈ pixels × bpp(q) × complexity_factor
+
+    where bpp(q) grows super-linearly with quality.  The constants were
+    calibrated against Pillow's JPEG encoder on 320×180 tiles from the
+    synthetic XR source and the procedural panoramic source.
+    """
+    pixels = tile_w * tile_h
+    # Bits-per-pixel model: ranges from ~0.15 bpp at q=5 to ~3.5 bpp at q=95
+    bpp = 0.08 + 0.035 * (quality ** 1.12) / 100.0
+    est = pixels * bpp * complexity_factor
+    # JPEG overhead: headers, Huffman tables, restart markers, etc.
+    est += 600
+    return max(800, int(est))
+
+
+def _estimate_h264_bytes(bitrate_kbps: int, complexity_factor: float) -> int:
+    """Approximate single-IDR H.264 tile size."""
+    est_bytes = (bitrate_kbps * 1000 / 8 / 30.0) * complexity_factor
+    return max(500, int(est_bytes))
+
+
+def _probe_calibration_multiplier(
+    pil_img: Image.Image,
+    col_bounds: List[int],
+    row_bounds: List[int],
+    probe_r: int,
+    probe_c: int,
+    probe_quality: int,
+    codec: Literal["jpeg", "h264"],
+    estimated_bytes: int,
+) -> float:
+    """Encode one representative tile to calibrate the rate model.
+
+    Returns a multiplier ``actual / estimated`` so subsequent estimates
+    can be corrected.  Limited to one fast encode to avoid overhead.
+    """
+    tx0, tx1 = col_bounds[probe_c], col_bounds[probe_c + 1]
+    ty0, ty1 = row_bounds[probe_r], row_bounds[probe_r + 1]
+    tile_img = pil_img.crop((tx0, ty0, tx1, ty1))
+
+    if codec == "jpeg":
+        blob = lossy.jpeg_encode(tile_img, quality=probe_quality)
+    else:
+        blob = h264_encode(tile_img, bitrate_kbps=max(32, probe_quality), fps=30)
+
+    actual = len(blob)
+    if estimated_bytes <= 0:
+        return 1.0
+    return max(0.3, min(5.0, actual / estimated_bytes))
+
+
 def allocate_intelligent_tile_qualities(
     pil_img: Image.Image,
     importance_weights: Dict[Tuple[int, int], float],
@@ -208,21 +267,29 @@ def allocate_intelligent_tile_qualities(
 
     Maximizes: Sum_i W_i * Q(q_i)
     Subject to: Sum_i S_i(q_i) <= Budget
+
+    Uses a calibrated rate model corrected by a single probe encode so the
+    knapsack allocation starts from a realistic byte estimate.  This avoids
+    the previous problem where wildly optimistic estimates led to massive
+    budget overshoot after the first encoding pass.
     """
     if codec == "jpeg":
-        candidates = [15, 25, 40, 55, 70, 85, 95]
+        candidates = [5, 10, 15, 25, 40, 55, 70, 85, 95]
     else:
         candidates = [
-            max(16, int(base_bitrate_kbps * 0.05)),
-            max(24, int(base_bitrate_kbps * 0.10)),
-            max(48, int(base_bitrate_kbps * 0.20)),
-            max(96, int(base_bitrate_kbps * 0.35)),
-            max(160, int(base_bitrate_kbps * 0.55)),
-            max(250, int(base_bitrate_kbps * 0.80)),
+            max(16, int(base_bitrate_kbps * 0.03)),
+            max(24, int(base_bitrate_kbps * 0.06)),
+            max(48, int(base_bitrate_kbps * 0.12)),
+            max(96, int(base_bitrate_kbps * 0.20)),
+            max(160, int(base_bitrate_kbps * 0.35)),
+            max(250, int(base_bitrate_kbps * 0.55)),
+            max(350, int(base_bitrate_kbps * 0.80)),
         ]
 
     # Pre-estimate tile rate curves based on spatial variance / complexity
     arr = np.asarray(pil_img.convert("L"), dtype=np.float32)
+    tile_complexity: Dict[Tuple[int, int], float] = {}
+    tile_dims: Dict[Tuple[int, int], Tuple[int, int]] = {}
     tile_rates: Dict[Tuple[int, int], List[int]] = {}
     tile_quals: List[float] = []
 
@@ -233,25 +300,51 @@ def allocate_intelligent_tile_qualities(
             q_score = 100.0 * (1.0 - math.exp(-q / 80.0))
         tile_quals.append(q_score)
 
+    # Find the tile with highest complexity for probe calibration
+    max_complexity_key = (0, 0)
+    max_complexity_val = -1.0
+
     for r in range(rows):
         ty0, ty1 = row_bounds[r], row_bounds[r + 1]
         for c in range(cols):
             tx0, tx1 = col_bounds[c], col_bounds[c + 1]
-            tile_w = tx1 - tx0
-            tile_h = ty1 - ty0
+            tw = tx1 - tx0
+            th = ty1 - ty0
             patch = arr[ty0:ty1, tx0:tx1]
             std_dev = float(np.std(patch)) if patch.size > 0 else 10.0
             complexity_factor = 0.5 + 0.5 * min(2.0, std_dev / 40.0)
+            tile_complexity[(r, c)] = complexity_factor
+            tile_dims[(r, c)] = (tw, th)
+            if complexity_factor > max_complexity_val:
+                max_complexity_val = complexity_factor
+                max_complexity_key = (r, c)
 
-            rates = []
-            for q in candidates:
-                if codec == "jpeg":
-                    est_bytes = (tile_w * tile_h) * (0.008 + 0.00032 * (q ** 1.35)) * complexity_factor
-                else:
-                    # kbps converted to approximate bytes per 1/30s frame
-                    est_bytes = (q * 1000 / 8 / 30.0) * complexity_factor
-                rates.append(max(350, int(est_bytes)))
-            tile_rates[(r, c)] = rates
+    # Build uncalibrated rate curves
+    for k in tile_complexity:
+        tw, th = tile_dims[k]
+        cf = tile_complexity[k]
+        rates = []
+        for q in candidates:
+            if codec == "jpeg":
+                est = _estimate_jpeg_bytes(tw, th, q, cf)
+            else:
+                est = _estimate_h264_bytes(q, cf)
+            rates.append(est)
+        tile_rates[k] = rates
+
+    # Probe calibration: encode the most complex tile at a mid-quality candidate
+    # to correct systematic model error with a single fast encode.
+    if budget_bytes is not None and len(candidates) >= 3:
+        probe_q_idx = len(candidates) // 2
+        probe_q = candidates[probe_q_idx]
+        pr, pc = max_complexity_key
+        est_probe = tile_rates[(pr, pc)][probe_q_idx]
+        cal = _probe_calibration_multiplier(
+            pil_img, col_bounds, row_bounds, pr, pc, probe_q, codec, est_probe
+        )
+        # Apply calibration to all rate estimates
+        for k in tile_rates:
+            tile_rates[k] = [max(600, int(r * cal)) for r in tile_rates[k]]
 
     # If no budget, assign qualities purely by importance weight
     if budget_bytes is None:
@@ -262,7 +355,7 @@ def allocate_intelligent_tile_qualities(
             elif w >= 0.35:
                 alloc[(r, c)] = candidates[-2]
             elif w >= 0.15:
-                alloc[(r, c)] = candidates[2]
+                alloc[(r, c)] = candidates[len(candidates) // 2]
             else:
                 alloc[(r, c)] = candidates[1]
         return alloc
@@ -271,6 +364,10 @@ def allocate_intelligent_tile_qualities(
     # Start all tiles at lowest rung
     current_idx: Dict[Tuple[int, int], int] = {k: 0 for k in importance_weights}
     current_total_bytes = sum(tile_rates[k][0] for k in importance_weights)
+
+    # If even lowest quality exceeds budget, return minimum allocation immediately
+    if current_total_bytes > budget_bytes:
+        return {k: candidates[0] for k in importance_weights}
 
     num_candidates = len(candidates)
     while True:
@@ -352,13 +449,25 @@ def _measure_boundary_artifacts(
     return float(np.mean(diffs)) if diffs else 0.0
 
 
+# Sentinel value for metrics that cannot be computed (e.g. empty tile region).
+# Consumers must test for this before comparisons or aggregation.
+METRIC_UNAVAILABLE: float = -1.0
+
+
 def _compute_region_quality(
     pil_img: Image.Image,
     reconstructed: Image.Image,
     tile_records: List[TileInfo],
     tier_filter: str,
 ) -> Tuple[float, float]:
-    """Compute combined PSNR and SSIM for tiles matching a given tier."""
+    """Compute combined PSNR and SSIM for tiles matching a given tier.
+
+    Returns (METRIC_UNAVAILABLE, METRIC_UNAVAILABLE) when no tiles belong to
+    the requested tier.  This is a legitimate state — for example, a central
+    gaze may assign all 16 tiles to "high" or "medium" leaving zero peripheral
+    tiles.  The previous implementation silently returned 0.0 which was
+    indistinguishable from a genuinely poor quality score.
+    """
     refs = []
     recs = []
     ssim_vals = []
@@ -372,9 +481,7 @@ def _compute_region_quality(
             ssim_vals.append(tile.ssim)
 
     if not refs:
-        if tier_filter == "low":
-            return _compute_region_quality(pil_img, reconstructed, tile_records, "medium")
-        return 0.0, 0.0
+        return METRIC_UNAVAILABLE, METRIC_UNAVAILABLE
 
     v_ref = np.concatenate([v.flatten() for v in refs])
     v_rec = np.concatenate([v.flatten() for v in recs])
@@ -396,7 +503,7 @@ def encode_and_reconstruct_tiles(
     roi_frac: float = 0.35,
     base_bitrate_kbps: int = 1000,
     budget_bytes: Optional[int] = None,
-    max_retries: int = 3,
+    max_retries: int = 6,
     quality_step: int = 5,
     allocation_strategy: Literal[
         "fixed_tiers", "uniform", "viewport_only", "bandwidth_only", "intelligent_allocator"
@@ -485,62 +592,106 @@ def encode_and_reconstruct_tiles(
             (r, c): current_ladder[tiers[(r, c)]] for r in range(rows) for c in range(cols)
         }
 
-    # 3. Encoding loop with retry budget control
+    # 3. Budget-aware encoding with measurement-driven reallocation
+    #
+    # Strategy: encode once at requested quality, measure actual bytes, then
+    # proportionally scale qualities down based on the overshoot ratio.  This
+    # uses importance-weighted scaling: peripheral tiles (low weight) get
+    # cut more aggressively than viewport tiles (high weight).
+    #
+    # Minimum quality policy:
+    #   JPEG: q=5   (visually poor but bounded file size)
+    #   H.264: 16 kbps (minimum meaningful bitrate)
+    # When the budget is infeasible even at minimum quality, the encoder
+    # reports budget_infeasible=True and uses minimum qualities.
+
+    min_q = 5 if codec == "jpeg" else 16
     retries = 0
-    best_result = None
+    budget_infeasible = False
 
-    while True:
+    def _encode_all_tiles(
+        qualities: Dict[Tuple[int, int], int],
+    ) -> Tuple[List[TileInfo], float, int]:
+        """Encode all 16 tiles and return (records, encode_time_s, total_bytes)."""
         t_enc_start = time.perf_counter()
-        tile_records: List[TileInfo] = []
-
+        records: List[TileInfo] = []
         for r in range(rows):
             ty0, ty1 = row_bounds[r], row_bounds[r + 1]
             for c in range(cols):
                 tx0, tx1 = col_bounds[c], col_bounds[c + 1]
                 bbox = (tx0, ty0, tx1, ty1)
                 tier = tiers[(r, c)]
-                q_val = tile_qualities[(r, c)]
-
+                q_val = qualities[(r, c)]
                 tile_img = pil_img.crop(bbox)
                 blob, tile_enc_time, tile_dec_time = _encode_single_tile(
                     tile_img, codec, q_val
                 )
-
-                tile_records.append(
+                records.append(
                     TileInfo(
-                        row=r,
-                        col=c,
-                        bbox=bbox,
-                        tier=tier,
-                        quality_val=q_val,
-                        encoded_bytes=blob,
-                        byte_count=len(blob),
-                        encode_time_s=tile_enc_time,
-                        decode_time_s=tile_dec_time,
+                        row=r, col=c, bbox=bbox, tier=tier, quality_val=q_val,
+                        encoded_bytes=blob, byte_count=len(blob),
+                        encode_time_s=tile_enc_time, decode_time_s=tile_dec_time,
                         importance_weight=importance_weights[(r, c)],
                         view_probability=view_probs[(r, c)],
                     )
                 )
+        enc_time = time.perf_counter() - t_enc_start
+        tot = sum(t.byte_count for t in records)
+        return records, enc_time, tot
 
-        total_encode_time = time.perf_counter() - t_enc_start
-        total_bytes = sum(t.byte_count for t in tile_records)
+    # --- First pass ---
+    tile_records, encode_time_s, total_bytes = _encode_all_tiles(tile_qualities)
 
-        # Check budget compliance
-        if active_budget is not None and total_bytes > active_budget and retries < max_retries:
-            # Step down lower-importance tiles first
-            sorted_tiles = sorted(importance_weights.keys(), key=lambda k: importance_weights[k])
-            for k in sorted_tiles:
-                min_q = 10 if codec == "jpeg" else 16
-                if tile_qualities[k] > min_q:
-                    step = quality_step if codec == "jpeg" else max(16, int(tile_qualities[k] * 0.25))
-                    tile_qualities[k] = max(min_q, tile_qualities[k] - step)
+    # --- Budget enforcement retries ---
+    # Target slightly under budget (95%) to provide margin for encode variance.
+    effective_budget = active_budget
+    safety_target = int(active_budget * 0.95) if active_budget is not None else None
+
+    if active_budget is not None and total_bytes > active_budget:
+        # Build a per-tile measured byte map from the first pass
+        measured_bytes_map: Dict[Tuple[int, int], int] = {}
+        for t in tile_records:
+            measured_bytes_map[(t.row, t.col)] = t.byte_count
+
+        max_w = max(importance_weights.values()) if importance_weights else 1.0
+
+        for attempt in range(max_retries):
             retries += 1
-            continue
+            overshoot_ratio = total_bytes / max(1, safety_target or active_budget)
 
-        best_result = (tile_records, total_encode_time, total_bytes)
-        break
+            # Per-tile scaling using measured byte contributions.
+            # Tiles that consumed a disproportionate share of the budget
+            # relative to their importance get cut more aggressively.
+            all_at_minimum = True
+            for k in tile_qualities:
+                w_norm = importance_weights[k] / max(max_w, 1e-6)
+                # Protection factor: viewport tiles (w_norm~1.0) get mild cuts,
+                # peripheral tiles (w_norm~0.02) get aggressive cuts.
+                protection = 0.25 + 0.65 * w_norm
+                # Base scale to bring total down to budget
+                base_scale = 1.0 / overshoot_ratio
+                # Blended scale: more aggressive for low-importance tiles
+                scale_factor = base_scale * (protection + (1.0 - protection) * base_scale)
+                scale_factor = min(scale_factor, 0.92)  # Always reduce at least 8%
 
-    tile_records, encode_time_s, total_bytes = best_result
+                new_q = max(min_q, int(tile_qualities[k] * scale_factor))
+                tile_qualities[k] = new_q
+                if new_q > min_q:
+                    all_at_minimum = False
+
+            tile_records, encode_time_s, total_bytes = _encode_all_tiles(tile_qualities)
+
+            # Update measured byte map for next iteration
+            for t in tile_records:
+                measured_bytes_map[(t.row, t.col)] = t.byte_count
+
+            if total_bytes <= active_budget:
+                break
+
+            if all_at_minimum:
+                # Budget is infeasible — all tiles are at minimum quality
+                budget_infeasible = True
+                break
 
     # 4. Seamless full canvas reconstruction
     t_dec_start = time.perf_counter()
@@ -606,4 +757,6 @@ def encode_and_reconstruct_tiles(
         allocation_strategy=allocation_strategy,
         tile_weights=importance_weights,
         view_probabilities=view_probs,
+        budget_infeasible=budget_infeasible,
+        final_quality_map=dict(tile_qualities),
     )

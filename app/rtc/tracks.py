@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import fractions
 import logging
+import time
 
 import numpy as np
 from av import AudioFrame, AudioResampler, VideoFrame
@@ -137,17 +138,43 @@ class ProcessedVideoTrack(MediaStreamTrack):
                 "jpeg_bytes": len(lossy.jpeg_encode(work, quality=knobs["jpeg_quality"])),
                 "psnr_db": round(psnr, 2) if psnr != float("inf") else None,
             }
-            if knobs.get("enable_tile_shadow"):
+            if knobs.get("enable_tile_shadow", True):
                 yaw = (self._bridge.gaze_norm[0] - 0.5) * config.HFOV_DEG
                 pitch = (0.5 - self._bridge.gaze_norm[1]) * config.VFOV_DEG
                 fps = max(knobs.get("fps", 30), 1)
                 budget_bytes = int((knobs.get("target_kbps", 1800) * 1000 / 8) / fps)
                 sample["budget_bytes"] = budget_bytes
+
+                # Track trajectory in predictor
+                t_now = time.monotonic()
+                if hasattr(self._state, "predictor"):
+                    self._state.predictor.observe(t_now, yaw, pitch)
+
+                target_yaw = yaw
+                target_pitch = pitch
+                predicted_roi = None
+                pred_conf = 1.0
+
+                if getattr(self._state, "prediction_enabled", False) and hasattr(self._state, "predictor"):
+                    try:
+                        pred = self._state.predictor.predict(
+                            width=work.width,
+                            height=work.height,
+                            horizon_s=0.100,
+                            apply_fallback=True,
+                        )
+                        target_yaw = pred.predicted_yaw_deg
+                        target_pitch = pred.predicted_pitch_deg
+                        predicted_roi = list(pred.roi_box)
+                        pred_conf = pred.confidence
+                    except Exception as pe:
+                        logger.debug("prediction error: %s", pe)
+
                 try:
                     tile_res = viewport_tiles.encode_and_reconstruct_tiles(
                         work,
-                        yaw_deg=yaw,
-                        pitch_deg=pitch,
+                        yaw_deg=target_yaw,
+                        pitch_deg=target_pitch,
                         quality_ladder=knobs.get("tile_ladder"),
                         codec="jpeg",
                         budget_bytes=budget_bytes,
@@ -162,6 +189,13 @@ class ProcessedVideoTrack(MediaStreamTrack):
                         budget_retries=tile_res.budget_retries,
                         within_budget=tile_res.within_budget,
                         boundary_artifact_mse=tile_res.boundary_artifact_mse,
+                        tile_qualities=[t.quality_val for t in tile_res.tiles],
+                        high_count=sum(1 for t in tile_res.tiles if t.tier == "high"),
+                        medium_count=sum(1 for t in tile_res.tiles if t.tier == "medium"),
+                        low_count=sum(1 for t in tile_res.tiles if t.tier == "low"),
+                        encode_time_ms=round(tile_res.encode_time_s * 1000, 2),
+                        predicted_roi=predicted_roi,
+                        prediction_confidence=round(pred_conf, 2),
                     )
                 except Exception as e:
                     logger.debug("tile shadow metric error: %s", e)
@@ -205,7 +239,7 @@ class ProcessedVideoTrack(MediaStreamTrack):
         self._pts = pts
         self._state.shadow = shadow
         self._state.frames_sent += 1
-        if self._frame_count % config.SHADOW_SAMPLE_EVERY_N == 0 and (
+        if (self._frame_count == 1 or self._frame_count % config.SHADOW_SAMPLE_EVERY_N == 0) and (
             self._shadow_task is None or self._shadow_task.done()
         ):
             self._shadow_task = asyncio.create_task(self._sample_shadow(img, work, knobs))

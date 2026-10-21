@@ -9,19 +9,46 @@ When no phone is connected, a built-in synthetic pump feeds XR frames into the
 bridge automatically so the viewer works immediately."""
 
 import asyncio
+import base64
 import io
+import json
 import logging
+import os
+import shutil
+import uuid
 import wave
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 import numpy as np
-from fastapi import FastAPI, WebSocket
-from fastapi.responses import FileResponse, Response, StreamingResponse
+from PIL import Image
+from fastapi import FastAPI, File, Form, Query, UploadFile, WebSocket
+from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 
 from app import config
 from app.adaptive import AdaptiveStreamSession
 from app.codecs import audio_codec, lossless, lossy, spatial_audio, video_codec
+from app.comparison import (
+    MAX_UPLOAD_BYTES,
+    SUPPORTED_IMAGE_FORMATS,
+    SUPPORTED_VIDEO_FORMATS,
+    VideoCompressionResult,
+    cleanup_job,
+    compress_image_h264,
+    compress_image_jpeg,
+    compress_image_tiles,
+    compress_video_h264,
+    compress_video_mjpeg,
+    extract_frame_from_video,
+    get_job_status,
+    get_supported_methods,
+    get_temp_dir,
+    get_video_compression_methods,
+    validate_upload,
+    _active_jobs,
+    _compute_metrics,
+)
 from app.media_source import SyntheticXRSource
 from app.rtc.bridge import Bridge
 from app.rtc.signaling import phone_endpoint, phone_stats_loop, viewer_endpoint
@@ -184,3 +211,392 @@ def audio(seconds: float = 1.0, profile: str = "high"):
         wav.setframerate(48000)
         wav.writeframes(np.ascontiguousarray(pcm.T).tobytes())
     return Response(content=buf.getvalue(), media_type="audio/wav")
+
+
+# --- Quality Comparison & Video Compression Playground ---
+
+@app.get("/compare", include_in_schema=False)
+def compare_page():
+    """Before/After Quality Comparison slider page."""
+    return FileResponse(WEB_DIR / "compare.html", media_type="text/html")
+
+
+@app.get("/playground", include_in_schema=False)
+def playground_page():
+    """Video Compression Playground page."""
+    return FileResponse(WEB_DIR / "playground.html", media_type="text/html")
+
+
+@app.get("/api/compression-methods")
+def api_compression_methods():
+    """Return available compression methods for images."""
+    return {"methods": get_supported_methods()}
+
+
+@app.get("/api/video-compression-methods")
+def api_video_compression_methods():
+    """Return available compression methods for video."""
+    return {"methods": get_video_compression_methods()}
+
+
+@app.get("/api/sample-frame")
+def api_sample_frame(t: float = 1.0):
+    """Return a synthetic XR frame as a JPEG for the comparison tool."""
+    img = source.frame(t)
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=98)
+    b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+    return {
+        "image_b64": b64,
+        "width": img.width,
+        "height": img.height,
+        "raw_bytes": len(img.tobytes()),
+        "source": "synthetic_xr",
+    }
+
+
+@app.post("/api/compress-image")
+async def api_compress_image(
+    method: str = Form("jpeg"),
+    quality: int = Form(75),
+    bitrate_kbps: int = Form(1800),
+    chroma_subsample: bool = Form(True),
+    quality_high: int = Form(85),
+    quality_medium: int = Form(55),
+    quality_low: int = Form(25),
+    yaw_deg: float = Form(0.0),
+    pitch_deg: float = Form(0.0),
+    source_type: str = Form("synthetic"),
+    t: float = Form(1.0),
+    file: UploadFile | None = File(None),
+):
+    """Compress an image using the specified method and return metrics + result."""
+    try:
+        orig_file_bytes = None
+        # Get the source image
+        if source_type == "upload" and file:
+            filename = file.filename or "upload.png"
+            contents = await file.read()
+            valid, err = validate_upload(filename, len(contents))
+            if not valid:
+                return JSONResponse(status_code=400, content={"error": err})
+
+            orig_file_bytes = len(contents)
+            ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+
+            if ext in SUPPORTED_VIDEO_FORMATS:
+                # Video file uploaded: extract frame at timestamp t
+                temp_video = get_temp_dir() / f"temp_{uuid.uuid4().hex[:8]}.{ext}"
+                try:
+                    with open(temp_video, "wb") as f_out:
+                        f_out.write(contents)
+                    img = extract_frame_from_video(str(temp_video), time_s=t)
+                    if img is None:
+                        return JSONResponse(
+                            status_code=400,
+                            content={"error": f"Could not extract video frame at t={t}s. File may be unreadable or empty."},
+                        )
+                finally:
+                    if temp_video.exists():
+                        try:
+                            temp_video.unlink()
+                        except OSError:
+                            pass
+            else:
+                try:
+                    img = Image.open(io.BytesIO(contents)).convert("RGB")
+                except Exception:
+                    return JSONResponse(
+                        status_code=400,
+                        content={"error": "Could not decode image. Ensure it is a valid, uncorrupted image file."},
+                    )
+        else:
+            # Use synthetic XR source
+            img = source.frame(t)
+
+        # Compress using the requested method
+        if method == "jpeg":
+            result = compress_image_jpeg(
+                img,
+                quality=quality,
+                chroma_subsample=chroma_subsample,
+                original_file_bytes=orig_file_bytes,
+            )
+        elif method == "h264":
+            result = compress_image_h264(
+                img,
+                bitrate_kbps=bitrate_kbps,
+                original_file_bytes=orig_file_bytes,
+            )
+        elif method == "tiles":
+            result = compress_image_tiles(
+                img,
+                quality_high=quality_high,
+                quality_medium=quality_medium,
+                quality_low=quality_low,
+                yaw_deg=yaw_deg,
+                pitch_deg=pitch_deg,
+                original_file_bytes=orig_file_bytes,
+            )
+        else:
+            return JSONResponse(
+                status_code=400,
+                content={"error": f"Unknown compression method: {method}"},
+            )
+
+        # Also return the original as base64 for display
+        orig_buf = io.BytesIO()
+        img.save(orig_buf, "JPEG", quality=98)
+        orig_b64 = base64.b64encode(orig_buf.getvalue()).decode("ascii")
+
+        return {
+            "original_image_b64": orig_b64,
+            "result": result.to_dict(),
+        }
+
+    except Exception as e:
+        logger.exception("Image compression failed")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Compression failed: {str(e)}"},
+        )
+
+
+@app.post("/api/upload-video")
+async def api_upload_video(file: UploadFile = File(...)):
+    """Upload a video file for compression. Returns a job_id and metadata."""
+    filename = file.filename or "video.mp4"
+    # Read content length from headers if available
+    contents = await file.read()
+    file_size = len(contents)
+
+    valid, error_msg = validate_upload(filename, file_size)
+    if not valid:
+        return JSONResponse(status_code=400, content={"error": error_msg})
+
+    # Save to temp
+    job_id = str(uuid.uuid4())[:12]
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "mp4"
+    input_path = get_temp_dir() / f"{job_id}_input.{ext}"
+
+    try:
+        with open(input_path, "wb") as f:
+            f.write(contents)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": f"Failed to save upload: {str(e)}"})
+
+    # Extract metadata
+    metadata = {"job_id": job_id, "filename": filename, "file_size": file_size}
+    try:
+        import av
+        container = av.open(str(input_path))
+        vstream = container.streams.video[0]
+        metadata["width"] = vstream.width
+        metadata["height"] = vstream.height
+        metadata["fps"] = float(vstream.average_rate) if vstream.average_rate else None
+        if vstream.duration and vstream.time_base:
+            metadata["duration_s"] = round(float(vstream.duration * vstream.time_base), 2)
+        elif container.duration:
+            metadata["duration_s"] = round(float(container.duration) / av.time_base, 2)
+        metadata["codec"] = vstream.codec_context.name if vstream.codec_context else None
+        container.close()
+    except Exception as e:
+        # Video metadata extraction failed, but file might still be processable
+        metadata["metadata_error"] = str(e)
+
+    # Initialize job
+    _active_jobs[job_id] = VideoCompressionResult(job_id=job_id, status="uploaded")
+
+    return metadata
+
+
+@app.post("/api/compress-video")
+async def api_compress_video(
+    job_id: str = Form(...),
+    method: str = Form("h264"),
+    bitrate_kbps: int = Form(2000),
+    quality: int = Form(75),
+    fps: int = Form(30),
+    resolution: str = Form("original"),
+):
+    """Start video compression for an uploaded file."""
+    import glob as glob_mod
+
+    # Find the input file
+    matches = list(get_temp_dir().glob(f"{job_id}_input.*"))
+    if not matches:
+        return JSONResponse(status_code=404, content={"error": "Upload not found. Please upload a video first."})
+
+    input_path = str(matches[0])
+
+    # Validate it's a real file
+    if not os.path.isfile(input_path):
+        return JSONResponse(status_code=404, content={"error": "Upload file missing."})
+
+    try:
+        # Validate video can be opened
+        import av
+        container = av.open(input_path)
+        if not container.streams.video:
+            container.close()
+            return JSONResponse(status_code=400, content={"error": "File contains no video stream."})
+        container.close()
+    except Exception as e:
+        return JSONResponse(
+            status_code=400,
+            content={"error": f"Cannot read video: {str(e)}. The file may be corrupted or in an unsupported format."},
+        )
+
+    # Run compression in a thread to avoid blocking
+    if method == "h264":
+        result = await asyncio.to_thread(
+            compress_video_h264,
+            input_path, job_id, bitrate_kbps, fps, resolution,
+        )
+    elif method == "jpeg_frames":
+        result = await asyncio.to_thread(
+            compress_video_mjpeg,
+            input_path, job_id, quality, fps, resolution,
+        )
+    else:
+        return JSONResponse(status_code=400, content={"error": f"Unknown video compression method: {method}"})
+
+    return result.to_dict()
+
+
+@app.get("/api/job-status/{job_id}")
+def api_job_status(job_id: str):
+    """Check the status of a compression job."""
+    result = get_job_status(job_id)
+    if result is None:
+        return JSONResponse(status_code=404, content={"error": "Job not found"})
+    return result.to_dict()
+
+
+@app.get("/api/download/{job_id}")
+def api_download(job_id: str):
+    """Download the compressed video file."""
+    result = get_job_status(job_id)
+    if result is None or result.output_path is None:
+        return JSONResponse(status_code=404, content={"error": "Compressed file not found"})
+    if not os.path.isfile(result.output_path):
+        return JSONResponse(status_code=404, content={"error": "Compressed file no longer available"})
+
+    ext = result.output_path.rsplit(".", 1)[-1]
+    media_types = {"mp4": "video/mp4", "avi": "video/x-msvideo", "webm": "video/webm", "mkv": "video/x-matroska"}
+    media_type = media_types.get(ext, "application/octet-stream")
+
+    return FileResponse(
+        result.output_path,
+        media_type=media_type,
+        filename=f"compressed_{job_id}.{ext}",
+    )
+
+
+@app.get("/api/video-frame/{job_id}")
+def api_video_frame(job_id: str, which: str = "original", time_s: float = 0.0):
+    """Extract a frame from the original or compressed video for comparison."""
+    if which == "original":
+        matches = list(get_temp_dir().glob(f"{job_id}_input.*"))
+        if not matches:
+            return JSONResponse(status_code=404, content={"error": "Original video not found"})
+        video_path = str(matches[0])
+    elif which == "compressed":
+        result = get_job_status(job_id)
+        if result is None or result.output_path is None:
+            return JSONResponse(status_code=404, content={"error": "Compressed video not found"})
+        video_path = result.output_path
+    else:
+        return JSONResponse(status_code=400, content={"error": "which must be 'original' or 'compressed'"})
+
+    img = extract_frame_from_video(video_path, time_s)
+    if img is None:
+        return JSONResponse(status_code=500, content={"error": "Could not extract frame"})
+
+    buf = io.BytesIO()
+    img.save(buf, "JPEG", quality=95)
+    b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+
+    return {
+        "image_b64": b64,
+        "width": img.width,
+        "height": img.height,
+    }
+
+
+@app.get("/api/compare-video-frames/{job_id}")
+def api_compare_video_frames(job_id: str, time_s: float = 0.0):
+    """Extract and compare frames from both original and compressed videos of a job."""
+    matches = list(get_temp_dir().glob(f"{job_id}_input.*"))
+    if not matches:
+        return JSONResponse(status_code=404, content={"error": "Original video not found"})
+    orig_path = str(matches[0])
+
+    result = get_job_status(job_id)
+    if result is None or result.output_path is None:
+        return JSONResponse(status_code=404, content={"error": "Compressed video not found for this job"})
+    comp_path = result.output_path
+
+    orig_img = extract_frame_from_video(orig_path, time_s)
+    comp_img = extract_frame_from_video(comp_path, time_s)
+
+    if orig_img is None or comp_img is None:
+        return JSONResponse(status_code=500, content={"error": f"Could not extract frames at timestamp {time_s}s"})
+
+    if comp_img.size != orig_img.size:
+        comp_img_matched = comp_img.resize(orig_img.size, Image.BILINEAR)
+    else:
+        comp_img_matched = comp_img
+
+    psnr_val, ssim_val = _compute_metrics(orig_img, comp_img_matched)
+
+    orig_buf = io.BytesIO()
+    orig_img.save(orig_buf, "JPEG", quality=98)
+    orig_b64 = base64.b64encode(orig_buf.getvalue()).decode("ascii")
+
+    comp_buf = io.BytesIO()
+    comp_img_matched.save(comp_buf, "JPEG", quality=98)
+    comp_b64 = base64.b64encode(comp_buf.getvalue()).decode("ascii")
+
+    return {
+        "job_id": job_id,
+        "time_s": time_s,
+        "original_image_b64": orig_b64,
+        "compressed_image_b64": comp_b64,
+        "width": orig_img.width,
+        "height": orig_img.height,
+        "frame_psnr_db": psnr_val,
+        "frame_ssim": ssim_val,
+        "job_metrics": result.to_dict(),
+    }
+
+
+@app.get("/api/serve-video/{job_id}")
+def api_serve_video(job_id: str, which: str = "original"):
+    """Serve a video for the HTML5 player (original or compressed)."""
+    if which == "original":
+        matches = list(get_temp_dir().glob(f"{job_id}_input.*"))
+        if not matches:
+            return JSONResponse(status_code=404, content={"error": "Original video not found"})
+        video_path = str(matches[0])
+    elif which == "compressed":
+        result = get_job_status(job_id)
+        if result is None or result.output_path is None:
+            return JSONResponse(status_code=404, content={"error": "Compressed video not found"})
+        video_path = result.output_path
+    else:
+        return JSONResponse(status_code=400, content={"error": "which must be 'original' or 'compressed'"})
+
+    if not os.path.isfile(video_path):
+        return JSONResponse(status_code=404, content={"error": "Video file not found"})
+
+    ext = video_path.rsplit(".", 1)[-1].lower()
+    media_types = {"mp4": "video/mp4", "avi": "video/x-msvideo", "webm": "video/webm", "mkv": "video/x-matroska", "mov": "video/quicktime"}
+    return FileResponse(video_path, media_type=media_types.get(ext, "video/mp4"))
+
+
+@app.delete("/api/cleanup/{job_id}")
+def api_cleanup(job_id: str):
+    """Clean up temporary files for a compression job."""
+    cleanup_job(job_id)
+    return {"ok": True}

@@ -38,7 +38,7 @@ from aiortc.mediastreams import MediaStreamError
 from aiortc.rtcicetransport import candidate_from_aioice
 from fastapi import WebSocket, WebSocketDisconnect
 
-from app import config
+from app import config, viewport_tiles
 from app.rtc.bridge import Bridge, ViewerState
 from app.rtc.tracks import FoaAudioTrack, ProcessedVideoTrack, RelayAudioTrack
 
@@ -174,6 +174,25 @@ def _metrics_snapshot(bridge: Bridge, state: ViewerState) -> dict:
     shadow = state.shadow
     sample = state.shadow_sample  # JPEG/PSNR etc: sticky between samples
     canvas_bytes = config.VIDEO_CANVAS_WIDTH * config.VIDEO_CANVAS_HEIGHT * 3
+
+    tile_quals = sample.get("tile_qualities")
+    high_c = sample.get("high_count", 0)
+    med_c = sample.get("medium_count", 0)
+    low_c = sample.get("low_count", 0)
+    if not tile_quals:
+        try:
+            ladder = knobs.get("tile_ladder", {"high": 80, "medium": 60, "low": 30})
+            yaw = (bridge.gaze_norm[0] - 0.5) * config.HFOV_DEG
+            pitch = (0.5 - bridge.gaze_norm[1]) * config.VFOV_DEG
+            roi = viewport_tiles.gaze_roi(config.VIDEO_CANVAS_WIDTH, config.VIDEO_CANVAS_HEIGHT, yaw, pitch)
+            tiers, _, _ = viewport_tiles.assign_tile_tiers(config.VIDEO_CANVAS_WIDTH, config.VIDEO_CANVAS_HEIGHT, roi, 4, 4)
+            tile_quals = [ladder.get(tiers.get((r, c), "low"), 30) for r in range(4) for c in range(4)]
+            high_c = sum(1 for t in tiers.values() if t == "high")
+            med_c = sum(1 for t in tiers.values() if t == "medium")
+            low_c = sum(1 for t in tiers.values() if t == "low")
+        except Exception:
+            tile_quals = [knobs.get("jpeg_quality", 75)] * 16
+
     return {
         "ts": round(time.time(), 3),
         "viewer_id": state.id,
@@ -200,7 +219,13 @@ def _metrics_snapshot(bridge: Bridge, state: ViewerState) -> dict:
             "raw_bytes": shadow.get("raw_bytes", canvas_bytes),
             "effective": shadow.get("effective"),
             "roi": shadow.get("roi"),
+            "predicted_roi": sample.get("predicted_roi"),
+            "prediction_confidence": sample.get("prediction_confidence", 1.0),
+            "prediction_enabled": state.prediction_enabled,
             "tile_bytes": sample.get("tile_bytes"),
+            "target_kbps": knobs.get("target_kbps", 1800),
+            "safe_kbps": round(state.estimator.safe_kbps(), 1),
+            "volatility_ratio": round(state.estimator.volatility_ratio, 3),
             "viewport_psnr_db": sample.get("viewport_psnr_db"),
             "guard_band_psnr_db": sample.get("guard_band_psnr_db"),
             "peripheral_psnr_db": sample.get("peripheral_psnr_db"),
@@ -209,9 +234,14 @@ def _metrics_snapshot(bridge: Bridge, state: ViewerState) -> dict:
             "budget_retries": sample.get("budget_retries"),
             "within_budget": sample.get("within_budget", True),
             "boundary_artifact_mse": sample.get("boundary_artifact_mse"),
+            "tile_qualities": tile_quals,
+            "high_count": high_c,
+            "medium_count": med_c,
+            "low_count": low_c,
+            "encode_time_ms": sample.get("encode_time_ms"),
             "h264_bytes": shadow.get("h264_bytes"),
-            "allocation_strategy": shadow.get("allocation_strategy", "intelligent_allocator"),
-            "note": shadow.get("note"),
+            "allocation_strategy": state.allocation_strategy,
+            "note": "EXPERIMENTAL SHADOW PIPELINE: Parallel frame-level tile simulation. Not the VP8 WebRTC transport payload.",
         },
         "frames_sent": state.frames_sent,
         "audio_frames": state.audio_frames,

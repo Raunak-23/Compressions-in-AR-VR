@@ -16,6 +16,7 @@ from typing import Any, Optional
 
 from app import config
 from app.adaptive import BandwidthEstimator, IntelligentBudgetController, pick_profile
+from app.prediction import ViewportPredictor
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,7 @@ class ViewerState:
     controller: IntelligentBudgetController = field(init=False)
     allocation_strategy: str = "intelligent_allocator"
     prediction_enabled: bool = False
+    predictor: ViewportPredictor = field(default_factory=ViewportPredictor)
 
     def __post_init__(self):
         self.controller = IntelligentBudgetController(estimator=self.estimator, initial_profile=self.profile)

@@ -20,6 +20,11 @@
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface-1); color: var(--ink); }
+  nav.top-nav { display: flex; align-items: center; gap: 14px; padding: 12px 20px; border-bottom: 1px solid var(--grid); max-width: 1180px; margin: 0 auto; flex-wrap: wrap; }
+  nav.top-nav h1 { font-size: 16px; font-weight: 700; margin: 0; }
+  nav.top-nav .links { display: flex; gap: 8px; margin-left: auto; }
+  nav.top-nav .links a { font-size: 13px; padding: 6px 12px; border-radius: 8px; text-decoration: none; color: var(--ink-2); border: 1px solid var(--grid); transition: all 0.2s; }
+  nav.top-nav .links a:hover, nav.top-nav .links a.active { background: var(--accent); color: #fff; border-color: var(--accent); }
   header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 14px 20px 4px; max-width: 1180px; margin: 0 auto; }
   h1 { font-size: 18px; margin: 0; }
   header .sub { color: var(--ink-2); font-size: 13px; }
@@ -27,6 +32,7 @@
   @media (max-width: 860px) { .wrap { grid-template-columns: 1fr; } }
   .stage { position: relative; border-radius: 12px; overflow: hidden; background: #000; aspect-ratio: 16/9; }
   .stage video { width: 100%; height: 100%; display: block; object-fit: contain; }
+  .stage canvas.hud { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
   .stage .waiting { position: absolute; inset: 0; display: grid; place-content: center; gap: 6px; text-align: center;
                     background: #101012; color: #f0efec; z-index: 2; }
   .stage .waiting[hidden] { display: none !important; }
@@ -57,6 +63,22 @@
   .minimap .roi { position: absolute; border: 2px solid var(--accent); border-radius: 4px; }
   .minimap .roi.dim { border-color: var(--baseline); border-style: dashed; }
   .minimap small { color: var(--muted); }
+  /* Metric tooltip badge */
+  .tip { display: inline-flex; align-items: center; justify-content: center;
+         width: 15px; height: 15px; border-radius: 50%; font-size: 10px; font-weight: 700;
+         background: var(--grid); color: var(--muted); cursor: help; position: relative;
+         margin-left: 5px; vertical-align: middle; flex-shrink: 0; user-select: none; }
+  .tip::after { content: attr(data-tip); position: absolute; left: 50%; bottom: calc(100% + 8px);
+                transform: translateX(-50%); background: var(--ink); color: var(--surface-1);
+                font-size: 11.5px; font-weight: 400; line-height: 1.35; padding: 8px 11px;
+                border-radius: 8px; white-space: normal; width: max-content; max-width: 280px;
+                pointer-events: none; opacity: 0; transition: opacity 0.18s ease, transform 0.18s ease;
+                transform: translateX(-50%) translateY(4px); z-index: 90;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.35); }
+  .tip:hover::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+  /* Flip tooltip down when near top */
+  .tip.below::after { bottom: auto; top: calc(100% + 8px); }
+  table.metrics .tip { margin-left: 4px; }
   .goto-phone { display: none; }
   @media (pointer: coarse) {
     .goto-phone { display: flex; gap: 12px; align-items: center; justify-content: space-between;
@@ -68,8 +90,17 @@
 </style>
 </head>
 <body>
+<nav class="top-nav">
+  <h1>XR Compression Lab</h1>
+  <div class="links">
+    <a href="/viewer" class="active">Live Viewer</a>
+    <a href="/compare">Quality Comparison</a>
+    <a href="/playground">Video Playground</a>
+    <a href="/phone">Phone Source</a>
+  </div>
+</nav>
 <header>
-  <h1>XR Compression Lab — live viewer</h1>
+  <h1>Live WebRTC Viewer</h1>
   <span class="sub">phone → WebRTC → adaptive bridge → this page</span>
   <span class="badge"><span class="dot" id="profDot"></span><span id="profName">—</span></span>
   <span class="conn" id="conn"><span class="dot"></span>connecting</span>
@@ -80,15 +111,20 @@
 </div>
 <div class="wrap">
   <div>
-    <div class="stage">
+    <div class="stage" id="stageContainer">
       <video id="video" autoplay playsinline muted></video>
+      <canvas id="hudCanvas" class="hud" style="display:none;"></canvas>
       <div class="waiting" id="waiting">
         <strong>Waiting for the phone source…</strong>
         <small>Open /phone on the phone (via the tunnel) and tap Start streaming.</small>
       </div>
     </div>
     <div class="controls" style="margin-top:12px">
-      <label for="forceSel">Compression technique</label>
+      <button id="hudToggleBtn" style="background:#8e44ad; color:#fff; border:none; font-weight:600; cursor:pointer;" title="Toggle In-Stream VisionOS Foveated Spatial HUD">VisionOS HUD: Off</button>
+      <label for="hudOpacity" style="display:inline-flex; align-items:center; gap:4px; font-size:12px; cursor:pointer;">HUD
+        <input type="range" id="hudOpacity" min="10" max="95" value="55" style="width:60px;">
+      </label>
+      <label for="forceSel">Technique</label>
       <select id="forceSel">
         <option value="auto" selected>auto — adaptive ladder</option>
         <option value="ultra">ultra — full frame</option>
@@ -96,57 +132,95 @@
         <option value="medium">medium — foveated, ¾ res</option>
         <option value="low">low — foveated, ½ res</option>
       </select>
-      <label for="capRange">Simulated link cap</label>
+      <label for="modeSel">Mode</label>
+      <select id="modeSel">
+        <option value="intelligent_allocator" selected>Combined (BW + Viewport RDO)</option>
+        <option value="fixed_tiers">Fixed Tiers (85/55/25)</option>
+        <option value="bandwidth_only">Bandwidth Only (Uniform Scaled)</option>
+        <option value="viewport_only">Viewport Only (Unconstrained)</option>
+        <option value="uniform">Uniform Baseline</option>
+      </select>
+      <label style="display:inline-flex; align-items:center; gap:4px; cursor:pointer;">
+        <input type="checkbox" id="predChk"> Predict Viewport
+      </label>
+      <label for="capRange">Link cap</label>
       <input type="range" id="capRange" min="0" max="6000" step="50" value="0">
       <span class="capval" id="capVal">off</span>
+      <button id="dropBwBtn" style="background:#e74c3c; color:#fff; border:none;">Drop 300k</button>
+      <button id="stepBwBtn">1000k</button>
+      <button id="recoverBwBtn" style="background:#27ae60; color:#fff; border:none;">Recover</button>
       <button id="muteBtn">Enable sound</button>
       <button id="camBtn">Use Laptop Camera</button>
     </div>
     <div class="grid2" style="margin-top:12px">
       <div class="tile">
-        <div class="label">Sender: raw camera → wire (phone leg)</div>
+        <div class="label">Sender: raw camera → wire (phone leg)<span class="tip" data-tip="Compression ratio of the phone's raw camera feed vs. the WebRTC VP8 wire bitrate. Higher ratios mean more compression.">?</span></div>
         <div class="value" id="sndVal">—</div>
         <canvas id="sndSpark"></canvas>
       </div>
       <div class="tile">
-        <div class="label">Receiver: wire → raw RGB (viewer leg)</div>
+        <div class="label">Receiver: wire → raw RGB (viewer leg)<span class="tip" data-tip="Compression ratio of the incoming VP8 wire bitrate vs. the decoded raw RGB pixels on this viewer. Shows how much data the network carries relative to the uncompressed frame.">?</span></div>
         <div class="value" id="rcvVal">—</div>
         <canvas id="rcvSpark"></canvas>
       </div>
       <div class="tile">
-        <div class="label">Measured downlink (viewer stats → EWMA)</div>
+        <div class="label">Measured downlink (viewer stats → EWMA)<span class="tip" data-tip="Exponentially Weighted Moving Average of the measured download throughput (kbps) as reported by WebRTC getStats(). Used by the adaptive ladder to pick the right encoding profile.">?</span></div>
         <div class="value" id="bwVal">—</div>
         <canvas id="bwSpark"></canvas>
       </div>
       <div class="tile">
-        <div class="label">JPEG shadow, bytes per effective frame</div>
+        <div class="label">JPEG shadow, bytes per effective frame<span class="tip" data-tip="Size of the current frame when re-encoded as JPEG at the active quality level. This 'shadow' metric runs off the main path and lets you compare the experimental codec cost against the live WebRTC stream.">?</span></div>
         <div class="value" id="jpVal">—</div>
         <canvas id="jpSpark"></canvas>
+      </div>
+    </div>
+    <div class="tile" style="margin-top:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="label" style="font-weight:600; font-size:13px;">4×4 Spatial Tile Matrix (Live Quality Allocation)<span class="tip" data-tip="The frame is divided into a 4×4 grid of tiles. Each tile is independently JPEG-encoded at a quality level chosen by the allocation strategy: High (viewport / gaze RoI), Medium (guard band around viewport), or Low (periphery).">?</span></span>
+        <span id="tileStatsBadge" style="font-size:12px; font-weight:600; color:var(--accent);">—</span>
+      </div>
+      <div id="tileGrid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin:8px 0;"></div>
+      <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--muted);">
+        <span style="color:#27ae60;">■ Viewport (High)</span>
+        <span style="color:#f39c12;">■ Guard Band (Medium)</span>
+        <span style="color:#e74c3c;">■ Periphery (Low)</span>
+        <span id="tileTimingTxt">Encode: — ms</span>
       </div>
     </div>
   </div>
   <div class="panel">
     <div class="minimap tile">
-      <div class="label">Gaze RoI on the 100°×62° frustum</div>
-      <div class="box"><div class="roi dim" id="roiBox"></div></div>
-      <small id="gazeTxt">gaze 0.50, 0.50 · foveation off</small>
+      <div class="label">Gaze RoI on the 100°×62° frustum<span class="tip" data-tip="Minimap showing the current gaze Region of Interest projected onto the full 100°×62° field of view. The blue rectangle is the foveated viewport; the dashed gold rectangle is the predicted future viewport.">?</span></div>
+      <div class="box">
+        <div class="roi dim" id="roiBox" title="Current Gaze Viewport"></div>
+        <div class="roi dim" id="predRoiBox" style="border-color:#f1c40f; border-style:dashed; z-index:3;" title="Predicted Viewport"></div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <small id="gazeTxt">gaze 0.50, 0.50 · foveation off</small>
+        <small id="predStatus" style="color:#f1c40f; font-weight:600;"></small>
+      </div>
+    </div>
+    <div class="tile" style="background:var(--surface-2); font-size:11.5px; color:var(--ink-2); line-height:1.4;">
+      <b style="color:var(--ink);">Note:</b> WebRTC streams <b>VP8/Opus</b> over the network. The metrics below reflect the parallel <b>experimental RDO tile pipeline</b> and budget auditing.
     </div>
     <table class="metrics">
-      <tr><td>Profile source</td><td id="mSource">—</td></tr>
-      <tr><td>EWMA estimate</td><td id="mEwma">—</td></tr>
-      <tr><td>JPEG quality</td><td id="mQ">—</td></tr>
-      <tr><td>Effective resolution</td><td id="mRes">—</td></tr>
-      <tr><td>Target fps / actual fps</td><td id="mFps">—</td></tr>
-      <tr><td>Sender: raw → wire (phone)</td><td id="mSender">—</td></tr>
-      <tr><td>Receiver: wire → raw (viewer)</td><td id="mReceiver">—</td></tr>
-      <tr><td>Frames dropped (adapter skips)</td><td id="mDropped">—</td></tr>
-      <tr><td>Shadow JPEG ratio</td><td id="mRatio">—</td></tr>
-      <tr><td>Stage PSNR (effective frame)</td><td id="mPsnr">—</td></tr>
-      <tr><td>Frames adapted</td><td id="mFrames">—</td></tr>
-      <tr><td>Audio mode</td><td id="mAudio">—</td></tr>
-      <tr><td>Phone link (server meter: video+audio+overhead)</td><td id="mLink">—</td></tr>
-      <tr><td>Phone reports sent (video payload)</td><td id="mPhone">—</td></tr>
-      <tr><td>Video packets lost (phone hop)</td><td id="mLost">—</td></tr>
+      <tr><td>Profile source<span class="tip below" data-tip="How the current encoding profile was selected — 'measured' (auto-adapted from EWMA bandwidth), 'forced' (manually chosen), or 'default'.">?</span></td><td id="mSource">—</td></tr>
+      <tr><td>EWMA estimate<span class="tip below" data-tip="Exponentially Weighted Moving Average of the measured download throughput reported by WebRTC getStats(). The adaptive ladder uses this to pick the encoding profile.">?</span></td><td id="mEwma">—</td></tr>
+      <tr><td>Safe bandwidth / volatility<span class="tip below" data-tip="Conservative bandwidth estimate after applying a safety margin based on volatility. High volatility means the link is unstable, so the safe estimate is pushed lower to avoid stalls.">?</span></td><td id="mSafeBw">—</td></tr>
+      <tr><td>Allocation strategy<span class="tip below" data-tip="The tile quality allocation algorithm in use: 'intelligent allocator' combines bandwidth + viewport RDO, 'fixed tiers' uses static quality levels, 'bandwidth only' scales uniformly, 'viewport only' ignores budget, 'uniform' applies the same quality everywhere.">?</span></td><td id="mStrategy">—</td></tr>
+      <tr><td>Frame budget / actual bytes<span class="tip below" data-tip="Per-frame byte budget derived from (target_kbps × 1000 / 8) / fps. 'Actual bytes' is the total size of all 16 tiles after JPEG encoding. The allocator tries to keep actual ≤ budget.">?</span></td><td id="mBudget">—</td></tr>
+      <tr><td>Budget compliance<span class="tip below" data-tip="Whether the tile encoder stayed within the per-frame byte budget. Shows overshoot amount and how many quality-reduction retries the allocator needed.">?</span></td><td id="mBudgetStatus">—</td></tr>
+      <tr><td>Viewport PSNR / SSIM<span class="tip below" data-tip="Peak Signal-to-Noise Ratio of the tiles inside the gaze viewport (high-quality region). Higher dB = better visual quality in the area the user is looking at. SSIM measures structural similarity.">?</span></td><td id="mVpQuality">—</td></tr>
+      <tr><td>Peripheral PSNR<span class="tip below" data-tip="PSNR of the low-quality peripheral tiles (outside the guard band). Lower values here are expected — foveated rendering intentionally reduces peripheral quality to save bandwidth.">?</span></td><td id="mPeriphQuality">—</td></tr>
+      <tr><td>Guard band PSNR / Boundary MSE<span class="tip below" data-tip="PSNR of the medium-quality guard band tiles that surround the viewport. Boundary MSE measures the seam artifact at tile edges — lower MSE means less visible tile boundaries.">?</span></td><td id="mGuardQuality">—</td></tr>
+      <tr><td>JPEG quality / resolution<span class="tip below" data-tip="The JPEG quality factor (1–100) used for the shadow JPEG encode, and the effective resolution the frame is rendered at before upscaling to canvas size.">?</span></td><td id="mQ">—</td></tr>
+      <tr><td>Target fps / actual fps<span class="tip below" data-tip="Target frame rate from the active profile vs. the actual measured frame rate on the viewer. Drops below target indicate the pipeline or network can't keep up.">?</span></td><td id="mFps">—</td></tr>
+      <tr><td>Sender: raw → wire (phone)<span class="tip below" data-tip="Phone-side compression ratio: uncompressed raw camera bitrate vs. VP8-encoded wire bitrate. Higher ratios mean the codec is compressing more aggressively.">?</span></td><td id="mSender">—</td></tr>
+      <tr><td>Receiver: wire → raw (viewer)<span class="tip below" data-tip="Viewer-side compression ratio: incoming VP8 wire bitrate vs. decoded raw RGB bitrate. Shows how much data the network carried relative to the full uncompressed frame.">?</span></td><td id="mReceiver">—</td></tr>
+      <tr><td>Frames dropped (adapter skips)<span class="tip below" data-tip="Number of video frames the viewer skipped because it fell behind the sender. High values indicate the viewer can't decode or render fast enough at the current profile.">?</span></td><td id="mDropped">—</td></tr>
+      <tr><td>Stage PSNR (effective frame)<span class="tip below" data-tip="PSNR between the original source frame and the effective-resolution work frame after profile downscaling. Measures the quality loss from resolution reduction alone (before network transport).">?</span></td><td id="mPsnr">—</td></tr>
+      <tr><td>Phone reports sent<span class="tip below" data-tip="Bitrate and frame rate the phone is sending into the WebRTC pipeline. Useful for diagnosing whether the bottleneck is the phone's capture, the network, or the viewer's decode.">?</span></td><td id="mPhone">—</td></tr>
+      <tr><td>Video packets lost (phone hop)<span class="tip below" data-tip="Number of RTP video packets lost on the network hop from the phone to the server. High packet loss degrades video quality and can cause frame corruption or freezes.">?</span></td><td id="mLost">—</td></tr>
     </table>
   </div>
 </div>
@@ -193,14 +267,297 @@
     }
   }
 
+  function updateTileGrid(qualities, highCount, medCount, lowCount, encodeMs) {
+    const grid = $("tileGrid");
+    if (!grid) return;
+    if (!qualities || !qualities.length) {
+      grid.innerHTML = '<div style="grid-column:span 4; text-align:center; color:var(--muted); font-size:12px; padding:12px 0;">Shadow tile metrics awaiting active stream…</div>';
+      return;
+    }
+    $("tileStatsBadge").textContent = `${highCount || 0} high · ${medCount || 0} med · ${lowCount || 0} low`;
+    if (encodeMs != null) $("tileTimingTxt").textContent = `Encode: ${encodeMs} ms`;
+
+    // Render 16 tiles if count changed or empty
+    if (grid.children.length !== 16) {
+      grid.innerHTML = "";
+      for (let i = 0; i < 16; i++) {
+        const cell = document.createElement("div");
+        cell.id = "tile_" + i;
+        cell.style.cssText = "border-radius:6px; padding:6px 2px; text-align:center; font-size:11px; font-weight:600; cursor:pointer; transition:all 0.2s ease;";
+        cell.title = "Click to focus gaze on this tile";
+        const r = Math.floor(i / 4), c = i % 4;
+        cell.addEventListener("click", () => {
+          const x = (c + 0.5) / 4.0, y = (r + 0.5) / 4.0;
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: "set_gaze", x, y }));
+          }
+        });
+        grid.appendChild(cell);
+      }
+    }
+
+    qualities.forEach((q, i) => {
+      const cell = $("tile_" + i);
+      if (!cell) return;
+      cell.textContent = `q=${q}`;
+      if (q >= 70) {
+        cell.style.background = "rgba(39, 174, 96, 0.22)";
+        cell.style.color = "#27ae60";
+        cell.style.border = "1px solid rgba(39, 174, 96, 0.5)";
+      } else if (q >= 35) {
+        cell.style.background = "rgba(243, 156, 18, 0.22)";
+        cell.style.color = "#f39c12";
+        cell.style.border = "1px solid rgba(243, 156, 18, 0.5)";
+      } else {
+        cell.style.background = "rgba(231, 76, 60, 0.22)";
+        cell.style.color = "#e74c3c";
+        cell.style.border = "1px solid rgba(231, 76, 60, 0.5)";
+      }
+    });
+  }
+
+  // VisionOS / Iron Man Foveated Spatial HUD
+  let hudActive = false;
+  let hudOpacityVal = 0.55;
+  let hudAnimId = null;
+  let lastMetricsForHud = null;
+
+  const hudCanvas = $("hudCanvas");
+  const hudCtx = hudCanvas ? hudCanvas.getContext("2d") : null;
+
+  function resizeHudCanvas() {
+    if (!hudCanvas) return;
+    const rect = hudCanvas.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      const dpr = window.devicePixelRatio || 1;
+      hudCanvas.width = Math.round(rect.width * dpr);
+      hudCanvas.height = Math.round(rect.height * dpr);
+    }
+  }
+
+  function drawVisionOsHud() {
+    if (!hudActive || !hudCanvas || !hudCtx) return;
+    const w = hudCanvas.width;
+    const h = hudCanvas.height;
+    hudCtx.clearRect(0, 0, w, h);
+    if (!w || !h) {
+      hudAnimId = requestAnimationFrame(drawVisionOsHud);
+      return;
+    }
+
+    const t = performance.now() * 0.001;
+    const m = lastMetricsForHud;
+    const sh = m ? (m.shadow || {}) : {};
+    const qualities = sh.tile_qualities || [];
+    const gaze = (m && m.gaze) ? m.gaze : [0.5, 0.5];
+    const op = hudOpacityVal;
+
+    const cellW = w / 4;
+    const cellH = h / 4;
+
+    // 1. Draw 4x4 Grid Sectors
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        const idx = r * 4 + c;
+        const q = qualities[idx] != null ? qualities[idx] : 50;
+        const x = c * cellW;
+        const y = r * cellH;
+
+        let fillCol = `rgba(142, 68, 173, ${op * 0.22})`; // periphery low
+        let strokeCol = `rgba(155, 89, 182, ${op * 0.6})`;
+        let tag = "LOW";
+        let tagCol = "#bb86fc";
+
+        if (q >= 70) {
+          fillCol = `rgba(39, 174, 96, ${op * 0.35})`; // viewport high
+          strokeCol = `rgba(46, 204, 113, ${op * 0.9})`;
+          tag = "ROI · HIGH";
+          tagCol = "#2ecc71";
+        } else if (q >= 35) {
+          fillCol = `rgba(243, 156, 18, ${op * 0.28})`; // guard band med
+          strokeCol = `rgba(241, 196, 15, ${op * 0.75})`;
+          tag = "GUARD · MED";
+          tagCol = "#f1c40f";
+        }
+
+        hudCtx.fillStyle = fillCol;
+        hudCtx.fillRect(x + 1, y + 1, cellW - 2, cellH - 2);
+
+        hudCtx.strokeStyle = strokeCol;
+        hudCtx.lineWidth = 1;
+        hudCtx.strokeRect(x + 1, y + 1, cellW - 2, cellH - 2);
+
+        // Tech Corner brackets
+        const bLen = Math.min(14, cellW * 0.16);
+        hudCtx.lineWidth = 2;
+        hudCtx.strokeStyle = tagCol;
+        hudCtx.beginPath();
+        hudCtx.moveTo(x + 4, y + 4 + bLen);
+        hudCtx.lineTo(x + 4, y + 4);
+        hudCtx.lineTo(x + 4 + bLen, y + 4);
+        hudCtx.stroke();
+
+        hudCtx.beginPath();
+        hudCtx.moveTo(x + cellW - 4, y + cellH - 4 - bLen);
+        hudCtx.lineTo(x + cellW - 4, y + cellH - 4);
+        hudCtx.lineTo(x + cellW - 4 - bLen, y + cellH - 4);
+        hudCtx.stroke();
+
+        // Sector Badges
+        const fontSize = Math.max(10, Math.floor(cellH * 0.12));
+        hudCtx.font = `600 ${fontSize}px ui-monospace, SFMono-Regular, monospace`;
+        hudCtx.fillStyle = tagCol;
+        hudCtx.fillText(`T[${r},${c}]`, x + 8, y + fontSize + 6);
+
+        hudCtx.font = `700 ${Math.floor(fontSize * 1.2)}px ui-monospace, SFMono-Regular, monospace`;
+        hudCtx.fillText(`q=${q}`, x + 8, y + cellH - 8);
+
+        hudCtx.font = `500 ${Math.floor(fontSize * 0.85)}px ui-monospace, SFMono-Regular, monospace`;
+        hudCtx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        hudCtx.textAlign = "right";
+        hudCtx.fillText(tag, x + cellW - 8, y + fontSize + 6);
+        hudCtx.textAlign = "left";
+      }
+    }
+
+    // 2. High-Tech Gaze Reticle & Targeting Radar
+    const gx = gaze[0] * w;
+    const gy = gaze[1] * h;
+
+    const pulseRad = 24 + ((t * 45) % 30);
+    hudCtx.strokeStyle = `rgba(46, 204, 113, ${Math.max(0, 1 - (pulseRad - 24) / 30) * op})`;
+    hudCtx.lineWidth = 1.5;
+    hudCtx.beginPath();
+    hudCtx.arc(gx, gy, pulseRad, 0, Math.PI * 2);
+    hudCtx.stroke();
+
+    hudCtx.strokeStyle = "#2ecc71";
+    hudCtx.lineWidth = 2;
+    hudCtx.beginPath();
+    hudCtx.arc(gx, gy, 18, 0, Math.PI * 2);
+    hudCtx.stroke();
+
+    hudCtx.beginPath();
+    hudCtx.moveTo(gx - 28, gy); hudCtx.lineTo(gx - 7, gy);
+    hudCtx.moveTo(gx + 7, gy); hudCtx.lineTo(gx + 28, gy);
+    hudCtx.moveTo(gx, gy - 28); hudCtx.lineTo(gx, gy - 7);
+    hudCtx.moveTo(gx, gy + 7); hudCtx.lineTo(gx, gy + 28);
+    hudCtx.stroke();
+
+    hudCtx.fillStyle = "#2ecc71";
+    hudCtx.beginPath();
+    hudCtx.arc(gx, gy, 3, 0, Math.PI * 2);
+    hudCtx.fill();
+
+    hudCtx.font = `600 11px ui-monospace, SFMono-Regular, monospace`;
+    hudCtx.fillStyle = "#2ecc71";
+    hudCtx.fillText(`GAZE [${gaze[0].toFixed(2)}, ${gaze[1].toFixed(2)}]`, gx + 22, gy - 12);
+
+    // 3. Predicted Viewport Trajectory (if enabled)
+    if (sh.predicted_roi && sh.effective && sh.prediction_enabled) {
+      const [effW, effH] = sh.effective, [px0, py0, px1, py1] = sh.predicted_roi;
+      const predX = ((px0 + px1) / (2 * effW)) * w;
+      const predY = ((py0 + py1) / (2 * effH)) * h;
+
+      hudCtx.save();
+      hudCtx.strokeStyle = "#f1c40f";
+      hudCtx.lineWidth = 2;
+      hudCtx.setLineDash([5, 5]);
+      hudCtx.lineDashOffset = -t * 30;
+      hudCtx.beginPath();
+      hudCtx.moveTo(gx, gy);
+      hudCtx.lineTo(predX, predY);
+      hudCtx.stroke();
+      hudCtx.restore();
+
+      hudCtx.strokeStyle = "#f1c40f";
+      hudCtx.lineWidth = 2;
+      hudCtx.strokeRect(predX - 16, predY - 16, 32, 32);
+      hudCtx.fillStyle = "#f1c40f";
+      const conf = sh.prediction_confidence != null ? Math.round(sh.prediction_confidence * 100) : 100;
+      hudCtx.font = `600 10.5px ui-monospace, SFMono-Regular, monospace`;
+      hudCtx.fillText(`PRED +100ms (${conf}%)`, predX + 20, predY + 4);
+    }
+
+    // 4. Futuristic HUD Header Readout
+    hudCtx.font = `700 11px ui-monospace, SFMono-Regular, monospace`;
+    hudCtx.fillStyle = "rgba(0, 240, 255, 0.9)";
+    const strat = (sh.allocation_strategy || "intelligent_allocator").toUpperCase().replace(/_/g, " ");
+    const bCompliance = sh.within_budget ? "BUDGET: COMPLIANT" : (sh.overshoot_bytes ? `OVERSHOOT: +${fmtB(sh.overshoot_bytes)}` : "AUDITING");
+    hudCtx.fillText(`SYS: SPATIAL FOVEATION HUD // STRAT: ${strat} // ${bCompliance}`, 10, 18);
+
+    hudAnimId = requestAnimationFrame(drawVisionOsHud);
+  }
+
+  function toggleVisionOsHud() {
+    hudActive = !hudActive;
+    const btn = $("hudToggleBtn");
+    if (hudActive) {
+      btn.textContent = "VisionOS HUD: ON";
+      btn.style.background = "#27ae60";
+      hudCanvas.style.display = "block";
+      resizeHudCanvas();
+      if (!hudAnimId) hudAnimId = requestAnimationFrame(drawVisionOsHud);
+    } else {
+      btn.textContent = "VisionOS HUD: Off";
+      btn.style.background = "#8e44ad";
+      hudCanvas.style.display = "none";
+      if (hudAnimId) {
+        cancelAnimationFrame(hudAnimId);
+        hudAnimId = null;
+      }
+      hudCtx.clearRect(0, 0, hudCanvas.width, hudCanvas.height);
+    }
+  }
+
   function applyMetrics(m) {
+    lastMetricsForHud = m;
     $("profName").textContent = m.profile;
     $("profDot").style.background = PROFILE_COLOR[m.profile] || "var(--muted)";
     $("mSource").textContent = m.profile_source;
     $("mEwma").textContent = fmtK(m.measured_kbps);
     $("mQ").textContent = m.jpeg_quality;
+
+    const sh = m.shadow || {};
+    if ($("mSafeBw")) {
+      const safe = sh.safe_kbps != null ? fmtK(sh.safe_kbps) : "—";
+      const vol = sh.volatility_ratio != null ? ` (volatility: ${(sh.volatility_ratio * 100).toFixed(1)}%)` : "";
+      $("mSafeBw").textContent = safe + vol;
+    }
+    if ($("mStrategy")) {
+      $("mStrategy").textContent = (sh.allocation_strategy || "intelligent_allocator").replace(/_/g, " ");
+    }
+    if ($("mBudget")) {
+      const bTarget = sh.budget_bytes != null ? fmtB(sh.budget_bytes) : "—";
+      const bAct = sh.tile_bytes != null ? fmtB(sh.tile_bytes) : "—";
+      $("mBudget").textContent = `${bTarget} / ${bAct}`;
+    }
+    if ($("mBudgetStatus")) {
+      if (sh.within_budget === false || (sh.overshoot_bytes && sh.overshoot_bytes > 0)) {
+        $("mBudgetStatus").innerHTML = `<span style="color:var(--critical); font-weight:600;">Overshoot: +${fmtB(sh.overshoot_bytes)} (${sh.budget_retries || 0} retries)</span>`;
+      } else if (sh.within_budget === true) {
+        $("mBudgetStatus").innerHTML = `<span style="color:var(--good); font-weight:600;">✓ Compliant (${sh.budget_retries || 0} retries)</span>`;
+      } else {
+        $("mBudgetStatus").textContent = "—";
+      }
+    }
+    if ($("mVpQuality")) {
+      const vpPsnr = sh.viewport_psnr_db != null && sh.viewport_psnr_db >= 0 ? sh.viewport_psnr_db.toFixed(1) + " dB" : "—";
+      $("mVpQuality").textContent = vpPsnr;
+    }
+    if ($("mPeriphQuality")) {
+      const perPsnr = sh.peripheral_psnr_db != null && sh.peripheral_psnr_db >= 0 ? sh.peripheral_psnr_db.toFixed(1) + " dB" : "N/A";
+      $("mPeriphQuality").textContent = perPsnr;
+    }
+    if ($("mGuardQuality")) {
+      const gbPsnr = sh.guard_band_psnr_db != null && sh.guard_band_psnr_db >= 0 ? sh.guard_band_psnr_db.toFixed(1) + " dB" : "—";
+      const bndMse = sh.boundary_artifact_mse != null ? ` · Boundary MSE: ${sh.boundary_artifact_mse}` : "";
+      $("mGuardQuality").textContent = gbPsnr + bndMse;
+    }
+
+    updateTileGrid(sh.tile_qualities, sh.high_count, sh.medium_count, sh.low_count, sh.encode_time_ms);
+
     const canvasTxt = m.canvas ? m.canvas[0] + "×" + m.canvas[1] : "canvas";
-    $("mRes").textContent = m.shadow.effective ? m.shadow.effective[0] + "×" + m.shadow.effective[1] + " → " + canvasTxt : "—";
     $("mFps").textContent = m.fps_target + " / " + (m.receiver ? m.receiver.fps_actual : "—");
     const snd = m.sender || {}, rcv = m.receiver || {};
     const leg = (raw, wire) => (raw != null && wire != null && wire > 0)
@@ -208,32 +565,45 @@
     $("mSender").textContent = leg(snd.raw_kbps, snd.wire_kbps);
     $("mReceiver").textContent = leg(rcv.raw_kbps, rcv.wire_kbps);
     $("mDropped").textContent = rcv.frames_dropped != null ? rcv.frames_dropped.toLocaleString() : "—";
-    $("mPsnr").textContent = m.shadow.psnr_db == null ? "∞ (lossless stage)" : m.shadow.psnr_db.toFixed(1) + " dB";
-    $("mFrames").textContent = m.frames_sent.toLocaleString();
-    $("mAudio").textContent = m.audio_mode === "foa" ? "FOA B-format folded to " + m.audio_channels + "ch" : "mic relay (" + m.audio_channels + "ch)";
-    if (m.phone_connected) {
-      $("mLink").textContent = m.phone && m.phone.inbound_kbps != null ? fmtK(m.phone.inbound_kbps) : "phone live (measuring…)";
-    } else if (m.synthetic_active) {
-      $("mLink").textContent = "synthetic XR feed (active)";
-    } else {
-      $("mLink").textContent = "offline";
-    }
+    $("mPsnr").textContent = sh.psnr_db == null ? "∞ (lossless stage)" : sh.psnr_db.toFixed(1) + " dB";
+
     $("mPhone").textContent = m.phone && m.phone.sent_kbps != null
       ? fmtK(m.phone.sent_kbps) + (m.phone.sent_fps ? " · " + Math.round(m.phone.sent_fps) + " fps" : "")
       : "—";
     $("mLost").textContent = m.phone && m.phone.packets_lost != null ? m.phone.packets_lost : "—";
     $("gazeTxt").textContent = "gaze " + m.gaze[0].toFixed(2) + ", " + m.gaze[1].toFixed(2) + " · foveation " + (m.foveated ? "on" : "off");
+
     const roi = $("roiBox");
-    if (m.shadow.roi && m.shadow.effective) {
-      const [effW, effH] = m.shadow.effective, [x0, y0, x1, y1] = m.shadow.roi;
+    if (sh.roi && sh.effective) {
+      const [effW, effH] = sh.effective, [x0, y0, x1, y1] = sh.roi;
       roi.className = "roi";
       roi.style.left = (x0 / effW) * 100 + "%"; roi.style.top = (y0 / effH) * 100 + "%";
       roi.style.width = ((x1 - x0) / effW) * 100 + "%"; roi.style.height = ((y1 - y0) / effH) * 100 + "%";
     } else roi.className = "roi dim";
-    if (m.shadow.jpeg_bytes != null) {
-      $("jpVal").textContent = fmtB(m.shadow.jpeg_bytes);
-      $("mRatio").textContent = (m.shadow.raw_bytes / m.shadow.jpeg_bytes).toFixed(1) + " : 1";
-      hist.jp.push(m.shadow.jpeg_bytes); if (hist.jp.length > HISTORY) hist.jp.shift();
+
+    // Predicted RoI overlay
+    const predRoi = $("predRoiBox");
+    if (predRoi) {
+      if (sh.predicted_roi && sh.effective && sh.prediction_enabled) {
+        const [effW, effH] = sh.effective, [px0, py0, px1, py1] = sh.predicted_roi;
+        predRoi.className = "roi";
+        predRoi.style.display = "block";
+        predRoi.style.left = (px0 / effW) * 100 + "%"; predRoi.style.top = (py0 / effH) * 100 + "%";
+        predRoi.style.width = ((px1 - px0) / effW) * 100 + "%"; predRoi.style.height = ((py1 - py0) / effH) * 100 + "%";
+        if ($("predStatus")) {
+          const conf = sh.prediction_confidence != null ? Math.round(sh.prediction_confidence * 100) : 100;
+          $("predStatus").textContent = `Predicted Viewport (${conf}% conf)`;
+        }
+      } else {
+        predRoi.className = "roi dim";
+        predRoi.style.display = "none";
+        if ($("predStatus")) $("predStatus").textContent = "";
+      }
+    }
+
+    if (sh.jpeg_bytes != null) {
+      $("jpVal").textContent = fmtB(sh.jpeg_bytes);
+      hist.jp.push(sh.jpeg_bytes); if (hist.jp.length > HISTORY) hist.jp.shift();
       drawSpark($("jpSpark"), hist.jp);
     }
     if (m.measured_kbps != null) {
@@ -241,12 +611,11 @@
       hist.bw.push(m.measured_kbps); if (hist.bw.length > HISTORY) hist.bw.shift();
       drawSpark($("bwSpark"), hist.bw, fmtK);
     }
-    // sender leg: raw (muted) vs wire (accent) — the compression, live
     if (snd.raw_kbps != null) { hist.sndRaw.push(snd.raw_kbps); if (hist.sndRaw.length > HISTORY) hist.sndRaw.shift(); }
     if (snd.wire_kbps != null) { hist.sndWire.push(snd.wire_kbps); if (hist.sndWire.length > HISTORY) hist.sndWire.shift(); }
     $("sndVal").textContent = (snd.raw_kbps > 0 && snd.wire_kbps > 0) ? (snd.raw_kbps / snd.wire_kbps).toFixed(1) + " : 1" : "—";
     drawSpark($("sndSpark"), hist.sndRaw, null, hist.sndWire);
-    // receiver leg: wire (muted) vs decompressed raw (accent)
+
     if (rcv.raw_kbps != null) { hist.rcvRaw.push(rcv.raw_kbps); if (hist.rcvRaw.length > HISTORY) hist.rcvRaw.shift(); }
     if (rcv.wire_kbps != null) { hist.rcvWire.push(rcv.wire_kbps); if (hist.rcvWire.length > HISTORY) hist.rcvWire.shift(); }
     $("rcvVal").textContent = (rcv.raw_kbps > 0 && rcv.wire_kbps > 0) ? (rcv.raw_kbps / rcv.wire_kbps).toFixed(1) + " : 1" : "—";
@@ -294,8 +663,6 @@
     else if (msg.type === "metrics") applyMetrics(msg);
   };
 
-  // Report received video-payload bytes to the server every second; that is
-  // what feeds the EWMA and walks the adaptive ladder ("measured" source).
   let lastRx = null;
   setInterval(async () => {
     if (pc.connectionState !== "connected" || ws.readyState !== WebSocket.OPEN) { lastRx = null; return; }
@@ -325,19 +692,70 @@
   $("forceSel").addEventListener("change", (e) => {
     ws.send(JSON.stringify({ type: "set_profile", profile: e.target.value }));
   });
+  if ($("modeSel")) {
+    $("modeSel").addEventListener("change", (e) => {
+      ws.send(JSON.stringify({ type: "set_mode", mode: e.target.value }));
+    });
+  }
+  if ($("predChk")) {
+    $("predChk").addEventListener("change", (e) => {
+      ws.send(JSON.stringify({ type: "set_prediction", enabled: e.target.checked }));
+    });
+  }
   const capRange = $("capRange");
-  capRange.addEventListener("input", () => {
-    const kbps = Number(capRange.value);
-    $("capVal").textContent = kbps === 0 ? "off" : fmtK(kbps);
+  const applyCap = (kbps) => {
+    capRange.value = kbps || 0;
+    $("capVal").textContent = kbps === 0 || kbps == null ? "off" : fmtK(kbps);
     ws.send(JSON.stringify({ type: "set_cap", kbps: kbps === 0 ? null : kbps }));
-  });
+  };
+  capRange.addEventListener("input", () => applyCap(Number(capRange.value)));
+
+  if ($("dropBwBtn")) $("dropBwBtn").addEventListener("click", () => applyCap(300));
+  if ($("stepBwBtn")) $("stepBwBtn").addEventListener("click", () => applyCap(1000));
+  if ($("recoverBwBtn")) $("recoverBwBtn").addEventListener("click", () => applyCap(0));
+
   $("muteBtn").addEventListener("click", () => {
     const v = $("video");
     v.muted = !v.muted;
     $("muteBtn").textContent = v.muted ? "Enable sound" : "Mute";
     if (!v.muted) v.play().catch(() => {});
   });
+
+  // Direct interactive gaze steering via click/drag on video or minimap
+  function sendGazeFromEvent(e, el) {
+    const rect = el.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "set_gaze", x, y }));
+    }
+  }
+
+  const vEl = $("video");
+  let gazeDragging = false;
+  vEl.style.cursor = "crosshair";
+  vEl.addEventListener("mousedown", (e) => { gazeDragging = true; sendGazeFromEvent(e, vEl); });
+  vEl.addEventListener("touchstart", (e) => { gazeDragging = true; sendGazeFromEvent(e, vEl); }, { passive: true });
+  window.addEventListener("mousemove", (e) => { if (gazeDragging) sendGazeFromEvent(e, vEl); });
+  window.addEventListener("touchmove", (e) => { if (gazeDragging) sendGazeFromEvent(e, vEl); }, { passive: true });
+  window.addEventListener("mouseup", () => { gazeDragging = false; });
+  window.addEventListener("touchend", () => { gazeDragging = false; });
+
+  const mBox = document.querySelector(".minimap .box");
+  if (mBox) {
+    mBox.style.cursor = "crosshair";
+    mBox.addEventListener("click", (e) => sendGazeFromEvent(e, mBox));
+  }
+
+  if ($("hudToggleBtn")) $("hudToggleBtn").addEventListener("click", toggleVisionOsHud);
+  if ($("hudOpacity")) $("hudOpacity").addEventListener("input", (e) => {
+    hudOpacityVal = Number(e.target.value) / 100;
+  });
+
   window.addEventListener("resize", () => {
+    resizeHudCanvas();
     if (hist.bw.length) drawSpark($("bwSpark"), hist.bw);
     if (hist.jp.length) drawSpark($("jpSpark"), hist.jp);
     drawSpark($("sndSpark"), hist.sndRaw, null, hist.sndWire);
