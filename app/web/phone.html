@@ -15,6 +15,7 @@
     :root { --surface: #1a1a19; --surface-2: #232322; --ink: #f0efec; --ink-2: #c3c2b7; --line: #2c2c2a; --accent: #3987e5; --good: #008300; --serious: #e66767; }
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface); color: var(--ink); }
   header { padding: 14px 16px 6px; }
   h1 { font-size: 17px; margin: 0 0 2px; }
@@ -46,6 +47,7 @@
   .hint { color: var(--ink-2); font-size: 13px; }
   .stats { color: var(--ink-2); font-size: 13px; display: flex; gap: 14px; flex-wrap: wrap; }
   .stats b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  #txSpark { width: 100%; height: 44px; display: block; margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -86,9 +88,13 @@
   </div>
   <div class="stats" id="stats" hidden>
     <span>capture <b id="capRes">—</b></span>
-    <span>fps <b id="capFps">—</b></span>
-    <span>gaze <b id="gazePos">0.50, 0.50</b></span>
+    <span>capture fps <b id="capFps">—</b></span>
+    <span>sent fps <b id="encFps">—</b></span>
+    <span>raw <b id="rawRate">—</b></span>
+    <span>sent <b id="wireRate">—</b></span>
+    <span>compression <b id="txRatio">—</b></span>
   </div>
+  <canvas id="txSpark" hidden></canvas>
   <p class="hint" id="err" hidden style="color:var(--serious)"></p>
   <p class="hint">The laptop (or a second phone acting as viewer) opens <a href="/viewer" style="color:var(--accent)">/viewer</a> — this page is only the streaming source.</p>
 </main>
@@ -101,6 +107,59 @@
 
   const setState = (cls, text) => { stateChip.className = "chip " + cls; stateText.textContent = text; };
   const showErr = (msg) => { const e = $("err"); e.hidden = !msg; if (msg) e.textContent = msg; };
+
+  // --- sender-side byte accounting: raw capture vs encoded wire rate -------
+  let captureDims = null, lastTx = null, txHist = [];
+  const fmtK = (v) => v >= 1000 ? (v / 1000).toFixed(2) + " Mbps" : Math.round(v) + " kbps";
+
+  function drawTx() {
+    const c = $("txSpark"), dpr = window.devicePixelRatio || 1;
+    const w = c.clientWidth, h = c.clientHeight;
+    c.width = w * dpr; c.height = h * dpr;
+    const ctx = c.getContext("2d");
+    ctx.scale(dpr, dpr);
+    const css = getComputedStyle(document.documentElement);
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = css.getPropertyValue("--line").trim() || "#e1e0d9"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, h - 0.5); ctx.lineTo(w, h - 0.5); ctx.stroke();
+    if (txHist.length < 2) return;
+    const max = Math.max(...txHist) * 1.1 || 1;
+    ctx.strokeStyle = css.getPropertyValue("--accent").trim() || "#2a78d6";
+    ctx.lineWidth = 2; ctx.lineJoin = "round";
+    ctx.beginPath();
+    txHist.forEach((v, i) => { const x = (i / (txHist.length - 1)) * w, y = h - 3 - (v / max) * (h - 8); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.stroke();
+  }
+
+  setInterval(async () => {
+    if (!pc || pc.connectionState !== "connected") { lastTx = null; return; }
+    let bytes = 0, frames = 0;
+    try {
+      (await pc.getStats()).forEach((s) => {
+        if (s.type === "outbound-rtp" && s.kind === "video") { bytes = s.bytesSent; frames = s.framesEncoded; }
+      });
+    } catch (_) { return; }
+    const now = performance.now();
+    if (lastTx && now > lastTx.t) {
+      const dt = (now - lastTx.t) / 1000;
+      const kbps = Math.max(bytes - lastTx.bytes, 0) * 8 / 1000 / dt;
+      const efps = Math.max(frames - lastTx.frames, 0) / dt;
+      const rawKbps = captureDims ? captureDims[0] * captureDims[1] * 3 * efps * 8 / 1000 : 0;
+      $("encFps").textContent = efps ? Math.round(efps) : "—";
+      $("wireRate").textContent = fmtK(kbps);
+      $("rawRate").textContent = (rawKbps / 8000).toFixed(2) + " MB/s";
+      $("txRatio").textContent = kbps > 0 ? (rawKbps / kbps).toFixed(1) + " : 1" : "—";
+      // tell the server our own video-only wire rate (its transport meter
+      // cannot separate video from audio + RTCP + retransmits)
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "txstats", kbps: Math.round(kbps), fps: Math.round(efps) }));
+      }
+      txHist.push(kbps); if (txHist.length > 120) txHist.shift();
+      drawTx();
+    }
+    lastTx = { t: now, bytes, frames };
+  }, 1000);
+
 
   const isSecure = window.isSecureContext || location.hostname === "localhost" || location.hostname === "127.0.0.1";
   if (!isSecure && (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)) {
@@ -119,7 +178,6 @@
     const dot = $("gazeDot");
     dot.style.left = (gaze.nx * 100) + "%";
     dot.style.top = (gaze.ny * 100) + "%";
-    $("gazePos").textContent = gaze.nx.toFixed(2) + ", " + gaze.ny.toFixed(2);
     const now = performance.now();
     if (ws && ws.readyState === WebSocket.OPEN && now - gazeTimer > 80) {
       gazeTimer = now;
@@ -178,13 +236,13 @@
       }
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
+          video: { facingMode: { ideal: "environment" }, width: { ideal: 960 }, height: { ideal: 540 }, frameRate: { ideal: 24 } },
           audio: { echoCancellation: true, noiseSuppression: true },
         });
       } catch (e1) {
         try {
           stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+            video: { facingMode: { ideal: "environment" }, width: { ideal: 960 }, height: { ideal: 540 } },
             audio: false,
           });
         } catch (e2) {
@@ -204,9 +262,11 @@
     $("preview").play().catch(() => {});
     const track = stream.getVideoTracks()[0];
     const s = track ? track.getSettings() : { width: 640, height: 360, frameRate: 30 };
-    $("capRes").textContent = (s.width || 640) + "×" + (s.height || 360);
+    captureDims = [s.width || 640, s.height || 360];
+    $("capRes").textContent = captureDims[0] + "×" + captureDims[1];
     $("capFps").textContent = s.frameRate ? Math.round(s.frameRate) : "30";
     $("stats").hidden = false;
+    $("txSpark").hidden = false;
 
     setState("", "signaling…");
     ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws/phone");
@@ -252,6 +312,7 @@
     $("preview").srcObject = null;
     $("overlay").hidden = false;
     $("stopBtn").hidden = true; $("restartBtn").hidden = true; $("stats").hidden = true;
+    $("txSpark").hidden = true; txHist = []; lastTx = null;
     setState("", "idle");
   }
 

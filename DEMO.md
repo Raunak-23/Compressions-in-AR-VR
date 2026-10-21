@@ -10,6 +10,13 @@ Transport is genuine WebRTC (VP8 video + Opus audio over SRTP via aiortc).
 The ngrok/localtunnel link carries **only** the HTTPS pages and the two
 signaling WebSockets; the media itself is peer-to-peer.
 
+**Where compression happens:** the phone compresses first (its browser's
+VP8/Opus encoder), the server's adaptive stage re-encodes the adapted frame
+(scale / foveation / fps per profile), and the viewer's browser decompresses.
+Both hops are metered live — raw → wire on the phone page, wire → raw on the
+viewer page. Only one phone publishes at a time; a new one takes over and
+kicks the previous publisher.
+
 ## 0. One-time setup
 
 ```bash
@@ -71,7 +78,7 @@ laptop viewer the measured bandwidth is huge, so two demo levers exist in the
 dashboard:
 
 1. **Simulated link cap** — drag the cap slider to ~600 kbps: the profile
-   badge drops to *low*, the encode resolution drops to 640×360, foveation
+   badge drops to *low*, the encode resolution drops to 480×270, foveation
    switches on (watch the minimap: sharp box = gaze RoI, blurred periphery),
    audio folds to mono (in FOA mode), and the JPEG shadow curve collapses.
    Drag it back up: the ladder walks back to *ultra*.
@@ -100,11 +107,14 @@ low and the ladder downshifts on its own, no slider needed.
   browser trickle ICE; samples `pc.getStats()` on the phone leg for the real
   phone→server throughput.
 - `app/rtc/tracks.py` — the adaptive stage as an aiortc source track: profile
-  resolution (`scale`), foveation from gaze (`foveated`, `blur`), pacing at
-  profile `fps`, and shadow metrics (JPEG size / PSNR via `app.codecs.lossy`)
-  on every 5th frame. Outbound frames are always the fixed 1280×720 canvas so
+  resolution (`scale`), foveation from gaze (`foveated`, `blur`, approximated
+  at quarter size for speed), pacing at profile `fps` (never sleeps when the
+  pipeline is behind), and shadow metrics (JPEG size / PSNR via
+  `app.codecs.lossy`) sampled every 5th frame *off the frame path* so they
+  never add latency. Outbound frames are always the fixed 960×540 canvas so
   the VP8 encoder never renegotiates; downshifted profiles ship fewer real
-  pixels upscaled, which is precisely the ABR trade.
+  pixels upscaled, which is precisely the ABR trade. Frames a slow consumer
+  skips are counted as `frames_dropped` for that viewer.
 - `app/rtc/bridge.py` — the shared frame slots + per-viewer adaptation state
   (EWMA → `pick_profile`, with the demo overrides), unit-tested headlessly.
 - The offline study plane (`/metrics`, `/stream`, `/audio`, `experiments.py`)

@@ -3,7 +3,7 @@
 Course project for **Data Compression**: studying classical and media compression techniques,
 **real H.264 video compression**, **4×4 viewport-aware tile compression**, **real Opus audio coding**,
 **network-bandwidth-adaptive** streaming, and **combined adaptive policies** — measured on the spatial audio + video of an
-AR/VR/XR livestream (the synthetic stereoscopic rig from the Virtual Darshan platform).
+AR/VR/XR livestream.
 
 ## The media plane under test
 
@@ -82,9 +82,9 @@ Running `uv run python experiments.py` executes the full evaluation suite and ex
 
 The adaptive + viewport-aware pipeline runs live over WebRTC:
 
-1. **Phone** (`/phone`, over an HTTPS tunnel) publishes camera + mic via `RTCPeerConnection` and streams touch position as gaze.
-2. **Bridge** (aiortc, in this server) runs the adaptive stage per viewer: profile resolution scaling on the invariant 1280×720 canvas, foveation from gaze, FOA channel folding, and shadow metrics sampled every 5th frame.
-3. **Viewer** (`/viewer`, on the laptop) receives the adapted VP8/Opus stream and reports WebRTC receiver stats over WebSocket; the EWMA walks the profile ladder.
+1. **Phone** (`/phone`, over an HTTPS tunnel) publishes camera + mic via `RTCPeerConnection` and streams touch position as gaze. The phone page shows its own live sender accounting (raw capture vs encoded wire rate, running graph). Only one publisher at a time — a new phone takes over and kicks the previous one.
+2. **Bridge** (aiortc, in this server) runs the adaptive stage per viewer: profile resolution scaling on the invariant 960×540 canvas, foveation from gaze, FOA channel folding, and shadow metrics sampled every 5th frame.
+3. **Viewer** (`/viewer`, on the laptop) receives the adapted VP8/Opus stream and reports WebRTC receiver stats over WebSocket; the EWMA walks the profile ladder. The dashboard meters both hops live (sender raw→wire, receiver wire→raw, running graphs), shows actual/target fps and adapter frames dropped, and its **Compression technique** dropdown picks a rung or leaves `auto` (adaptive ladder decides).
 
 See **[DEMO.md](DEMO.md)** for step-by-step setup with ngrok or localtunnel.
 
@@ -94,5 +94,5 @@ See **[DEMO.md](DEMO.md)** for step-by-step setup with ngrok or localtunnel.
 - `app/viewport_tiles.py`: 4×4 grid tiling, gaze RoI intersection, 1-hop Chebyshev guard band, independent tile encoding, gapless canvas reconstruction.
 - `app/codecs/audio_codec.py`: PyAV / libopus encoder and decoder for mono and stereo streams across 24–128 kbps with audio SNR measurement.
 - `app/adaptive.py`: EWMA throughput estimator, profile ladder picker, frame budget allocation, and overshoot accounting.
-- `app/rtc/tracks.py`: aiortc media tracks enforcing the fixed 1280×720 video canvas, frame pacing, and non-blocking shadow metrics.
+- `app/rtc/tracks.py`: aiortc media tracks enforcing the fixed 960×540 video canvas, frame pacing, non-blocking shadow metrics, and per-viewer adapter-skip counting.
 - `app/rtc/bridge.py` & `app/rtc/signaling.py`: State management and WebSocket signaling for browser trickle ICE.

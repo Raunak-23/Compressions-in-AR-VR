@@ -18,6 +18,7 @@
             --good: #008300; --warning: #c98500; --critical: #e66767; }
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--surface-1); color: var(--ink); }
   header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 14px 20px 4px; max-width: 1180px; margin: 0 auto; }
   h1 { font-size: 18px; margin: 0; }
@@ -87,13 +88,13 @@
       </div>
     </div>
     <div class="controls" style="margin-top:12px">
-      <label for="forceSel">Profile</label>
+      <label for="forceSel">Compression technique</label>
       <select id="forceSel">
-        <option value="auto" selected>auto (EWMA ladder)</option>
-        <option value="ultra">ultra</option>
-        <option value="high">high</option>
-        <option value="medium">medium</option>
-        <option value="low">low</option>
+        <option value="auto" selected>auto — adaptive ladder</option>
+        <option value="ultra">ultra — full frame</option>
+        <option value="high">high — full frame</option>
+        <option value="medium">medium — foveated, ¾ res</option>
+        <option value="low">low — foveated, ½ res</option>
       </select>
       <label for="capRange">Simulated link cap</label>
       <input type="range" id="capRange" min="0" max="6000" step="50" value="0">
@@ -102,6 +103,16 @@
       <button id="camBtn">Use Laptop Camera</button>
     </div>
     <div class="grid2" style="margin-top:12px">
+      <div class="tile">
+        <div class="label">Sender: raw camera → wire (phone leg)</div>
+        <div class="value" id="sndVal">—</div>
+        <canvas id="sndSpark"></canvas>
+      </div>
+      <div class="tile">
+        <div class="label">Receiver: wire → raw RGB (viewer leg)</div>
+        <div class="value" id="rcvVal">—</div>
+        <canvas id="rcvSpark"></canvas>
+      </div>
       <div class="tile">
         <div class="label">Measured downlink (viewer stats → EWMA)</div>
         <div class="value" id="bwVal">—</div>
@@ -125,12 +136,16 @@
       <tr><td>EWMA estimate</td><td id="mEwma">—</td></tr>
       <tr><td>JPEG quality</td><td id="mQ">—</td></tr>
       <tr><td>Effective resolution</td><td id="mRes">—</td></tr>
-      <tr><td>Target fps</td><td id="mFps">—</td></tr>
+      <tr><td>Target fps / actual fps</td><td id="mFps">—</td></tr>
+      <tr><td>Sender: raw → wire (phone)</td><td id="mSender">—</td></tr>
+      <tr><td>Receiver: wire → raw (viewer)</td><td id="mReceiver">—</td></tr>
+      <tr><td>Frames dropped (adapter skips)</td><td id="mDropped">—</td></tr>
       <tr><td>Shadow JPEG ratio</td><td id="mRatio">—</td></tr>
       <tr><td>Stage PSNR (effective frame)</td><td id="mPsnr">—</td></tr>
       <tr><td>Frames adapted</td><td id="mFrames">—</td></tr>
       <tr><td>Audio mode</td><td id="mAudio">—</td></tr>
-      <tr><td>Phone → server link</td><td id="mPhone">—</td></tr>
+      <tr><td>Phone link (server meter: video+audio+overhead)</td><td id="mLink">—</td></tr>
+      <tr><td>Phone reports sent (video payload)</td><td id="mPhone">—</td></tr>
       <tr><td>Video packets lost (phone hop)</td><td id="mLost">—</td></tr>
     </table>
   </div>
@@ -139,12 +154,12 @@
 (() => {
   const $ = (id) => document.getElementById(id);
   const HISTORY = 120;
-  const hist = { bw: [], jp: [] };
+  const hist = { bw: [], jp: [], sndRaw: [], sndWire: [], rcvRaw: [], rcvWire: [] };
   const fmtK = (v) => v == null ? "—" : v >= 1000 ? (v / 1000).toFixed(2) + " Mbps" : Math.round(v) + " kbps";
   const fmtB = (v) => v == null ? "—" : v >= 1e6 ? (v / 1e6).toFixed(2) + " MB" : v >= 1e3 ? (v / 1e3).toFixed(1) + " KB" : v + " B";
   const PROFILE_COLOR = { ultra: "var(--good)", high: "var(--good)", medium: "var(--warning)", low: "var(--critical)" };
 
-  function drawSpark(canvas, data, fmt) {
+  function drawSpark(canvas, data, fmt, overlay) {
     const dpr = window.devicePixelRatio || 1;
     const w = canvas.clientWidth, h = canvas.clientHeight;
     canvas.width = w * dpr; canvas.height = h * dpr;
@@ -157,18 +172,25 @@
     ctx.clearRect(0, 0, w, h);
     ctx.strokeStyle = grid; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(0, h - 0.5); ctx.lineTo(w, h - 0.5); ctx.stroke();  // recessive baseline
-    if (data.length < 2) return;
-    const max = Math.max(...data) * 1.1 || 1, min = 0;
-    const px = (i) => (i / (HISTORY - 1)) * w;
+    if (data.length < 2 && !(overlay && overlay.length > 1)) return;
+    const all = overlay ? data.concat(overlay) : data;
+    const max = Math.max(...all) * 1.1 || 1, min = 0;
     const py = (v) => h - 3 - ((v - min) / (max - min)) * (h - 8);
-    const off = HISTORY - data.length;
-    ctx.strokeStyle = muted; ctx.lineWidth = 2; ctx.lineJoin = "round";
-    ctx.beginPath();
-    data.forEach((v, i) => { const x = px(off + i), y = py(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
-    ctx.stroke();
-    const cx = px(off + data.length - 1), cy = py(data[data.length - 1]);
-    ctx.fillStyle = accent;
-    ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, Math.PI * 2); ctx.fill();  // current period in the accent
+    const line = (arr, color, width) => {
+      if (arr.length < 2) return;
+      const span = Math.max(arr.length - 1, 1);  // short histories span the full width
+      ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineJoin = "round";
+      ctx.beginPath();
+      arr.forEach((v, i) => { const x = (i / span) * w, y = py(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+      ctx.stroke();
+    };
+    line(data, muted, 2);
+    line(overlay || [], accent, 1.5);
+    if (data.length) {
+      const cx = w, cy = py(data[data.length - 1]);
+      ctx.fillStyle = accent;
+      ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, Math.PI * 2); ctx.fill();  // current period in the accent
+    }
   }
 
   function applyMetrics(m) {
@@ -177,18 +199,28 @@
     $("mSource").textContent = m.profile_source;
     $("mEwma").textContent = fmtK(m.measured_kbps);
     $("mQ").textContent = m.jpeg_quality;
-    $("mRes").textContent = m.shadow.effective ? m.shadow.effective[0] + "×" + m.shadow.effective[1] + " → 1280×720" : "—";
-    $("mFps").textContent = m.fps_target;
+    const canvasTxt = m.canvas ? m.canvas[0] + "×" + m.canvas[1] : "canvas";
+    $("mRes").textContent = m.shadow.effective ? m.shadow.effective[0] + "×" + m.shadow.effective[1] + " → " + canvasTxt : "—";
+    $("mFps").textContent = m.fps_target + " / " + (m.receiver ? m.receiver.fps_actual : "—");
+    const snd = m.sender || {}, rcv = m.receiver || {};
+    const leg = (raw, wire) => (raw != null && wire != null && wire > 0)
+      ? fmtK(raw) + " → " + fmtK(wire) + "  (" + (raw / wire).toFixed(1) + " : 1)" : "—";
+    $("mSender").textContent = leg(snd.raw_kbps, snd.wire_kbps);
+    $("mReceiver").textContent = leg(rcv.raw_kbps, rcv.wire_kbps);
+    $("mDropped").textContent = rcv.frames_dropped != null ? rcv.frames_dropped.toLocaleString() : "—";
     $("mPsnr").textContent = m.shadow.psnr_db == null ? "∞ (lossless stage)" : m.shadow.psnr_db.toFixed(1) + " dB";
     $("mFrames").textContent = m.frames_sent.toLocaleString();
     $("mAudio").textContent = m.audio_mode === "foa" ? "FOA B-format folded to " + m.audio_channels + "ch" : "mic relay (" + m.audio_channels + "ch)";
     if (m.phone_connected) {
-      $("mPhone").textContent = m.phone && m.phone.inbound_kbps != null ? fmtK(m.phone.inbound_kbps) : "phone live (measuring…)";
+      $("mLink").textContent = m.phone && m.phone.inbound_kbps != null ? fmtK(m.phone.inbound_kbps) : "phone live (measuring…)";
     } else if (m.synthetic_active) {
-      $("mPhone").textContent = "synthetic XR feed (active)";
+      $("mLink").textContent = "synthetic XR feed (active)";
     } else {
-      $("mPhone").textContent = "offline";
+      $("mLink").textContent = "offline";
     }
+    $("mPhone").textContent = m.phone && m.phone.sent_kbps != null
+      ? fmtK(m.phone.sent_kbps) + (m.phone.sent_fps ? " · " + Math.round(m.phone.sent_fps) + " fps" : "")
+      : "—";
     $("mLost").textContent = m.phone && m.phone.packets_lost != null ? m.phone.packets_lost : "—";
     $("gazeTxt").textContent = "gaze " + m.gaze[0].toFixed(2) + ", " + m.gaze[1].toFixed(2) + " · foveation " + (m.foveated ? "on" : "off");
     const roi = $("roiBox");
@@ -209,6 +241,16 @@
       hist.bw.push(m.measured_kbps); if (hist.bw.length > HISTORY) hist.bw.shift();
       drawSpark($("bwSpark"), hist.bw, fmtK);
     }
+    // sender leg: raw (muted) vs wire (accent) — the compression, live
+    if (snd.raw_kbps != null) { hist.sndRaw.push(snd.raw_kbps); if (hist.sndRaw.length > HISTORY) hist.sndRaw.shift(); }
+    if (snd.wire_kbps != null) { hist.sndWire.push(snd.wire_kbps); if (hist.sndWire.length > HISTORY) hist.sndWire.shift(); }
+    $("sndVal").textContent = (snd.raw_kbps > 0 && snd.wire_kbps > 0) ? (snd.raw_kbps / snd.wire_kbps).toFixed(1) + " : 1" : "—";
+    drawSpark($("sndSpark"), hist.sndRaw, null, hist.sndWire);
+    // receiver leg: wire (muted) vs decompressed raw (accent)
+    if (rcv.raw_kbps != null) { hist.rcvRaw.push(rcv.raw_kbps); if (hist.rcvRaw.length > HISTORY) hist.rcvRaw.shift(); }
+    if (rcv.wire_kbps != null) { hist.rcvWire.push(rcv.wire_kbps); if (hist.rcvWire.length > HISTORY) hist.rcvWire.shift(); }
+    $("rcvVal").textContent = (rcv.raw_kbps > 0 && rcv.wire_kbps > 0) ? (rcv.raw_kbps / rcv.wire_kbps).toFixed(1) + " : 1" : "—";
+    drawSpark($("rcvSpark"), hist.rcvWire, null, hist.rcvRaw);
   }
 
   const pc = new RTCPeerConnection();
@@ -252,6 +294,25 @@
     else if (msg.type === "metrics") applyMetrics(msg);
   };
 
+  // Report received video-payload bytes to the server every second; that is
+  // what feeds the EWMA and walks the adaptive ladder ("measured" source).
+  let lastRx = null;
+  setInterval(async () => {
+    if (pc.connectionState !== "connected" || ws.readyState !== WebSocket.OPEN) { lastRx = null; return; }
+    let bytes = 0;
+    try {
+      (await pc.getStats()).forEach((s) => {
+        if (s.type === "inbound-rtp" && s.kind === "video") bytes = s.bytesReceived;
+      });
+    } catch (_) { return; }
+    const now = performance.now();
+    if (lastRx && now > lastRx.t) {
+      const dt = (now - lastRx.t) / 1000;
+      ws.send(JSON.stringify({ type: "stats", bytes: Math.max(bytes - lastRx.bytes, 0), dt }));
+    }
+    lastRx = { t: now, bytes };
+  }, 1000);
+
   const hideWaiting = () => {
     $("waiting").hidden = true;
     $("waiting").style.display = "none";
@@ -279,6 +340,8 @@
   window.addEventListener("resize", () => {
     if (hist.bw.length) drawSpark($("bwSpark"), hist.bw);
     if (hist.jp.length) drawSpark($("jpSpark"), hist.jp);
+    drawSpark($("sndSpark"), hist.sndRaw, null, hist.sndWire);
+    drawSpark($("rcvSpark"), hist.rcvWire, null, hist.rcvRaw);
   });
 
   // Optional: Laptop webcam source direct toggle
