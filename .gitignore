@@ -3,4 +3,8 @@ __pycache__/
 .pytest_cache/
 *.docx
 *pdf
+<<<<<<< HEAD
 AGENTS.md
+=======
+!XR_Compression_Lab_Complete_Architecture_and_Features_Guide.pdf
+>>>>>>> a97080abbb4e830650f2a49438de6628c7e35f67
